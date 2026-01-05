@@ -1,0 +1,652 @@
+// ============================================
+// 1. VARIABLES & THEME CONFIG
+// ============================================
+$primary-color: #0a65cc; // Màu chủ đạo (Xanh đậm chuyên nghiệp)
+$accent-color: #f97316; // Màu nhấn (Cam)
+$text-color: #18191c; // Màu chữ chính
+$text-gray: #5e6670; // Màu chữ phụ
+$bg-body: #f5f5f5; // Màu nền body xám
+$bg-white: #ffffff;
+$border-color: #e4e5e8;
+$font-family: "Plus Jakarta Sans", sans-serif;
+
+// Glassmorphism Variables (Cho Header)
+$bg-glass: rgba(255, 255, 255, 0.9);
+$shadow-soft: 0 4px 30px rgba(0, 0, 0, 0.05);
+
+// ============================================
+// 2. GLOBAL STYLES & RESET
+// ============================================
+:global {
+  body {
+    overflow-x: hidden; // Ngăn cuộn ngang
+    background-color: $bg-body;
+    color: $text-color;
+    font-family: $font-family;
+  }
+
+  // Custom Scrollbar
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
+    &:hover {
+      background: #999;
+    }
+  }
+}
+
+// Container chuẩn
+.container {
+  width: 100%;
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 0 20px;
+  height: 100%; // Quan trọng cho header
+}
+
+// Wrapper nền xám cho phần thân trang
+.bg-grey {
+  background-color: $bg-body;
+  padding-top: 40px;
+  padding-bottom: 60px;
+  min-height: calc(100vh - 80px);
+}
+
+// Tiêu đề Section (Dùng chung cho Job & Company)
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  margin-top: 10px;
+
+  .section-title {
+    font-size: 24px;
+    font-weight: 800;
+    color: $text-color;
+    position: relative;
+    letter-spacing: -0.5px;
+  }
+
+  .view-all {
+    font-size: 15px;
+    font-weight: 600;
+    color: $text-gray;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+    text-decoration: none;
+
+    &:hover {
+      color: $primary-color;
+      transform: translateX(4px);
+    }
+  }
+}
+
+// ============================================
+// 3. HEADER STYLES
+// ============================================
+.header-section {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  width: 100%;
+  height: 80px;
+  padding: 0 !important;
+
+  // Glassmorphism Effect
+  background: $bg-glass !important;
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: $shadow-soft;
+
+  .header-desktop {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+
+    // Logo
+    .brand {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      margin-right: 40px;
+      flex-shrink: 0;
+
+      .brand-icon {
+        font-size: 32px;
+        color: $primary-color;
+        margin-right: 10px;
+      }
+
+      .brand-text {
+        font-size: 24px;
+        font-weight: 800;
+        color: $text-color;
+        letter-spacing: -0.5px;
+
+        .brand-highlight {
+          color: $primary-color;
+        }
+      }
+    }
+
+    // Menu
+    .top-menu {
+      flex: 1;
+      display: flex;
+      justify-content: flex-start;
+
+      .menu-custom {
+        background: transparent;
+        border-bottom: none;
+        font-size: 16px;
+        font-weight: 600;
+        width: 100%;
+
+        :global {
+          .ant-menu-item {
+            color: $text-gray;
+            &:hover,
+            &.ant-menu-item-selected {
+              color: $primary-color !important;
+              &::after {
+                border-bottom-color: $primary-color !important;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // User Actions (Login/Register)
+    .extra {
+      flex-shrink: 0;
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+
+      .login-link {
+        font-weight: 600;
+        color: $text-gray;
+        &:hover {
+          color: $primary-color;
+        }
+      }
+
+      .register-btn {
+        height: 44px;
+        padding: 0 24px;
+        font-weight: 700;
+        border: none;
+        border-radius: 50px;
+        background: linear-gradient(
+          135deg,
+          $primary-color 0%,
+          darken($primary-color, 10%) 100%
+        );
+        box-shadow: 0 4px 12px rgba($primary-color, 0.3);
+
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 16px rgba($primary-color, 0.4);
+        }
+      }
+
+      .user-dropdown {
+        cursor: pointer;
+        padding: 6px 12px;
+        border-radius: 30px;
+        border: 1px solid transparent;
+        &:hover {
+          background: rgba(0, 0, 0, 0.03);
+          border-color: #eee;
+        }
+
+        .user-avatar {
+          background-color: $primary-color;
+        }
+        .user-name {
+          font-weight: 700;
+          color: $text-color;
+          font-size: 15px;
+        }
+      }
+    }
+  }
+
+  // Mobile Header
+  .header-mobile {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
+
+    .brand-mobile {
+      font-size: 20px;
+      font-weight: 800;
+      color: $primary-color;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .menu-trigger {
+      font-size: 24px;
+      padding: 8px;
+    }
+  }
+}
+
+// ============================================
+// 4. HOME PAGE & HERO
+// ============================================
+.homepage-container {
+  .hero-section {
+    background: linear-gradient(135deg, #f0f4ff 0%, #ffffff 100%);
+    padding: 80px 0 60px;
+    border-bottom: 1px solid $border-color;
+
+    .hero-content {
+      text-align: center;
+      max-width: 800px;
+      margin: 0 auto;
+
+      .title {
+        font-size: 48px;
+        font-weight: 800;
+        color: $text-color;
+        margin-bottom: 16px;
+        line-height: 1.2;
+        span {
+          color: $primary-color;
+        }
+      }
+      .subtitle {
+        font-size: 18px;
+        color: $text-gray;
+        margin-bottom: 40px;
+      }
+    }
+
+    .search-box {
+      background: $bg-white;
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 12px 40px rgba(0, 44, 109, 0.1);
+      display: flex;
+      align-items: center;
+      border: 1px solid $border-color;
+      @media (max-width: 768px) {
+        flex-direction: column;
+        padding: 10px;
+      }
+    }
+  }
+}
+
+// ============================================
+// 5. COMPONENT: CARDS (Compact Style)
+// ============================================
+
+// 5.1 Company Card
+.company-card-modern {
+  border: 1px solid $border-color;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  height: 100%;
+  background: $bg-white;
+  cursor: pointer;
+  overflow: hidden;
+
+  :global {
+    .ant-card-body {
+      padding: 20px !important;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100%;
+    }
+  }
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06);
+    border-color: $primary-color;
+  }
+
+  .company-logo-wrapper {
+    width: 72px;
+    height: 72px;
+    margin-bottom: 16px;
+    border-radius: 12px;
+    border: 1px solid #f0f0f0;
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: $bg-white;
+
+    img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+  }
+
+  .company-info {
+    width: 100%;
+    text-align: center;
+    margin-bottom: auto;
+
+    .company-name {
+      font-size: 16px;
+      font-weight: 700;
+      color: $text-color;
+      margin-bottom: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .company-address {
+      color: $text-gray;
+      font-size: 13px;
+      display: -webkit-box;
+      -webkit-line-clamp: 1;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+  }
+
+  .company-footer {
+    margin-top: 16px;
+    .jobs-count {
+      color: $primary-color;
+      background: rgba($primary-color, 0.08);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+  }
+}
+
+// 5.2 Job Card
+.job-card-modern {
+  border: 1px solid $border-color;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  height: 100%;
+  background: $bg-white;
+  cursor: pointer;
+
+  :global {
+    .ant-card-body {
+      padding: 20px !important;
+    }
+  }
+
+  &:hover {
+    border-color: $primary-color;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06);
+  }
+
+  .card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 16px;
+
+    img {
+      width: 56px;
+      height: 56px;
+      object-fit: contain;
+      border-radius: 8px;
+      border: 1px solid #f0f0f0;
+      padding: 4px;
+    }
+
+    .info {
+      flex: 1;
+      overflow: hidden;
+      .title {
+        font-size: 17px;
+        font-weight: 700;
+        margin-bottom: 4px;
+        color: $text-color;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .company {
+        color: $text-gray;
+        font-size: 14px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+  }
+
+  .card-body {
+    .salary {
+      font-weight: 700;
+      color: #0ba02c; // Màu xanh lá cho lương
+      font-size: 16px;
+      margin-bottom: 16px;
+    }
+
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 16px;
+      border-top: 1px solid #f5f5f5;
+      color: $text-gray;
+      font-size: 13px;
+
+      .text-ellipsis {
+        max-width: 150px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: inline-block;
+        vertical-align: middle;
+      }
+    }
+  }
+}
+
+// ============================================
+// 6. FOOTER STYLES
+// ============================================
+.footer-section {
+  background-color: #18191c;
+  color: #767f8c;
+  padding-top: 80px;
+  margin-top: auto;
+
+  .footer-top {
+    padding-bottom: 60px;
+    border-bottom: 1px solid #2e2f32;
+  }
+
+  .footer-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    .brand-icon {
+      font-size: 28px;
+      color: $primary-color;
+    }
+    .brand-text {
+      font-size: 24px;
+      font-weight: 700;
+      color: #fff;
+    }
+  }
+
+  .footer-heading {
+    color: #fff;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 24px;
+  }
+
+  .footer-links li {
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    &:hover {
+      color: $primary-color;
+      padding-left: 5px;
+    }
+  }
+
+  .social-icons {
+    display: flex;
+    gap: 12px;
+    .icon-wrapper {
+      width: 40px;
+      height: 40px;
+      background: #2b2c30;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      color: #fff;
+      cursor: pointer;
+      &:hover {
+        background: $primary-color;
+      }
+    }
+  }
+
+  .footer-bottom {
+    padding: 24px 0;
+    text-align: center;
+    font-size: 14px;
+  }
+}
+
+// ============================================
+// 7. DETAIL PAGE STYLES
+// ============================================
+.job-detail-section {
+  background-color: $bg-body;
+  padding-bottom: 60px;
+
+  .job-header-container {
+    background: $bg-white;
+    padding: 40px 0;
+    margin-bottom: 30px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+
+    .header-content {
+      display: flex;
+      gap: 24px;
+      .company-logo {
+        width: 100px;
+        height: 100px;
+        border-radius: 12px;
+        border: 1px solid $border-color;
+        object-fit: contain;
+        padding: 5px;
+        background: #fff;
+      }
+      .job-info-header {
+        flex: 1;
+        .job-title {
+          font-size: 32px;
+          font-weight: 800;
+          color: $text-color;
+          margin-bottom: 12px;
+        }
+        .job-meta {
+          display: flex;
+          gap: 24px;
+          color: $text-gray;
+          font-weight: 500;
+          font-size: 15px;
+        }
+      }
+      .btn-apply {
+        min-width: 200px;
+        height: 50px;
+        font-weight: 700;
+        border-radius: 8px;
+      }
+    }
+  }
+
+  .job-description-card,
+  .company-sidebar-card {
+    background: $bg-white;
+    padding: 30px;
+    border-radius: 12px;
+    border: 1px solid $border-color;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    margin-bottom: 24px;
+
+    h3 {
+      font-size: 20px;
+      font-weight: 700;
+      color: $text-color;
+      margin-bottom: 20px;
+    }
+    .sidebar-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: $text-color;
+      margin-bottom: 20px;
+    }
+
+    .info-row {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 18px;
+      align-items: center;
+      .icon {
+        color: $primary-color;
+        font-size: 20px;
+        background: rgba($primary-color, 0.1);
+        padding: 8px;
+        border-radius: 50%;
+      }
+      .text div:first-child {
+        font-size: 13px;
+        color: $text-gray;
+      }
+      .text div:last-child {
+        font-size: 15px;
+        font-weight: 600;
+        color: $text-color;
+      }
+    }
+  }
+}
+
+// Responsive chung
+@media (max-width: 768px) {
+  .container {
+    padding: 0 15px;
+  }
+  .job-detail-section .header-content {
+    flex-direction: column;
+  }
+}
+
+:global {
+  .ant-pagination {
+    margin-bottom: 20px;
+  }
+}
