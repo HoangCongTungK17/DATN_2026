@@ -112,6 +112,56 @@ public class SubscriberService {
         }
     }
 
+    // Send email for a single subscriber
+    public void sendSubscriberEmail(Subscriber subscriber) {
+        System.out.println("▶▶▶ [EMAIL] Starting email send for subscriber: " +
+                (subscriber != null ? subscriber.getEmail() : "null"));
+
+        if (subscriber == null) {
+            System.out.println("❌ [EMAIL] Subscriber is null, aborting");
+            return;
+        }
+
+        List<Skill> listSkills = subscriber.getSkills();
+        System.out.println("▶▶▶ [EMAIL] Subscriber skills count: " +
+                (listSkills != null ? listSkills.size() : 0));
+
+        if (listSkills != null && listSkills.size() > 0) {
+            System.out.println("▶▶▶ [EMAIL] Skills: " +
+                    listSkills.stream()
+                            .map(Skill::getName)
+                            .collect(Collectors.joining(", ")));
+
+            List<Job> listJobs = this.jobRepository.findBySkillsIn(listSkills);
+            System.out.println("▶▶▶ [EMAIL] Found " +
+                    (listJobs != null ? listJobs.size() : 0) + " matching jobs");
+
+            if (listJobs != null && listJobs.size() > 0) {
+                System.out.println("▶▶▶ [EMAIL] Jobs: " +
+                        listJobs.stream()
+                                .map(Job::getName)
+                                .collect(Collectors.joining(", ")));
+
+                List<ResEmailJob> arr = listJobs.stream()
+                        .map(job -> this.convertJobToSendEmail(job))
+                        .collect(Collectors.toList());
+
+                System.out.println("✉️ [EMAIL] Sending email to: " + subscriber.getEmail());
+                this.emailService.sendEmailFromTemplateSync(
+                        subscriber.getEmail(),
+                        "Cơ hội việc làm hot đang chờ đón bạn, khám phá ngay",
+                        "job",
+                        subscriber.getName(),
+                        arr);
+                System.out.println("✅ [EMAIL] Email sent successfully");
+            } else {
+                System.out.println("⚠️ [EMAIL] No matching jobs found for subscriber's skills");
+            }
+        } else {
+            System.out.println("⚠️ [EMAIL] Subscriber has no skills selected");
+        }
+    }
+
     public Subscriber findByEmail(String email) {
         return this.subscriberRepository.findByEmail(email);
     }

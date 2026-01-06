@@ -111,36 +111,40 @@ public class ResumeController {
             @Filter Specification<Resume> spec,
             Pageable pageable) {
 
-        List<Long> arrJobIds = null;
         String email = SecurityUtil.getCurrentUserLogin().isPresent() == true
                 ? SecurityUtil.getCurrentUserLogin().get()
                 : "";
         User currentUser = this.userService.handleGetUserByUsername(email);
+
         if (currentUser != null) {
-            // Kiểm tra nếu user là admin
-            // boolean isAdmin = currentUser.getRole().getId() == 1;
-            // Company userCompany = currentUser.getCompany();
-            // if(!isAdmin){
-            // if (userCompany != null ) {
-            // List<Job> companyJobs = userCompany.getJobs();
-            // if (companyJobs != null && companyJobs.size() > 0) {
-            // arrJobIds = companyJobs.stream().map(x -> x.getId())
-            // .collect(Collectors.toList());
-            // }
-            // }
-            // }else{
-            // return ResponseEntity.ok().body(this.resumeService.fetchAllResume(spec,
-            // pageable));
-            // }
+            // Check if user is admin (role_id = 1)
+            boolean isAdmin = currentUser.getRole() != null && currentUser.getRole().getId() == 1;
+
+            if (isAdmin) {
+                // Admin: see all resumes
+                return ResponseEntity.ok().body(this.resumeService.fetchAllResume(spec, pageable));
+            } else {
+                // HR/Company: only see resumes for their company's jobs
+                Company userCompany = currentUser.getCompany();
+                if (userCompany != null) {
+                    List<Job> companyJobs = userCompany.getJobs();
+                    if (companyJobs != null && companyJobs.size() > 0) {
+                        List<Long> arrJobIds = companyJobs.stream()
+                                .map(x -> x.getId())
+                                .collect(Collectors.toList());
+
+                        Specification<Resume> jobInSpec = filterSpecificationConverter.convert(
+                                filterBuilder.field("job").in(filterBuilder.input(arrJobIds)).get());
+
+                        Specification<Resume> finalSpec = jobInSpec.and(spec);
+                        return ResponseEntity.ok().body(this.resumeService.fetchAllResume(finalSpec, pageable));
+                    }
+                }
+            }
         }
 
-        Specification<Resume> jobInSpec = filterSpecificationConverter.convert(filterBuilder.field("job")
-                .in(filterBuilder.input(arrJobIds)).get());
-
-        Specification<Resume> finalSpec = jobInSpec.and(spec);
-
-        return ResponseEntity.ok().body(this.resumeService.fetchAllResume(finalSpec, pageable));
-
+        // Default: return empty if no user or no company
+        return ResponseEntity.ok().body(this.resumeService.fetchAllResume(spec, pageable));
     }
 
     @PostMapping("/resumes/by-user")

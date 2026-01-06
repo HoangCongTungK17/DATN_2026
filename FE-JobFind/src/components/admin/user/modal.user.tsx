@@ -66,7 +66,7 @@ const ModalUser = (props: IProps) => {
       valuesForm;
     if (dataInit?.id) {
       //update
-      const user = {
+      const user: any = {
         id: dataInit.id,
         name,
         email,
@@ -74,12 +74,20 @@ const ModalUser = (props: IProps) => {
         age,
         gender,
         address,
-        role: { id: role.value, name: "" },
-        company: {
+      };
+
+      // Only include role if it's selected
+      if (role && role.value) {
+        user.role = { id: role.value, name: "" };
+      }
+
+      // Only include company if it's selected  
+      if (company && company.value) {
+        user.company = {
           id: company.value,
           name: company.label,
-        },
-      };
+        };
+      }
 
       const res = await callUpdateUser(user);
       if (res.data) {

@@ -1,4 +1,4 @@
-import { Button, Col, Form, Modal, Row, Select, Table, Tabs, message, notification } from "antd";
+import { Button, Col, Form, Input, InputNumber, Modal, Row, Select, Table, Tabs, message, notification } from "antd";
 import { isMobile } from "react-device-detect";
 import type { TabsProps } from 'antd';
 import { IResume, ISubscribers } from "@/types/backend";
@@ -94,9 +94,177 @@ const UserResume = (props: any) => {
 }
 
 const UserUpdateInfo = (props: any) => {
+    const [form] = Form.useForm();
+    const user = useAppSelector(state => state.account.user);
+    const [isSubmit, setIsSubmit] = useState<boolean>(false);
+
+    useEffect(() => {
+        if (user) {
+            form.setFieldsValue({
+                name: user.name,
+                age: (user as any).age || '',
+                gender: (user as any).gender || 'MALE',
+                address: (user as any).address || ''
+            });
+        }
+    }, [user]);
+
+    const onFinish = async (values: any) => {
+        setIsSubmit(true);
+        const { callUpdateProfile } = await import('@/config/api');
+
+        const res = await callUpdateProfile({
+            name: values.name,
+            age: values.age,
+            gender: values.gender,
+            address: values.address
+        });
+
+        if (res.data) {
+            message.success('Cập nhật thông tin thành công!');
+            // Optionally refresh user data from Redux
+        } else {
+            notification.error({
+                message: 'Có lỗi xảy ra',
+                description: res.message
+            });
+        }
+        setIsSubmit(false);
+    };
+
     return (
-        <div>
-            //todo
+        <div style={{ padding: '20px' }}>
+            <Form
+                form={form}
+                onFinish={onFinish}
+                layout="vertical"
+            >
+                <Row gutter={16}>
+                    <Col span={12}>
+                        <Form.Item
+                            label="Họ tên"
+                            name="name"
+                            rules={[{ required: true, message: 'Vui lòng nhập họ tên!' }]}
+                        >
+                            <Input />
+                        </Form.Item>
+                    </Col>
+                    <Col span={12}>
+                        <Form.Item
+                            label="Tuổi"
+                            name="age"
+                            rules={[{ required: true, message: 'Vui lòng nhập tuổi!' }]}
+                        >
+                            <InputNumber style={{ width: '100%' }} min={1} max={150} />
+                        </Form.Item>
+                    </Col>
+                </Row>
+                <Row gutter={16}>
+                    <Col span={12}>
+                        <Form.Item
+                            label="Giới tính"
+                            name="gender"
+                            rules={[{ required: true, message: 'Vui lòng chọn giới tính!' }]}
+                        >
+                            <Select>
+                                <Select.Option value="MALE">Nam</Select.Option>
+                                <Select.Option value="FEMALE">Nữ</Select.Option>
+                                <Select.Option value="OTHER">Khác</Select.Option>
+                            </Select>
+                        </Form.Item>
+                    </Col>
+                    <Col span={12}>
+                        <Form.Item
+                            label="Địa chỉ"
+                            name="address"
+                            rules={[{ required: true, message: 'Vui lòng nhập địa chỉ!' }]}
+                        >
+                            <Input />
+                        </Form.Item>
+                    </Col>
+                </Row>
+                <Form.Item>
+                    <Button type="primary" htmlType="submit" loading={isSubmit}>
+                        Cập nhật
+                    </Button>
+                </Form.Item>
+            </Form>
+        </div>
+    )
+}
+
+const ChangePasswordUser = (props: any) => {
+    const [form] = Form.useForm();
+    const [isSubmit, setIsSubmit] = useState<boolean>(false);
+
+    const onFinish = async (values: any) => {
+        const { currentPassword, newPassword, confirmPassword } = values;
+
+        if (newPassword !== confirmPassword) {
+            notification.error({
+                message: 'Lỗi',
+                description: 'Xác nhận mật khẩu không khớp!'
+            });
+            return;
+        }
+
+        setIsSubmit(true);
+        const { callChangePassword } = await import('@/config/api');
+
+        const res = await callChangePassword(currentPassword, newPassword);
+
+        if (res.data) {
+            message.success('Đổi mật khẩu thành công!');
+            form.resetFields();
+        } else {
+            notification.error({
+                message: 'Có lỗi xảy ra',
+                description: res.message
+            });
+        }
+        setIsSubmit(false);
+    };
+
+    return (
+        <div style={{ padding: '20px', maxWidth: '600px' }}>
+            <Form
+                form={form}
+                onFinish={onFinish}
+                layout="vertical"
+            >
+                <Form.Item
+                    label="Mật khẩu hiện tại"
+                    name="currentPassword"
+                    rules={[{ required: true, message: 'Vui lòng nhập mật khẩu hiện tại!' }]}
+                >
+                    <Input.Password />
+                </Form.Item>
+
+                <Form.Item
+                    label="Mật khẩu mới"
+                    name="newPassword"
+                    rules={[
+                        { required: true, message: 'Vui lòng nhập mật khẩu mới!' },
+                        { min: 6, message: 'Mật khẩu phải có ít nhất 6 ký tự!' }
+                    ]}
+                >
+                    <Input.Password />
+                </Form.Item>
+
+                <Form.Item
+                    label="Xác nhận mật khẩu mới"
+                    name="confirmPassword"
+                    rules={[{ required: true, message: 'Vui lòng xác nhận mật khẩu mới!' }]}
+                >
+                    <Input.Password />
+                </Form.Item>
+
+                <Form.Item>
+                    <Button type="primary" htmlType="submit" loading={isSubmit}>
+                        Đổi mật khẩu
+                    </Button>
+                </Form.Item>
+            </Form>
         </div>
     )
 }
@@ -118,13 +286,9 @@ const JobByEmail = (props: any) => {
             if (res && res.data) {
                 setSubscriber(res.data);
                 const d = res.data.skills;
-                const arr = d.map((item: any) => {
-                    return {
-                        label: item.name as string,
-                        value: item.id + "" as string
-                    }
-                });
-                form.setFieldValue("skills", arr);
+                // Only save IDs (values), not {label, value} objects
+                const skillIds = d.map((item: any) => item.id + "");
+                form.setFieldValue("skills", skillIds);
             }
         }
         init();
@@ -148,10 +312,8 @@ const JobByEmail = (props: any) => {
     const onFinish = async (values: any) => {
         const { skills } = values;
 
-        const arr = skills?.map((item: any) => {
-            if (item?.id) return { id: item.id };
-            return { id: item }
-        });
+        // Convert string IDs to {id: number} format
+        const arr = skills?.map((skillId: string) => ({ id: skillId }));
 
         if (!subscriber?.id) {
             //create subscriber
@@ -257,7 +419,7 @@ const ManageAccount = (props: IProps) => {
         {
             key: 'user-password',
             label: `Thay đổi mật khẩu`,
-            children: `//todo`,
+            children: <ChangePasswordUser />,
         },
     ];
 

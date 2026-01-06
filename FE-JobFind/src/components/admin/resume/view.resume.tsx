@@ -78,6 +78,20 @@ const ViewDetailResume = (props: IProps) => {
       >
         <Descriptions title="" bordered column={2} layout="vertical">
           <Descriptions.Item label="Email">{dataInit?.email}</Descriptions.Item>
+          <Descriptions.Item label="CV File">
+            {dataInit?.url ? (
+              <a
+                href={`${import.meta.env.VITE_BACKEND_URL}/storage/resume/${dataInit.url}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: '#1890ff' }}
+              >
+                📄 Xem CV
+              </a>
+            ) : (
+              <span style={{ color: '#999' }}>Chưa có CV</span>
+            )}
+          </Descriptions.Item>
           <Descriptions.Item label="Trạng thái">
             <Form form={form}>
               <Form.Item name={"status"}>

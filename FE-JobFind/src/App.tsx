@@ -33,22 +33,122 @@ import JobTabs from "./pages/admin/job/job.tabs";
 import { ConfigProvider, App as AntdApp } from "antd";
 const THEME_CONFIG = {
   token: {
-    colorPrimary: "#0A65CC", // Màu chủ đạo mới
-    borderRadius: 6,
-    fontFamily: "'Inter', sans-serif",
-    colorBgLayout: "#F7F8F9", // Nền app xám nhạt
+    // === COLOR SYSTEM ===
+    colorPrimary: "#0A65CC", // Primary blue - professional & trustworthy
+    colorSuccess: "#0BA02C", // Green for salary & success states
+    colorWarning: "#F97316", // Orange for highlights & warnings
+    colorError: "#DC2626", // Red for errors
+    colorInfo: "#0EA5E9", // Sky blue for info
+
+    // === TYPOGRAPHY ===
+    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    fontSize: 14,
+    fontSizeHeading1: 38,
+    fontSizeHeading2: 30,
+    fontSizeHeading3: 24,
+    fontSizeHeading4: 20,
+    fontSizeHeading5: 16,
+
+    // === SPACING & LAYOUT ===
+    borderRadius: 8, // Default border radius
+    borderRadiusLG: 12, // Large elements (cards, modals)
+    borderRadiusSM: 6, // Small elements (tags, badges)
+
+    // === COLORS - BACKGROUNDS ===
+    colorBgLayout: "#F8F9FA", // Main app background (lighter gray)
+    colorBgContainer: "#FFFFFF", // Card/container backgrounds
+    colorBgElevated: "#FFFFFF", // Elevated elements (dropdowns, modals)
+
+    // === COLORS - TEXT ===
+    colorText: "#1F2937", // Primary text color (darker for better contrast)
+    colorTextSecondary: "#6B7280", // Secondary text
+    colorTextTertiary: "#9CA3AF", // Tertiary/placeholder text
+
+    // === COLORS - BORDERS ===
+    colorBorder: "#E5E7EB", // Default border
+    colorBorderSecondary: "#F3F4F6", // Lighter borders
+
+    // === SHADOWS ===
+    boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+    boxShadowSecondary: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+
+    // === LINKS ===
     colorLink: "#0A65CC",
+    colorLinkHover: "#084B94",
+    colorLinkActive: "#063A75",
+
+    // === LINE HEIGHT ===
+    lineHeight: 1.5715,
+    lineHeightHeading: 1.2,
   },
   components: {
+    // === BUTTON COMPONENT ===
     Button: {
-      controlHeight: 44, // Button cao hơn, dễ bấm
+      controlHeight: 44,
+      controlHeightLG: 52,
+      controlHeightSM: 36,
       fontWeight: 600,
+      borderRadius: 8,
+      borderRadiusLG: 10,
+      borderRadiusSM: 6,
+      primaryShadow: "0 4px 12px rgba(10, 101, 204, 0.25)",
+      // Gradient for primary button (applied via custom styles in components)
     },
+
+    // === INPUT COMPONENT ===
     Input: {
       controlHeight: 44,
+      controlHeightLG: 52,
+      controlHeightSM: 36,
+      borderRadius: 8,
+      paddingBlock: 10,
+      paddingInline: 14,
     },
+
+    // === SELECT COMPONENT ===
+    Select: {
+      controlHeight: 44,
+      borderRadius: 8,
+    },
+
+    // === CARD COMPONENT ===
     Card: {
-      borderRadiusLG: 12, // Card bo góc mềm mại
+      borderRadiusLG: 12,
+      paddingLG: 24,
+      boxShadowTertiary: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+    },
+
+    // === TABLE COMPONENT ===
+    Table: {
+      borderRadius: 8,
+      headerBg: "#F9FAFB",
+      headerColor: "#374151",
+      headerSplitColor: "#E5E7EB",
+      rowHoverBg: "#F9FAFB",
+      borderColor: "#E5E7EB",
+    },
+
+    // === MODAL COMPONENT ===
+    Modal: {
+      borderRadiusLG: 12,
+      paddingContentHorizontalLG: 24,
+    },
+
+    // === MENU COMPONENT ===
+    Menu: {
+      itemBorderRadius: 8,
+      itemHeight: 44,
+      borderRadius: 8,
+    },
+
+    // === TAG COMPONENT ===
+    Tag: {
+      borderRadiusSM: 6,
+    },
+
+    // === PAGINATION ===
+    Pagination: {
+      borderRadius: 6,
     },
   },
 };

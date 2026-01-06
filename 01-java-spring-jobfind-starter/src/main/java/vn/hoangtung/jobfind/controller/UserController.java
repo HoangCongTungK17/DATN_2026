@@ -30,11 +30,14 @@ public class UserController {
 
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
+    private final vn.hoangtung.jobfind.repository.UserRepository userRepository;
 
     @Autowired
-    public UserController(UserService userService, PasswordEncoder passwordEncoder) {
+    public UserController(UserService userService, PasswordEncoder passwordEncoder,
+            vn.hoangtung.jobfind.repository.UserRepository userRepository) {
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
+        this.userRepository = userRepository;
     }
 
     @PostMapping("/users")
@@ -100,5 +103,42 @@ public class UserController {
         this.userService.handleDeleteUser(id);
         return ResponseEntity.ok(null);
         // return ResponseEntity.status(HttpStatus.OK).body("hoangtung");
+    }
+
+    @PutMapping("/users/change-password")
+    @ApiMessage("Change user password")
+    public ResponseEntity<String> changePassword(
+            @Valid @RequestBody vn.hoangtung.jobfind.domain.request.ReqChangePasswordDTO dto) throws Exception {
+        // Get current user from security context
+        String email = vn.hoangtung.jobfind.util.SecurityUtil.getCurrentUserLogin()
+                .orElseThrow(() -> new IdInvalidException("Không tìm thấy thông tin user"));
+
+        // Change password
+        this.userService.changePassword(email, dto.getCurrentPassword(),
+                this.passwordEncoder.encode(dto.getNewPassword()));
+
+        return ResponseEntity.ok("Đổi mật khẩu thành công");
+    }
+
+    @PutMapping("/users/profile")
+    @ApiMessage("Update current user profile")
+    public ResponseEntity<ResUpdateUserDTO> updateProfile(@RequestBody User reqUser) throws IdInvalidException {
+        // Get current user from security context
+        String email = vn.hoangtung.jobfind.util.SecurityUtil.getCurrentUserLogin()
+                .orElseThrow(() -> new IdInvalidException("Không tìm thấy thông tin user"));
+
+        User currentUser = this.userService.handleGetUserByUsername(email);
+        if (currentUser == null) {
+            throw new IdInvalidException("User không tồn tại");
+        }
+
+        // Only allow updating certain fields
+        currentUser.setName(reqUser.getName());
+        currentUser.setAge(reqUser.getAge());
+        currentUser.setGender(reqUser.getGender());
+        currentUser.setAddress(reqUser.getAddress());
+
+        User updatedUser = this.userRepository.save(currentUser);
+        return ResponseEntity.ok(this.userService.convertToResUpdateUserDTO(updatedUser));
     }
 }

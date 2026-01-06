@@ -108,6 +108,17 @@ export const callUpdateUser = (user: IUser) => {
     return axios.put<IBackendRes<IUser>>(`/api/v1/users`, { ...user })
 }
 
+export const callChangePassword = (currentPassword: string, newPassword: string) => {
+    return axios.put<IBackendRes<string>>('/api/v1/users/change-password', {
+        currentPassword,
+        newPassword
+    });
+}
+
+export const callUpdateProfile = (user: Partial<IUser>) => {
+    return axios.put<IBackendRes<IUser>>('/api/v1/users/profile', { ...user });
+}
+
 export const callDeleteUser = (id: string) => {
     return axios.delete<IBackendRes<IUser>>(`/api/v1/users/${id}`);
 }
