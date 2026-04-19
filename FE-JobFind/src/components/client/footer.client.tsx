@@ -1,6 +1,6 @@
 import { Layout, Row, Col } from "antd";
 import {
-  FireOutlined,
+  ThunderboltFilled,
   FacebookOutlined,
   TwitterOutlined,
   LinkedinOutlined,
@@ -8,6 +8,8 @@ import {
   MailOutlined,
   PhoneOutlined,
   EnvironmentOutlined,
+  GithubOutlined,
+  HeartFilled,
 } from "@ant-design/icons";
 import styles from "@/styles/client.module.scss";
 import { useNavigate } from "react-router-dom";
@@ -26,39 +28,40 @@ const Footer = () => {
                 className={styles["footer-brand"]}
                 onClick={() => navigate("/")}
               >
-                <FireOutlined className={styles["brand-icon"]} />
+                <ThunderboltFilled className={styles["brand-icon"]} />
                 <span className={styles["brand-text"]}>
-                  JOB<span style={{ color: "#0A65CC" }}>FIND</span>
+                  JOBFIND
                 </span>
               </div>
               <p className={styles["footer-desc"]}>
-                Nền tảng tuyển dụng công nghệ hàng đầu, kết nối ứng viên tiềm
-                năng với các doanh nghiệp uy tín.
+                Nền tảng tuyển dụng IT hàng đầu Việt Nam — kết nối ứng viên 
+                tài năng với doanh nghiệp công nghệ uy tín.
               </p>
               <div className={styles["social-icons"]}>
                 <div className={styles["icon-wrapper"]}>
                   <FacebookOutlined />
                 </div>
                 <div className={styles["icon-wrapper"]}>
-                  <TwitterOutlined />
-                </div>
-                <div className={styles["icon-wrapper"]}>
                   <LinkedinOutlined />
                 </div>
                 <div className={styles["icon-wrapper"]}>
-                  <InstagramOutlined />
+                  <GithubOutlined />
+                </div>
+                <div className={styles["icon-wrapper"]}>
+                  <TwitterOutlined />
                 </div>
               </div>
             </Col>
 
             {/* Cột 2: Dành cho ứng viên */}
             <Col xs={24} sm={12} md={6}>
-              <h3 className={styles["footer-heading"]}>Dành cho ứng viên</h3>
+              <h3 className={styles["footer-heading"]}>Ứng viên</h3>
               <ul className={styles["footer-links"]}>
-                <li onClick={() => navigate("/job")}>Việc làm mới nhất</li>
-                <li onClick={() => navigate("/company")}>Danh sách công ty</li>
+                <li onClick={() => navigate("/job")}>Tìm việc làm IT</li>
+                <li onClick={() => navigate("/company")}>Khám phá công ty</li>
+                <li onClick={() => navigate("/ai-hub")}>AI Hub — Công cụ AI</li>
                 <li>Cẩm nang nghề nghiệp</li>
-                <li>Tạo CV trực tuyến</li>
+                <li>Xây dựng CV chuyên nghiệp</li>
               </ul>
             </Col>
 
@@ -67,9 +70,10 @@ const Footer = () => {
               <h3 className={styles["footer-heading"]}>Nhà tuyển dụng</h3>
               <ul className={styles["footer-links"]}>
                 <li>Đăng tin tuyển dụng</li>
-                <li>Tìm kiếm hồ sơ</li>
-                <li>Giải pháp nhân sự</li>
-                <li>Liên hệ báo giá</li>
+                <li>Tìm kiếm hồ sơ ứng viên</li>
+                <li>Giải pháp tuyển dụng AI</li>
+                <li>Thương hiệu nhà tuyển dụng</li>
+                <li>Liên hệ hợp tác</li>
               </ul>
             </Col>
 
@@ -79,15 +83,15 @@ const Footer = () => {
               <div className={styles["contact-info"]}>
                 <div className={styles["contact-item"]}>
                   <EnvironmentOutlined />
-                  <span>Tầng 10, Tòa nhà Tech, Hà Nội</span>
+                  <span>Số 1 Đại Cồ Việt, Hai Bà Trưng, Hà Nội</span>
                 </div>
                 <div className={styles["contact-item"]}>
                   <PhoneOutlined />
-                  <span>(024) 6688 9999</span>
+                  <span>(024) 3869 4242</span>
                 </div>
                 <div className={styles["contact-item"]}>
                   <MailOutlined />
-                  <span>support@jobfind.com</span>
+                  <span>support@jobfind.vn</span>
                 </div>
               </div>
             </Col>
@@ -96,8 +100,9 @@ const Footer = () => {
 
         <div className={styles["footer-bottom"]}>
           <div className={styles["copyright"]}>
-            &copy; {new Date().getFullYear()} JobFind. Design by Hoang Tung. All
-            rights reserved.
+            &copy; {new Date().getFullYear()} JobFind — Made with{" "}
+            <HeartFilled style={{ color: "#ef4444", fontSize: 12 }} /> by Hoang
+            Tung. All rights reserved.
           </div>
         </div>
       </div>

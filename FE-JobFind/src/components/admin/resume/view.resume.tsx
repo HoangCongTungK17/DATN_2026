@@ -7,11 +7,14 @@ import {
   Drawer,
   Form,
   Select,
+  Space,
   message,
   notification,
 } from "antd";
+import { ThunderboltOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { useState, useEffect } from "react";
+import SmartMatchModal from "./smart-match.modal";
 const { Option } = Select;
 
 interface IProps {
@@ -23,6 +26,7 @@ interface IProps {
 }
 const ViewDetailResume = (props: IProps) => {
   const [isSubmit, setIsSubmit] = useState<boolean>(false);
+  const [openSmartMatch, setOpenSmartMatch] = useState<boolean>(false);
   const { onClose, open, dataInit, setDataInit, reloadTable } = props;
   const [form] = Form.useForm();
 
@@ -67,13 +71,27 @@ const ViewDetailResume = (props: IProps) => {
         maskClosable={false}
         destroyOnClose
         extra={
-          <Button
-            loading={isSubmit}
-            type="primary"
-            onClick={handleChangeStatus}
-          >
-            Change Status
-          </Button>
+          <Space>
+            <Button
+              type="default"
+              icon={<ThunderboltOutlined />}
+              onClick={() => setOpenSmartMatch(true)}
+              style={{
+                borderColor: "#f97316",
+                color: "#f97316",
+                fontWeight: 600,
+              }}
+            >
+              AI Smart Match
+            </Button>
+            <Button
+              loading={isSubmit}
+              type="primary"
+              onClick={handleChangeStatus}
+            >
+              Change Status
+            </Button>
+          </Space>
         }
       >
         <Descriptions title="" bordered column={2} layout="vertical">
@@ -96,9 +114,6 @@ const ViewDetailResume = (props: IProps) => {
             <Form form={form}>
               <Form.Item name={"status"}>
                 <Select
-                  // placeholder="Select a option and change input text above"
-                  // onChange={onGenderChange}
-                  // allowClear
                   style={{ width: "100%" }}
                   defaultValue={dataInit?.status}
                 >
@@ -128,8 +143,17 @@ const ViewDetailResume = (props: IProps) => {
           </Descriptions.Item>
         </Descriptions>
       </Drawer>
+
+      <SmartMatchModal
+        open={openSmartMatch}
+        onClose={setOpenSmartMatch}
+        resumeId={dataInit?.id}
+        resumeEmail={dataInit?.email || ""}
+        jobName={dataInit?.job?.name || ""}
+      />
     </>
   );
 };
 
 export default ViewDetailResume;
+

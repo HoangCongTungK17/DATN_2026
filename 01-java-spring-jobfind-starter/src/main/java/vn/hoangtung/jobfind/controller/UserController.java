@@ -47,14 +47,14 @@ public class UserController {
         boolean isEmailExist = this.userService.isEmailExist(postManUser.getEmail());
         if (isEmailExist) {
             throw new IdInvalidException(
-                    "Email " + postManUser.getEmail() + "đã tồn tại, vui lòng sử dụng email khác.");
+                    "Email " + postManUser.getEmail() + " đã tồn tại, vui lòng sử dụng email khác.");
         }
 
         String hashPassword = this.passwordEncoder.encode(postManUser.getPassword());
         postManUser.setPassword(hashPassword);
-        User hoangtung = this.userService.handleCreateUser(postManUser);
+        User createdUser = this.userService.handleCreateUser(postManUser);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(this.userService.convertToResCreateUserDTO(postManUser));
+        return ResponseEntity.status(HttpStatus.CREATED).body(this.userService.convertToResCreateUserDTO(createdUser));
     }
 
     @GetMapping("/users")
@@ -81,11 +81,11 @@ public class UserController {
     @PutMapping("/users")
     @ApiMessage("Update a user")
     public ResponseEntity<ResUpdateUserDTO> updateUser(@RequestBody User user) throws IdInvalidException {
-        User hoangtung = this.userService.handleUpdateUser(user);
-        if (hoangtung == null) {
+        User updatedUser = this.userService.handleUpdateUser(user);
+        if (updatedUser == null) {
             throw new IdInvalidException("User với id = " + user.getId() + " không tồn tại");
         }
-        return ResponseEntity.ok(this.userService.convertToResUpdateUserDTO(user));
+        return ResponseEntity.ok(this.userService.convertToResUpdateUserDTO(updatedUser));
 
     }
 
@@ -99,10 +99,7 @@ public class UserController {
         }
 
         this.userService.handleDeleteUser(id);
-
-        this.userService.handleDeleteUser(id);
         return ResponseEntity.ok(null);
-        // return ResponseEntity.status(HttpStatus.OK).body("hoangtung");
     }
 
     @PutMapping("/users/change-password")
@@ -113,9 +110,8 @@ public class UserController {
         String email = vn.hoangtung.jobfind.util.SecurityUtil.getCurrentUserLogin()
                 .orElseThrow(() -> new IdInvalidException("Không tìm thấy thông tin user"));
 
-        // Change password
-        this.userService.changePassword(email, dto.getCurrentPassword(),
-                this.passwordEncoder.encode(dto.getNewPassword()));
+        // Change password (truyền raw passwords, service sẽ xử lý encode)
+        this.userService.changePassword(email, dto.getCurrentPassword(), dto.getNewPassword());
 
         return ResponseEntity.ok("Đổi mật khẩu thành công");
     }

@@ -13,7 +13,7 @@ const ChatBot = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<IMessage[]>([
     {
-      text: "Xin chào! Tôi là JobFind AI Assistant - chuyên gia tư vấn việc làm IT tại Việt Nam. Bạn cần tìm công việc gì?",
+      text: "Chào bạn! 👋 Mình là JobFind AI — trợ lý tuyển dụng IT thông minh.\n\nBạn có thể hỏi mình về:\n• Tìm việc làm theo kỹ năng\n• Tư vấn lộ trình sự nghiệp\n• Mức lương thị trường",
       sender: "bot",
       timestamp: new Date(),
     },
@@ -100,6 +100,12 @@ const ChatBot = () => {
     ));
   };
 
+  const quickActions = [
+    "Tìm việc React ở HN",
+    "Lương Java Developer",
+    "Tư vấn chuyển ngành",
+  ];
+
   return (
     <div className="chatbot-container">
       {!isOpen && (
@@ -108,20 +114,30 @@ const ChatBot = () => {
           onClick={() => setIsOpen(true)}
           aria-label="Open ChatBot"
         >
-          🤖
+          <span className="toggle-icon">💬</span>
+          <span className="toggle-pulse"></span>
         </button>
       )}
 
       {isOpen && (
         <div className="chat-window">
           <div className="header">
-            <span>🤖 JobFind AI Assistant</span>
+            <div className="header-left">
+              <div className="header-avatar">
+                <span>🤖</span>
+                <span className="online-dot"></span>
+              </div>
+              <div className="header-info">
+                <span className="header-title">JobFind AI</span>
+                <span className="header-status">Trực tuyến — sẵn sàng hỗ trợ</span>
+              </div>
+            </div>
             <button
               className="close-btn"
               onClick={() => setIsOpen(false)}
               aria-label="Close ChatBot"
             >
-              ×
+              ✕
             </button>
           </div>
 
@@ -131,25 +147,50 @@ const ChatBot = () => {
                 key={index}
                 className={`message ${msg.sender} ${msg.isError ? 'error' : ''}`}
               >
-                <div className="message-content">
-                  {formatMessage(msg.text)}
-                </div>
-                <div className="message-time">
-                  {msg.timestamp.toLocaleTimeString('vi-VN', {
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
+                {msg.sender === 'bot' && (
+                  <div className="bot-avatar">🤖</div>
+                )}
+                <div className="message-bubble">
+                  <div className="message-content">
+                    {formatMessage(msg.text)}
+                  </div>
+                  <div className="message-time">
+                    {msg.timestamp.toLocaleTimeString('vi-VN', {
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </div>
                 </div>
               </div>
             ))}
+
+            {/* Quick actions after first bot message */}
+            {messages.length === 1 && !isLoading && (
+              <div className="quick-actions">
+                {quickActions.map((action, index) => (
+                  <button
+                    key={index}
+                    className="quick-action-btn"
+                    onClick={() => {
+                      setInputValue(action);
+                    }}
+                  >
+                    {action}
+                  </button>
+                ))}
+              </div>
+            )}
+
             {isLoading && (
               <div className="message bot typing">
-                <div className="typing-indicator">
-                  <span></span>
-                  <span></span>
-                  <span></span>
+                <div className="bot-avatar">🤖</div>
+                <div className="message-bubble">
+                  <div className="typing-indicator">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </div>
                 </div>
-                <div className="typing-text">AI đang suy nghĩ...</div>
               </div>
             )}
             <div ref={messagesEndRef} />
@@ -158,7 +199,7 @@ const ChatBot = () => {
           <div className="input-area">
             <input
               type="text"
-              placeholder="Ví dụ: Tìm việc Java ở Hà Nội..."
+              placeholder="Hỏi gì về việc làm IT..."
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyPress}
@@ -169,8 +210,12 @@ const ChatBot = () => {
               onClick={handleSendMessage}
               disabled={isLoading || !inputValue.trim()}
               aria-label="Send message"
+              className="send-btn"
             >
-              {isLoading ? "..." : "Gửi"}
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M22 2L11 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
             </button>
           </div>
         </div>

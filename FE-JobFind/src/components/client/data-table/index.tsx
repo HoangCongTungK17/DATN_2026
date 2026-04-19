@@ -31,6 +31,15 @@ const DataTable = <
     dateFormatter = 'string',
     rowSelection,
 }: ProTableProps<T, U, ValueType>) => {
+
+    const defaultSearch = search !== false ? {
+        labelWidth: 'auto' as const,
+        searchText: 'Tìm kiếm',
+        resetText: 'Làm mới',
+        collapseRender: (collapsed: boolean) => collapsed ? 'Mở rộng ▼' : 'Thu gọn ▲',
+        ...( typeof search === 'object' ? search : {} ),
+    } : false;
+
     return (
         <ConfigProvider locale={vi_VN}>
             <ProTable<T, U, ValueType>
@@ -39,14 +48,14 @@ const DataTable = <
                 dataSource={dataSource}
                 postData={postData}
                 pagination={pagination}
-                bordered
+                // bordered
                 // sticky={sticky}
                 loading={loading}
                 rowKey={rowKey}
                 scroll={scroll}
                 params={params}
                 request={request}
-                search={search}
+                search={defaultSearch}
                 polling={polling}
                 toolBarRender={toolBarRender}
                 headerTitle={headerTitle}

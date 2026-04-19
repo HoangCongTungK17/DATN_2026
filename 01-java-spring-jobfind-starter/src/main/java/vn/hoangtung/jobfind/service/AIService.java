@@ -84,7 +84,8 @@ public class AIService {
                     "location", job.getLocation(),
                     "active", job.isActive());
 
-            Document doc = new Document(contentBuilder.toString(), metadata);
+            // Dùng job ID làm document ID để tránh duplicate khi sync nhiều lần
+            Document doc = new Document(String.valueOf(job.getId()), contentBuilder.toString(), metadata);
             documents.add(doc);
         }
 
@@ -252,7 +253,23 @@ public class AIService {
 
         System.out.println(">>> [3] Gọi LLM API...");
 
-        String response = chatModel.call(prompt).getResult().getOutput().getContent();
+        // Retry logic cho Groq rate limit
+        String response = null;
+        int maxRetries = 2;
+        for (int attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                response = chatModel.call(prompt).getResult().getOutput().getContent();
+                break;
+            } catch (Exception e) {
+                System.out.println(">>> [Chat] ⚠️ Lần " + attempt + " thất bại: " + e.getMessage());
+                if (attempt < maxRetries) {
+                    System.out.println(">>> [Chat] ⏳ Đợi 5 giây rồi thử lại...");
+                    try { Thread.sleep(5000); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); }
+                } else {
+                    return "Xin lỗi, hệ thống AI đang quá tải. Vui lòng thử lại sau ít phút.";
+                }
+            }
+        }
 
         System.out.println(">>> [4] Hoàn thành!");
 

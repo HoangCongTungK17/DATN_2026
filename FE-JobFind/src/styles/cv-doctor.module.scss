@@ -1,0 +1,105 @@
+// ===== CV Doctor — Premium Design v2 =====
+
+.container {
+  max-width: 900px;
+  margin: 48px auto;
+  padding: 0 24px;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 40px;
+
+  h1 {
+    font-size: 32px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+  }
+
+  p {
+    color: #64748b;
+    font-size: 16px;
+  }
+}
+
+.uploadArea {
+  background: #ffffff;
+  border: 2px dashed #e2e8f0;
+  border-radius: 16px;
+  padding: 48px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    border-color: #4f46e5;
+    background: rgba(79, 70, 229, 0.02);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(79, 70, 229, 0.1);
+  }
+}
+
+.resultCard {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+  border: 1px solid #f1f5f9;
+  margin-top: 24px;
+
+  h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 16px;
+  }
+}
+
+.scoreGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.scoreItem {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  border: 1px solid #f1f5f9;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: rgba(79, 70, 229, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  }
+}
+
+.historySection {
+  margin-top: 40px;
+
+  .historyItem {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 12px;
+    border: 1px solid #f1f5f9;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    &:hover {
+      border-color: rgba(79, 70, 229, 0.2);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+      transform: translateY(-2px);
+    }
+  }
+}

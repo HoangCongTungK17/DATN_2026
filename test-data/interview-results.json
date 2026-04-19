@@ -1,0 +1,92 @@
+[
+  {
+    "label": "Junior Java Backend Developer",
+    "avg": 13,
+    "results": [
+      {
+        "question": "Giải thích sự khác biệt giữa các loại biến trong Java (instance variable, static variable, local variable) và cho ví dụ về việc sử dụng từng loại biến trong một chương trình đơn giản.",
+        "category": "TECHNICAL",
+        "difficulty": "EASY",
+        "answer": "OOP là lập trình hướng đối tượng, có 4 tính chất: ",
+        "score": 20,
+        "feedback": "Câu trả lời của ứng viên không liên quan đến câu hỏi về sự khác biệt giữa các loại biến trong Java. Ứng viên chỉ nhắc đến các tính chất của lập trình hướng đối tượng nhưng không giải thích về instance variable, static variable, local variable. Điểm cần cải thiện là ứng viên cần tập trung vào câu hỏi và cung cấp ví dụ cụ thể về việc sử dụng từng loại biến."
+      },
+      {
+        "question": "Giải thích khái niệm về Exception Handling trong Java và cho ví dụ về cách sử dụng try-catch-finally để xử lý một ngoại lệ đơn giản.",
+        "category": "TECHNICAL",
+        "difficulty": "EASY",
+        "answer": "Spring Boot giúp tạo ứng dụng Spring nhanh hơn vì ",
+        "score": 10,
+        "feedback": "Câu trả lời không liên quan đến câu hỏi về Exception Handling trong Java. Ứng viên không giải thích được khái niệm về Exception Handling và cách sử dụng try-catch-finally. Cần cải thiện bằng cách cung cấp ví dụ cụ thể và giải thích rõ ràng về khái niệm này."
+      },
+      {
+        "question": "Viết một đoạn mã Java đơn giản để thực hiện việc đọc dữ liệu từ một tệp tin CSV và lưu trữ dữ liệu vào một danh sách các đối tượng, với mỗi đối tượng đại diện cho một dòng trong tệp tin CSV. Giả sử tệp tin CSV có cấu trúc đơn giản với 3 cột: tên, tuổi và địa chỉ.",
+        "category": "TECHNICAL",
+        "difficulty": "MEDIUM",
+        "answer": "RESTful API sử dụng các HTTP methods như GET, POST",
+        "score": 10,
+        "feedback": "Câu trả lời không liên quan đến yêu cầu đọc dữ liệu từ tệp tin CSV và lưu trữ vào danh sách các đối tượng. Ứng viên đã đề cập đến RESTful API nhưng không giải thích cách áp dụng nó vào việc đọc tệp tin CSV. Cần cải thiện bằng cách cung cấp ví dụ cụ thể và giải thích rõ ràng về cách thực hiện yêu cầu."
+      }
+    ]
+  },
+  {
+    "label": "Mid React Frontend Developer",
+    "avg": 40,
+    "results": [
+      {
+        "question": "Bạn có thể giải thích cách sử dụng React Hooks để quản lý state và side effects trong một ứng dụng React không? Hãy đưa ra một ví dụ cụ thể về việc sử dụng useState và useEffect.",
+        "category": "TECHNICAL",
+        "difficulty": "EASY",
+        "answer": "Virtual DOM là bản sao nhẹ của DOM thật. Khi state",
+        "score": 40,
+        "feedback": "Câu trả lời của ứng viên chỉ giải thích về Virtual DOM và cách React tối ưu hóa performance, nhưng không trả lời trực tiếp câu hỏi về việc sử dụng React Hooks để quản lý state và side effects. Điểm tốt là ứng viên có hiểu biết về cơ chế hoạt động của React, nhưng điểm cần cải thiện là thiếu sự liên quan và chi tiết về React Hooks."
+      },
+      {
+        "question": "Bạn có thể mô tả quy trình tối ưu hóa hiệu suất của một ứng dụng React, bao gồm cả việc sử dụng các công cụ như React DevTools và Webpack, cũng như các kỹ thuật như code splitting và memoization không?",
+        "category": "TECHNICAL",
+        "difficulty": "EASY",
+        "answer": "Trong dự án trước, tôi gặp race condition khi fetc",
+        "score": 60,
+        "feedback": "Câu trả lời của ứng viên cho thấy sự hiểu biết về vấn đề thực tế khi fetch data và cách sử dụng AbortController để cancel request cũ. Tuy nhiên, câu trả lời còn thiếu chi tiết về quy trình tối ưu hóa hiệu suất của ứng dụng React, đặc biệt là về việc sử dụng React DevTools, Webpack, code splitting và memoization. Để cải thiện, ứng viên nên cung cấp thêm thông tin về các công cụ và kỹ thuật này."
+      },
+      {
+        "question": "Bạn có thể mô tả cách xử lý lỗi và debug trong một ứng dụng React, bao gồm cả việc sử dụng các công cụ như React DevTools, Chrome DevTools và các kỹ thuật như error boundaries và logging không?",
+        "category": "TECHNICAL",
+        "difficulty": "MEDIUM",
+        "answer": "Để tối ưu performance React app, tôi dùng React.me",
+        "score": 20,
+        "feedback": "Câu trả lời của ứng viên không liên quan đến câu hỏi về xử lý lỗi và debug trong ứng dụng React. Ứng viên chỉ đề cập đến việc tối ưu hóa hiệu suất của ứng dụng React mà không giải quyết vấn đề chính. Để cải thiện, ứng viên cần tập trung vào việc mô tả cách xử lý lỗi và debug trong ứng dụng React, bao gồm cả việc sử dụng các công cụ như React DevTools, Chrome DevTools và các kỹ thuật như error boundaries và logging."
+      }
+    ]
+  },
+  {
+    "label": "Senior System Architect",
+    "avg": 50,
+    "results": [
+      {
+        "question": "Bạn có thể giải thích sự khác biệt giữa Microservices và Monolithic Architecture trong thiết kế hệ thống phần mềm không? Ưu và nhược điểm của từng kiến trúc là gì?",
+        "category": "SYSTEM_DESIGN",
+        "difficulty": "EASY",
+        "answer": "Thiết kế hệ thống chat real-time: Dùng WebSocket c",
+        "score": 40,
+        "feedback": "Câu trả lời của ứng viên không đúng hướng vì không giải thích sự khác biệt giữa Microservices và Monolithic Architecture. Tuy nhiên, ứng viên đã đề cập đến một số công nghệ và kỹ thuật có thể được sử dụng trong thiết kế hệ thống phần mềm. Để cải thiện, ứng viên cần tập trung vào việc giải thích rõ ràng về hai kiến trúc này và đưa ra ví dụ thực tế."
+      },
+      {
+        "question": "Khi thiết kế một hệ thống phân tán, bạn sẽ ưu tiên sử dụng giao thức nào (ví dụ: HTTP, gRPC, Message Queue) và tại sao? Hãy giải thích các yếu tố ảnh hưởng đến quyết định này.",
+        "category": "TECHNICAL",
+        "difficulty": "EASY",
+        "answer": "Microservices phù hợp khi team lớn (>20 người), cầ",
+        "score": 40,
+        "feedback": "Câu trả lời của ứng viên chỉ đề cập đến việc lựa chọn giữa microservices và monolith mà không giải thích rõ về giao thức nào nên sử dụng trong hệ thống phân tán. Điểm tốt là ứng viên đã đề cập đến trade-off giữa microservices và monolith, nhưng điểm cần cải thiện là thiếu sự cụ thể về giao thức và không có ví dụ thực tế."
+      },
+      {
+        "question": "Khi thiết kế một hệ thống phân tán lớn với hàng triệu người dùng, bạn sẽ ưu tiên các yếu tố nào để đảm bảo tính khả dụng (availability), tính nhất quán (consistency) và tính phân tách (partition tolerance) của hệ thống theo định lý CAP? Hãy giải thích các trade-off và cách bạn sẽ thực hiện thiết kế này.",
+        "category": "SYSTEM_DESIGN",
+        "difficulty": "HARD",
+        "answer": "Event sourcing lưu tất cả events thay vì state hiệ",
+        "score": 70,
+        "feedback": "Ứng viên đã đề cập đến các khái niệm như Event Sourcing (ES) và Command Query Responsibility Segregation (CQRS), cũng như việc sử dụng chúng trong dự án thanh toán. Tuy nhiên, câu trả lời còn thiếu chi tiết về cách áp dụng các khái niệm này vào thiết kế hệ thống phân tán lớn và đảm bảo tính khả dụng, tính nhất quán và tính phân tách. Cần cải thiện bằng cách cung cấp thêm ví dụ thực tế và giải thích sâu về các trade-off khi áp dụng ES và CQRS."
+      }
+    ]
+  }
+]

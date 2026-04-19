@@ -17,7 +17,6 @@ import com.turkraft.springfilter.boot.Filter;
 
 import java.util.Optional;
 import jakarta.validation.Valid;
-import vn.hoangtung.jobfind.domain.Job;
 import vn.hoangtung.jobfind.domain.Skill;
 import vn.hoangtung.jobfind.domain.response.ResultPaginationDTO;
 import vn.hoangtung.jobfind.service.SkillService;
@@ -82,9 +81,9 @@ public class SkillController {
     @GetMapping("/skills")
     @ApiMessage("fetch all skills")
     public ResponseEntity<ResultPaginationDTO> getAll(
-            @Filter Specification<Job> spec,
+            @Filter Specification<Skill> spec,
             Pageable pageable) {
-        return ResponseEntity.ok().body(this.skillService.fetchAll(null, pageable));
+        return ResponseEntity.ok().body(this.skillService.fetchAll(spec, pageable));
     }
 
 }

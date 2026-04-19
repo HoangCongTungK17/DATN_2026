@@ -71,13 +71,15 @@ public class SecurityUtil {
         // Tính thời điểm hết hạn của Access Token
         Instant validity = now.plus(this.accessTokenExpiration, ChronoUnit.SECONDS);
 
-        // Lấy danh sách quyền (permission) của user
-        // LƯU Ý QUAN TRỌNG: Ở ĐÂY BẠN ĐANG HARDCODE (GÁN CỨNG) QUYỀN!
-        // Trong thực tế, bạn PHẢI lấy danh sách quyền này từ `UserService`
-        // dựa trên `email` hoặc `dto` của người dùng.
+        // Lấy danh sách quyền (permission) thực tế từ Role của user
         List<String> listAuthority = new ArrayList<String>();
-        listAuthority.add("ROLE_USER_CREATE");
-        listAuthority.add("ROLE_USER_UPDATE");
+        if (dto.getUser().getRole() != null
+                && dto.getUser().getRole().getPermissions() != null) {
+            listAuthority = dto.getUser().getRole().getPermissions()
+                    .stream()
+                    .map(p -> p.getModule() + "_" + p.getMethod())
+                    .collect(java.util.stream.Collectors.toList());
+        }
 
         // Bắt đầu xây dựng các "claims" (thông tin chứa trong) của JWT
         // @formatter:off

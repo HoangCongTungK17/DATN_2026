@@ -51,7 +51,7 @@ public class GlobalException {
         res.setStatusCode(HttpStatus.NOT_FOUND.value());
         res.setMessage(ex.getMessage());
         res.setError("404 Not Found. URL may not exist...");
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(res);
     }
 
     // global error handler in a spring rest api

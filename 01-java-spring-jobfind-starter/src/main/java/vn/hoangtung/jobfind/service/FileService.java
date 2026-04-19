@@ -43,8 +43,17 @@ public class FileService {
 
     // Lưu file người dùng upload lên thư mục chỉ định, tạo tên mới để tránh trùng.
     public String store(MultipartFile file, String folder) throws URISyntaxException, IOException {
-        // create unique filename
-        String finalName = System.currentTimeMillis() + "-" + file.getOriginalFilename();
+        // Sanitize file name: loại bỏ path components nguy hiểm
+        String originalName = file.getOriginalFilename();
+        if (originalName != null) {
+            // Chỉ lấy phần tên file, loại bỏ mọi đường dẫn (chống path traversal)
+            originalName = Paths.get(originalName).getFileName().toString();
+            // Loại bỏ các ký tự đặc biệt nguy hiểm
+            originalName = originalName.replaceAll("[^a-zA-Z0-9._-]", "_");
+        } else {
+            originalName = "unnamed_file";
+        }
+        String finalName = System.currentTimeMillis() + "-" + originalName;
 
         URI uri = new URI(baseURI + folder + "/" + finalName);
         Path path = Paths.get(uri);

@@ -6,6 +6,10 @@ import styles from "@/styles/client.module.scss";
 import { callFetchCompany } from "@/config/api";
 import { ICompany } from "@/types/backend";
 import { convertSlug } from "@/config/utils";
+import {
+  EnvironmentOutlined,
+  ArrowRightOutlined,
+} from "@ant-design/icons";
 
 interface IProps {
   showPagination?: boolean;
@@ -61,10 +65,11 @@ const CompanyCard = (props: IProps) => {
       <Spin spinning={isLoading} tip="Loading...">
         <Row gutter={[20, 20]}>
           <Col span={24}>
-            {/* --- SỬA PHẦN NÀY ĐỂ FIX LỖI DÍNH CHỮ --- */}
             <div className={styles["section-header"]}>
               <span className={styles["section-title"]}>
-                Nhà Tuyển Dụng Hàng Đầu
+                {showPagination
+                  ? "Danh Sách Công Ty"
+                  : "Nhà Tuyển Dụng Hàng Đầu"}
               </span>
               {!showPagination && (
                 <Link to="/company" className={styles["view-all"]}>
@@ -72,7 +77,6 @@ const CompanyCard = (props: IProps) => {
                 </Link>
               )}
             </div>
-            {/* ---------------------------------------- */}
           </Col>
 
           {displayCompany?.map((item) => {
@@ -97,10 +101,16 @@ const CompanyCard = (props: IProps) => {
                   </div>
                   <div className={styles["company-info"]}>
                     <h3 className={styles["company-name"]}>{item.name}</h3>
-                    <p className={styles["company-address"]}>{item.address}</p>
+                    <p className={styles["company-address"]}>
+                      <EnvironmentOutlined style={{ marginRight: 4, fontSize: 12, color: "#2563eb" }} />
+                      {item.address || "Đang cập nhật"}
+                    </p>
                   </div>
                   <div className={styles["company-footer"]}>
-                    <span className={styles["jobs-count"]}>Xem chi tiết</span>
+                    <span className={styles["jobs-count"]}>
+                      Khám phá
+                      <ArrowRightOutlined style={{ marginLeft: 6, fontSize: 10 }} />
+                    </span>
                   </div>
                 </Card>
               </Col>

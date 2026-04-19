@@ -1,22 +1,24 @@
 // ============================================
-// 1. VARIABLES & THEME CONFIG
+// 1. VARIABLES & THEME CONFIG — PREMIUM EDITION
 // ============================================
 
 // === COLOR PALETTE ===
-// Primary Colors
-$primary-color: #0a65cc;
-$primary-hover: #084b94;
-$primary-light: #ebf5ff;
-$primary-dark: #063a75;
+$primary-color: #2563eb;
+$primary-hover: #1d4ed8;
+$primary-light: #eff6ff;
+$primary-dark: #1e40af;
+$primary-gradient: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+$primary-gradient-hover: linear-gradient(135deg, #1d4ed8 0%, #6d28d9 100%);
 
-// Secondary & Accent Colors
-$accent-color: #f97316;
-$accent-hover: #ea580c;
-$accent-light: #fff7ed;
+// Accent — Vibrant orange/amber
+$accent-color: #f59e0b;
+$accent-hover: #d97706;
+$accent-light: #fffbeb;
+$accent-gradient: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
 
-// Success (for salary, positive states)
-$success-color: #0ba02c;
-$success-light: #dcfce7;
+// Success
+$success-color: #059669;
+$success-light: #ecfdf5;
 
 // Warning
 $warning-color: #f59e0b;
@@ -31,29 +33,32 @@ $info-color: #0ea5e9;
 $info-light: #e0f2fe;
 
 // === NEUTRAL COLORS ===
-// Text Colors
-$text-primary: #1f2937;
-$text-secondary: #6b7280;
-$text-tertiary: #9ca3af;
-$text-disabled: #d1d5db;
+$text-primary: #0f172a;
+$text-secondary: #64748b;
+$text-tertiary: #94a3b8;
+$text-disabled: #cbd5e1;
 
-// Background Colors
-$bg-body: #f8f9fa;
+$bg-body: #f8fafc;
 $bg-white: #ffffff;
-$bg-gray-50: #f9fafb;
-$bg-gray-100: #f3f4f6;
-$bg-gray-200: #e5e7eb;
+$bg-gray-50: #f8fafc;
+$bg-gray-100: #f1f5f9;
+$bg-gray-200: #e2e8f0;
 
-// Border Colors
-$border-color: #e5e7eb;
-$border-light: #f3f4f6;
-$border-dark: #d1d5db;
+$border-color: #e2e8f0;
+$border-light: #f1f5f9;
+$border-dark: #cbd5e1;
 
-// === TYPOGRAPHY SCALE ===
+// === DARK FOOTER ===
+$footer-bg: #0f172a;
+$footer-surface: #1e293b;
+$footer-border: #334155;
+$footer-text: #94a3b8;
+$footer-text-bright: #e2e8f0;
+
+// === TYPOGRAPHY ===
 $font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 $font-family-heading: "Poppins", "Inter", sans-serif;
 
-// Font Sizes
 $font-size-xs: 12px;
 $font-size-sm: 13px;
 $font-size-base: 14px;
@@ -66,24 +71,21 @@ $font-size-4xl: 30px;
 $font-size-5xl: 38px;
 $font-size-6xl: 48px;
 
-// Font Weights
 $font-weight-normal: 400;
 $font-weight-medium: 500;
 $font-weight-semibold: 600;
 $font-weight-bold: 700;
 $font-weight-extrabold: 800;
 
-// Line Heights
 $line-height-tight: 1.2;
 $line-height-base: 1.5715;
 $line-height-relaxed: 1.75;
 
-// Letter Spacing
 $letter-spacing-tight: -0.025em;
 $letter-spacing-normal: 0;
-$letter-spacing-wide: 0.025em;
+$letter-spacing-wide: 0.05em;
 
-// === SPACING SCALE ===
+// === SPACING ===
 $space-1: 4px;
 $space-2: 8px;
 $space-3: 12px;
@@ -103,34 +105,37 @@ $radius-md: 8px;
 $radius-lg: 12px;
 $radius-xl: 16px;
 $radius-2xl: 20px;
+$radius-3xl: 24px;
 $radius-full: 9999px;
 
-// === SHADOW SYSTEM (Elevation) ===
+// === SHADOWS ===
 $shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-$shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-$shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-$shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-$shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-$shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-$shadow-soft: 0 4px 30px rgba(0, 0, 0, 0.05);
-$shadow-primary: 0 4px 12px rgba(10, 101, 204, 0.25);
+$shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+$shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+$shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+$shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+$shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.2);
+$shadow-soft: 0 4px 30px rgba(0, 0, 0, 0.04);
+$shadow-primary: 0 4px 14px rgba(37, 99, 235, 0.3);
+$shadow-primary-lg: 0 8px 25px rgba(37, 99, 235, 0.35);
+$shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04), 0 6px 16px rgba(0, 0, 0, 0.04);
+$shadow-card-hover: 0 4px 8px rgba(0, 0, 0, 0.06), 0 12px 32px rgba(0, 0, 0, 0.08);
 
-// === ANIMATION & TRANSITIONS ===
+// === TRANSITIONS ===
 $transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
 $transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
 $transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
-$transition-all: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+$transition-all: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
+$transition-spring: all 350ms cubic-bezier(0.34, 1.56, 0.64, 1);
 
-// Easing Functions
 $ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
 $ease-out: cubic-bezier(0, 0, 0.2, 1);
-$ease-in: cubic-bezier(0.4, 0, 1, 1);
 
 // === GLASSMORPHISM ===
-$bg-glass: rgba(255, 255, 255, 0.9);
-$bg-glass-dark: rgba(255, 255, 255, 0.8);
-$backdrop-blur: blur(10px);
-$backdrop-blur-lg: blur(20px);
+$bg-glass: rgba(255, 255, 255, 0.82);
+$bg-glass-dark: rgba(255, 255, 255, 0.72);
+$backdrop-blur: blur(16px);
+$backdrop-blur-lg: blur(24px);
 
 // ============================================
 // 2. GLOBAL STYLES & RESET
@@ -147,7 +152,6 @@ $backdrop-blur-lg: blur(20px);
     -moz-osx-font-smoothing: grayscale;
   }
 
-  // Custom Scrollbar
   ::-webkit-scrollbar {
     width: 8px;
   }
@@ -166,7 +170,7 @@ $backdrop-blur-lg: blur(20px);
   }
 }
 
-// Container chuẩn
+// Container
 .container {
   width: 100%;
   max-width: 1320px;
@@ -179,7 +183,7 @@ $backdrop-blur-lg: blur(20px);
   }
 }
 
-// Wrapper nền xám cho phần thân trang
+// BG wrapper
 .bg-grey {
   background-color: $bg-body;
   padding-top: $space-10;
@@ -187,12 +191,12 @@ $backdrop-blur-lg: blur(20px);
   min-height: calc(100vh - 80px);
 }
 
-// Tiêu đề Section (Dùng chung cho Job & Company)
+// Section Header — dùng chung
 .section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: $space-6;
+  margin-bottom: $space-8;
   margin-top: $space-3;
 
   .section-title {
@@ -203,44 +207,59 @@ $backdrop-blur-lg: blur(20px);
     position: relative;
     letter-spacing: $letter-spacing-tight;
     line-height: $line-height-tight;
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+
+    &::before {
+      content: '';
+      width: 4px;
+      height: 28px;
+      background: $primary-gradient;
+      border-radius: $radius-full;
+      flex-shrink: 0;
+    }
   }
 
   .view-all {
     font-size: $font-size-md;
     font-weight: $font-weight-semibold;
-    color: $text-secondary;
+    color: $primary-color;
     display: flex;
     align-items: center;
-    gap: $space-1;
+    gap: $space-2;
     transition: $transition-all;
     text-decoration: none;
     cursor: pointer;
+    padding: $space-2 $space-4;
+    border-radius: $radius-full;
+    background: $primary-light;
 
     &:hover {
-      color: $primary-color;
-      transform: translateX(4px);
+      background: $primary-color;
+      color: #fff;
+      transform: translateX(3px);
       text-decoration: none;
     }
   }
 }
 
 // ============================================
-// 4. HEADER STYLES
+// 3. HEADER STYLES — PREMIUM GLASSMORPHISM
 // ============================================
 .header-section {
   position: sticky;
   top: 0;
   z-index: 1000;
   width: 100%;
-  height: 80px;
+  height: 72px;
   padding: 0 !important;
   transition: $transition-base;
-
-  // Glassmorphism Effect
   background: $bg-glass !important;
   backdrop-filter: $backdrop-blur;
-  border-bottom: 1px solid $border-light;
-  box-shadow: $shadow-sm;
+  -webkit-backdrop-filter: $backdrop-blur;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 
   .header-desktop {
     display: flex;
@@ -248,35 +267,45 @@ $backdrop-blur-lg: blur(20px);
     justify-content: space-between;
     height: 100%;
 
-    // Logo
     .brand {
       display: flex;
       align-items: center;
       cursor: pointer;
-      margin-right: 40px;
+      margin-right: 36px;
       flex-shrink: 0;
+      gap: $space-2;
+      transition: $transition-all;
 
       .brand-icon {
-        font-size: 32px;
-        color: $primary-color;
-        margin-right: $space-2;
+        font-size: 28px;
+        background: $primary-gradient;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
         transition: $transition-base;
+        filter: drop-shadow(0 2px 4px rgba(37, 99, 235, 0.3));
       }
 
       .brand-text {
-        font-size: $font-size-3xl;
+        font-size: 22px;
         font-weight: $font-weight-extrabold;
         color: $text-primary;
-        letter-spacing: $letter-spacing-tight;
+        letter-spacing: -0.03em;
         font-family: $font-family-heading;
 
         .brand-highlight {
-          color: $primary-color;
+          background: $primary-gradient;
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
         }
       }
 
-      &:hover .brand-icon {
-        transform: scale(1.05);
+      &:hover {
+        transform: scale(1.02);
+        .brand-icon {
+          filter: drop-shadow(0 3px 8px rgba(37, 99, 235, 0.45));
+        }
       }
     }
 
@@ -289,64 +318,82 @@ $backdrop-blur-lg: blur(20px);
       .menu-custom {
         background: transparent;
         border-bottom: none;
-        font-size: $font-size-lg;
+        font-size: $font-size-md;
         font-weight: $font-weight-semibold;
         width: 100%;
 
         :global {
           .ant-menu-item {
             color: $text-secondary;
-            transition: $transition-base;
+            transition: $transition-all;
             border-radius: $radius-md;
-            margin: 0 $space-1;
+            margin: 0 2px;
+            padding: 0 18px;
+            height: 42px;
+            line-height: 42px;
 
-            &:hover,
+            &:hover {
+              color: $primary-color !important;
+              background: $primary-light;
+            }
+
             &.ant-menu-item-selected {
               color: $primary-color !important;
+              background: $primary-light;
 
               &::after {
                 border-bottom-color: $primary-color !important;
-                border-bottom-width: 3px;
+                border-bottom-width: 2px;
               }
+            }
+
+            &::after {
+              transition: $transition-all;
             }
           }
         }
       }
     }
 
-    // User Actions (Login/Register)
+    // User Actions
     .extra {
       flex-shrink: 0;
       margin-left: auto;
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 12px;
 
       .login-link {
         font-weight: $font-weight-semibold;
         color: $text-secondary;
         font-size: $font-size-md;
-        transition: $transition-base;
+        transition: $transition-all;
+        padding: $space-2 $space-4;
+        border-radius: $radius-md;
 
         &:hover {
           color: $primary-color;
+          background: $primary-light;
         }
       }
 
       .register-btn {
-        height: 44px;
+        height: 40px;
         padding: 0 $space-6;
         font-weight: $font-weight-bold;
-        font-size: $font-size-md;
+        font-size: $font-size-sm;
+        letter-spacing: $letter-spacing-wide;
+        text-transform: uppercase;
         border: none;
         border-radius: $radius-full;
-        background: linear-gradient(135deg, $primary-color 0%, $primary-hover 100%);
+        background: $primary-gradient !important;
         box-shadow: $shadow-primary;
-        transition: $transition-base;
+        transition: $transition-all;
 
         &:hover {
           transform: translateY(-2px);
-          box-shadow: $shadow-md;
+          box-shadow: $shadow-primary-lg;
+          background: $primary-gradient-hover !important;
         }
 
         &:active {
@@ -356,18 +403,23 @@ $backdrop-blur-lg: blur(20px);
 
       .user-dropdown {
         cursor: pointer;
-        padding: $space-2 $space-3;
+        padding: 6px $space-3;
         border-radius: $radius-full;
-        border: 1px solid transparent;
-        transition: $transition-base;
+        border: 2px solid transparent;
+        transition: $transition-all;
+        display: flex;
+        align-items: center;
+        gap: $space-2;
 
         &:hover {
           background: $bg-gray-50;
           border-color: $border-color;
+          box-shadow: $shadow-sm;
         }
 
         .user-avatar {
-          background-color: $primary-color;
+          background: $primary-gradient;
+          border: 2px solid $primary-light;
         }
 
         .user-name {
@@ -388,96 +440,270 @@ $backdrop-blur-lg: blur(20px);
 
     .brand-mobile {
       font-size: 20px;
-      font-weight: 800;
-      color: $primary-color;
+      font-weight: $font-weight-extrabold;
       display: flex;
       align-items: center;
       gap: 8px;
+      cursor: pointer;
+
+      .brand-icon {
+        background: $primary-gradient;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .brand-text {
+        background: $primary-gradient;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
     }
 
     .menu-trigger {
       font-size: 24px;
       padding: 8px;
+      color: $text-primary;
+      transition: $transition-base;
+
+      &:hover {
+        color: $primary-color;
+      }
     }
   }
 }
 
 // ============================================
-// 5. HOME PAGE & HERO
+// PREMIUM DROPDOWN OVERLAY
+// ============================================
+.dropdown-premium {
+  background: $bg-white;
+  border-radius: $radius-xl;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  min-width: 280px;
+  overflow: hidden;
+  animation: dropdownSlide 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  .dropdown-user-header {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    padding: $space-5 $space-5;
+    background: linear-gradient(135deg, #f8faff 0%, #f5f3ff 100%);
+    border-bottom: 1px solid $border-light;
+  }
+
+  .dropdown-user-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .dropdown-user-name {
+    font-weight: $font-weight-bold;
+    font-size: $font-size-md;
+    color: $text-primary;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .dropdown-user-email {
+    font-size: $font-size-xs;
+    color: $text-tertiary;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .dropdown-divider {
+    height: 1px;
+    background: $border-light;
+  }
+
+  .dropdown-menu-items {
+    padding: $space-2 $space-2;
+  }
+
+  .dropdown-menu-item {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    padding: $space-3 $space-3;
+    border-radius: $radius-lg;
+    cursor: pointer;
+    transition: $transition-all;
+
+    &:hover {
+      background: $bg-gray-50;
+    }
+
+    &:active {
+      transform: scale(0.98);
+    }
+
+    .dropdown-item-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: $radius-md;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      flex-shrink: 0;
+      transition: $transition-all;
+    }
+
+    .dropdown-item-content {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    .dropdown-item-label {
+      font-size: $font-size-sm;
+      font-weight: $font-weight-semibold;
+      color: $text-primary;
+      line-height: 1.3;
+    }
+
+    .dropdown-item-desc {
+      font-size: 11px;
+      color: $text-tertiary;
+      line-height: 1.3;
+    }
+
+    &.dropdown-item-danger {
+      &:hover {
+        background: $error-light;
+
+        .dropdown-item-label {
+          color: $error-color;
+        }
+      }
+    }
+  }
+}
+
+@keyframes dropdownSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+// ============================================
+// 4. HOME PAGE & HERO — PREMIUM GRADIENT
 // ============================================
 .homepage-container {
   .hero-section {
-    background: linear-gradient(135deg, #f0f7ff 0%, #ffffff 100%);
-    padding: $space-20 0 $space-16;
-    border-bottom: 1px solid $border-color;
+    background: linear-gradient(160deg, #eff6ff 0%, #f5f3ff 40%, #fdf2f8 80%, #fff 100%);
+    padding: $space-24 0 $space-20;
+    border-bottom: none;
     position: relative;
     overflow: hidden;
 
-    // Optional: Add subtle pattern or decoration
+    // Floating decoration orbs
     &::before {
       content: '';
       position: absolute;
-      top: 0;
-      right: 0;
-      width: 600px;
-      height: 600px;
-      background: radial-gradient(circle, rgba(10, 101, 204, 0.05) 0%, transparent 70%);
+      top: -120px;
+      right: -80px;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(37, 99, 235, 0.08) 0%, transparent 70%);
       pointer-events: none;
+      animation: floatOrb 8s ease-in-out infinite;
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -80px;
+      left: -100px;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(124, 58, 237, 0.06) 0%, transparent 70%);
+      pointer-events: none;
+      animation: floatOrb 10s ease-in-out infinite reverse;
     }
 
     .hero-content {
       text-align: center;
-      max-width: 800px;
+      max-width: 780px;
       margin: 0 auto;
       position: relative;
       z-index: 1;
 
       .title {
-        font-size: $font-size-6xl;
+        font-size: 52px;
         font-weight: $font-weight-extrabold;
         color: $text-primary;
-        margin-bottom: $space-4;
-        line-height: $line-height-tight;
+        margin-bottom: $space-5;
+        line-height: 1.15;
         font-family: $font-family-heading;
-        letter-spacing: $letter-spacing-tight;
-        animation: fadeInUp 0.6s ease-out;
+        letter-spacing: -0.03em;
+        animation: fadeInUp 0.7s ease-out;
 
         span {
-          color: $primary-color;
-          background: linear-gradient(135deg, $primary-color 0%, $primary-hover 100%);
+          background: $primary-gradient;
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
+        }
+
+        @media (max-width: 768px) {
+          font-size: 32px;
         }
       }
 
       .subtitle {
         font-size: $font-size-xl;
         color: $text-secondary;
-        margin-bottom: $space-10;
+        margin-bottom: $space-12;
         line-height: $line-height-relaxed;
-        animation: fadeInUp 0.6s ease-out 0.2s backwards;
+        animation: fadeInUp 0.7s ease-out 0.15s backwards;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+
+        @media (max-width: 768px) {
+          font-size: $font-size-lg;
+        }
       }
     }
 
     .search-box {
       background: $bg-white;
-      padding: $space-4;
-      border-radius: $radius-lg;
-      box-shadow: $shadow-lg;
+      padding: $space-3;
+      border-radius: $radius-xl;
+      box-shadow: $shadow-xl, 0 0 0 1px rgba(0, 0, 0, 0.03);
       display: flex;
       align-items: center;
       border: 1px solid $border-light;
-      transition: $transition-base;
-      animation: fadeInUp 0.6s ease-out 0.4s backwards;
+      transition: $transition-all;
+      animation: fadeInUp 0.7s ease-out 0.3s backwards;
 
       &:hover {
-        box-shadow: $shadow-xl;
+        box-shadow: $shadow-2xl, 0 0 0 1px rgba(37, 99, 235, 0.08);
+        border-color: rgba(37, 99, 235, 0.15);
+      }
+
+      &:focus-within {
+        border-color: rgba(37, 99, 235, 0.25);
+        box-shadow: $shadow-2xl, 0 0 0 3px rgba(37, 99, 235, 0.08);
       }
 
       @media (max-width: 768px) {
         flex-direction: column;
         padding: $space-3;
+        border-radius: $radius-lg;
       }
     }
   }
@@ -486,33 +712,53 @@ $backdrop-blur-lg: blur(20px);
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(24px);
   }
-
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
 
+@keyframes floatOrb {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(20px, -20px) scale(1.05); }
+  50% { transform: translate(-10px, 15px) scale(0.95); }
+  75% { transform: translate(15px, 10px) scale(1.02); }
+}
+
 // ============================================
-// 6. COMPONENT: CARDS (Compact Style)
+// 5. CARDS — PREMIUM STYLE
 // ============================================
 
-// 6.1 Company Card
+// 5.1 Company Card
 .company-card-modern {
-  border: 1px solid $border-color;
-  border-radius: $radius-lg;
+  border: 1px solid $border-light;
+  border-radius: $radius-xl;
   transition: $transition-all;
   height: 100%;
   background: $bg-white;
   cursor: pointer;
   overflow: hidden;
-  box-shadow: $shadow-xs;
+  box-shadow: $shadow-card;
+  position: relative;
+
+  // Gradient top border accent
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: $primary-gradient;
+    opacity: 0;
+    transition: $transition-all;
+  }
 
   :global {
     .ant-card-body {
-      padding: $space-5 !important;
+      padding: $space-6 !important;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -521,23 +767,32 @@ $backdrop-blur-lg: blur(20px);
   }
 
   &:hover {
-    transform: translateY(-6px);
-    box-shadow: $shadow-lg;
-    border-color: $primary-color;
+    transform: translateY(-8px);
+    box-shadow: $shadow-card-hover;
+    border-color: rgba(37, 99, 235, 0.2);
+
+    &::before {
+      opacity: 1;
+    }
+
+    .company-logo-wrapper {
+      border-color: rgba(37, 99, 235, 0.2);
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12);
+    }
   }
 
   .company-logo-wrapper {
-    width: 80px;
-    height: 80px;
+    width: 76px;
+    height: 76px;
     margin-bottom: $space-4;
     border-radius: $radius-lg;
-    border: 1px solid $border-light;
+    border: 2px solid $border-light;
     padding: $space-2;
     display: flex;
     align-items: center;
     justify-content: center;
     background: $bg-white;
-    transition: $transition-base;
+    transition: $transition-all;
 
     img {
       max-width: 100%;
@@ -559,6 +814,7 @@ $backdrop-blur-lg: blur(20px);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      font-family: $font-family-heading;
     }
 
     .company-address {
@@ -573,39 +829,67 @@ $backdrop-blur-lg: blur(20px);
   }
 
   .company-footer {
-    margin-top: $space-4;
+    margin-top: $space-5;
 
     .jobs-count {
       color: $primary-color;
       background: $primary-light;
-      padding: $space-2 $space-3;
-      border-radius: $radius-sm;
+      padding: $space-2 $space-4;
+      border-radius: $radius-full;
       font-size: $font-size-xs;
-      font-weight: $font-weight-semibold;
+      font-weight: $font-weight-bold;
+      letter-spacing: $letter-spacing-wide;
+      text-transform: uppercase;
+      transition: $transition-all;
     }
+  }
+
+  &:hover .company-footer .jobs-count {
+    background: $primary-color;
+    color: #fff;
+    box-shadow: $shadow-primary;
   }
 }
 
-// 6.2 Job Card
+// 5.2 Job Card
 .job-card-modern {
-  border: 1px solid $border-color;
-  border-radius: $radius-lg;
+  border: 1px solid $border-light;
+  border-radius: $radius-xl;
   transition: $transition-all;
   height: 100%;
   background: $bg-white;
   cursor: pointer;
-  box-shadow: $shadow-xs;
+  box-shadow: $shadow-card;
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: $primary-gradient;
+    transform: scaleX(0);
+    transition: transform 350ms $ease-in-out;
+    transform-origin: left;
+  }
 
   :global {
     .ant-card-body {
-      padding: $space-5 !important;
+      padding: $space-6 !important;
     }
   }
 
   &:hover {
-    border-color: $primary-color;
-    box-shadow: $shadow-lg;
+    border-color: rgba(37, 99, 235, 0.15);
+    box-shadow: $shadow-card-hover;
     transform: translateY(-4px);
+
+    &::after {
+      transform: scaleX(1);
+    }
   }
 
   .card-header {
@@ -615,13 +899,14 @@ $backdrop-blur-lg: blur(20px);
     margin-bottom: $space-4;
 
     img {
-      width: 56px;
-      height: 56px;
+      width: 52px;
+      height: 52px;
       object-fit: contain;
-      border-radius: $radius-md;
-      border: 1px solid $border-light;
-      padding: $space-1;
+      border-radius: $radius-lg;
+      border: 2px solid $border-light;
+      padding: 3px;
       background: $bg-white;
+      transition: $transition-all;
     }
 
     .info {
@@ -639,6 +924,8 @@ $backdrop-blur-lg: blur(20px);
         line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
+        font-family: $font-family-heading;
+        transition: color $transition-base;
       }
 
       .company {
@@ -651,12 +938,24 @@ $backdrop-blur-lg: blur(20px);
     }
   }
 
+  &:hover .card-header .info .title {
+    color: $primary-color;
+  }
+
   .card-body {
     .salary {
       font-weight: $font-weight-bold;
       color: $success-color;
       font-size: $font-size-lg;
       margin-bottom: $space-4;
+      display: flex;
+      align-items: center;
+      gap: $space-2;
+
+      &::before {
+        content: '💰';
+        font-size: 14px;
+      }
     }
 
     .footer {
@@ -681,17 +980,44 @@ $backdrop-blur-lg: blur(20px);
 }
 
 // ============================================
-// 7. FOOTER STYLES
+// 6. FOOTER — PREMIUM DARK
 // ============================================
 .footer-section {
-  background-color: #18191c;
-  color: $text-tertiary;
+  background: $footer-bg;
+  color: $footer-text;
   padding-top: $space-20;
   margin-top: auto;
+  position: relative;
+  overflow: hidden;
+
+  // decorative top gradient line
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: $primary-gradient;
+  }
+
+  // subtle glow orb
+  &::after {
+    content: '';
+    position: absolute;
+    top: -150px;
+    right: 10%;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(37, 99, 235, 0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
 
   .footer-top {
     padding-bottom: $space-16;
-    border-bottom: 1px solid #2e2f32;
+    border-bottom: 1px solid $footer-border;
+    position: relative;
+    z-index: 1;
   }
 
   .footer-brand {
@@ -699,35 +1025,92 @@ $backdrop-blur-lg: blur(20px);
     align-items: center;
     gap: $space-3;
     margin-bottom: $space-5;
+    cursor: pointer;
+    transition: $transition-all;
 
     .brand-icon {
       font-size: 28px;
-      color: $primary-color;
+      background: $primary-gradient;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 2px 4px rgba(37, 99, 235, 0.4));
     }
 
     .brand-text {
-      font-size: $font-size-3xl;
-      font-weight: $font-weight-bold;
+      font-size: $font-size-2xl;
+      font-weight: $font-weight-extrabold;
       color: $bg-white;
       font-family: $font-family-heading;
+      letter-spacing: -0.02em;
     }
+
+    &:hover {
+      transform: translateX(4px);
+    }
+  }
+
+  .footer-desc {
+    line-height: $line-height-relaxed;
+    margin-bottom: $space-6;
+    color: $footer-text;
+    font-size: $font-size-md;
+    max-width: 280px;
   }
 
   .footer-heading {
     color: $bg-white;
-    font-size: $font-size-xl;
-    font-weight: $font-weight-semibold;
+    font-size: $font-size-lg;
+    font-weight: $font-weight-bold;
     margin-bottom: $space-6;
+    font-family: $font-family-heading;
+    position: relative;
+    padding-bottom: $space-3;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 32px;
+      height: 2px;
+      background: $primary-gradient;
+      border-radius: $radius-full;
+    }
   }
 
-  .footer-links li {
-    margin-bottom: $space-3;
-    cursor: pointer;
-    transition: $transition-base;
+  .footer-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
 
-    &:hover {
-      color: $primary-color;
-      padding-left: 5px;
+    li {
+      margin-bottom: $space-3;
+      cursor: pointer;
+      transition: $transition-all;
+      font-size: $font-size-md;
+      color: $footer-text;
+      position: relative;
+      padding-left: 0;
+
+      &::before {
+        content: '→';
+        position: absolute;
+        left: -18px;
+        opacity: 0;
+        transition: $transition-all;
+        color: $primary-color;
+      }
+
+      &:hover {
+        color: $primary-color;
+        padding-left: $space-5;
+
+        &::before {
+          left: 0;
+          opacity: 1;
+        }
+      }
     }
   }
 
@@ -738,18 +1121,46 @@ $backdrop-blur-lg: blur(20px);
     .icon-wrapper {
       width: 40px;
       height: 40px;
-      background: #2b2c30;
+      background: $footer-surface;
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: $radius-sm;
-      color: $bg-white;
+      border-radius: $radius-lg;
+      color: $footer-text-bright;
       cursor: pointer;
-      transition: $transition-base;
+      transition: $transition-all;
+      border: 1px solid $footer-border;
+      font-size: 16px;
 
       &:hover {
-        background: $primary-color;
-        transform: translateY(-2px);
+        background: $primary-gradient;
+        color: #fff;
+        border-color: transparent;
+        transform: translateY(-3px);
+        box-shadow: $shadow-primary;
+      }
+    }
+  }
+
+  .contact-info {
+    .contact-item {
+      display: flex;
+      align-items: center;
+      gap: $space-3;
+      margin-bottom: $space-4;
+      color: $footer-text;
+      font-size: $font-size-md;
+      transition: $transition-all;
+
+      span:first-child,
+      > span.anticon {
+        color: $primary-color;
+        font-size: 16px;
+      }
+
+      &:hover {
+        color: $footer-text-bright;
+        transform: translateX(4px);
       }
     }
   }
@@ -758,48 +1169,91 @@ $backdrop-blur-lg: blur(20px);
     padding: $space-6 0;
     text-align: center;
     font-size: $font-size-sm;
+    color: $footer-text;
+    position: relative;
+    z-index: 1;
+
+    .copyright {
+      opacity: 0.8;
+    }
   }
 }
 
 // ============================================
-// 8. DETAIL PAGE STYLES
+// 7. DETAIL PAGES — PREMIUM
 // ============================================
 .job-detail-section {
   background-color: $bg-body;
   padding-bottom: $space-16;
 
   .job-header-container {
-    background: $bg-white;
-    padding: $space-10 0;
+    background: linear-gradient(160deg, #f8fafc 0%, #eff6ff 50%, #f5f3ff 100%);
+    padding: $space-12 0 $space-10;
     margin-bottom: $space-8;
-    box-shadow: $shadow-sm;
+    border-bottom: 1px solid $border-light;
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: $primary-gradient;
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: -100px;
+      right: -50px;
+      width: 350px;
+      height: 350px;
+      background: radial-gradient(circle, rgba(37, 99, 235, 0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
 
     .header-content {
       display: flex;
       gap: $space-6;
       align-items: flex-start;
+      position: relative;
+      z-index: 1;
 
       .company-logo {
-        width: 100px;
-        height: 100px;
-        border-radius: $radius-lg;
-        border: 1px solid $border-color;
+        width: 96px;
+        height: 96px;
+        border-radius: $radius-xl;
+        border: 2px solid $border-light;
         object-fit: contain;
         padding: $space-2;
         background: $bg-white;
-        box-shadow: $shadow-xs;
+        box-shadow: $shadow-md;
+        transition: $transition-all;
+
+        &:hover {
+          box-shadow: $shadow-lg;
+          border-color: rgba(37, 99, 235, 0.2);
+        }
       }
 
       .job-info-header {
         flex: 1;
 
         .job-title {
-          font-size: $font-size-5xl;
+          font-size: $font-size-4xl;
           font-weight: $font-weight-extrabold;
           color: $text-primary;
           margin-bottom: $space-3;
           line-height: $line-height-tight;
           font-family: $font-family-heading;
+          letter-spacing: $letter-spacing-tight;
+
+          @media (max-width: 768px) {
+            font-size: $font-size-3xl;
+          }
         }
 
         .job-meta {
@@ -814,22 +1268,49 @@ $backdrop-blur-lg: blur(20px);
             display: flex;
             align-items: center;
             gap: $space-2;
+            transition: color $transition-base;
+
+            &:hover {
+              color: $primary-color;
+            }
+          }
+
+          .salary {
+            color: $success-color;
+            font-weight: $font-weight-bold;
+            background: $success-light;
+            padding: $space-1 $space-3;
+            border-radius: $radius-full;
+            font-size: $font-size-sm;
           }
         }
       }
 
       .btn-apply {
         min-width: 200px;
-        height: 52px;
+        height: 50px;
         font-weight: $font-weight-bold;
-        font-size: $font-size-lg;
-        border-radius: $radius-md;
+        font-size: $font-size-md;
+        letter-spacing: $letter-spacing-wide;
+        text-transform: uppercase;
+        border-radius: $radius-lg;
+        background: $primary-gradient !important;
+        border: none;
         box-shadow: $shadow-primary;
-        transition: $transition-base;
+        transition: $transition-all;
 
         &:hover {
-          transform: translateY(-2px);
-          box-shadow: $shadow-lg;
+          transform: translateY(-3px);
+          box-shadow: $shadow-primary-lg;
+        }
+
+        &:active {
+          transform: translateY(-1px);
+        }
+
+        @media (max-width: 768px) {
+          min-width: auto;
+          width: 100%;
         }
       }
     }
@@ -839,10 +1320,15 @@ $backdrop-blur-lg: blur(20px);
   .company-sidebar-card {
     background: $bg-white;
     padding: $space-8;
-    border-radius: $radius-lg;
-    border: 1px solid $border-color;
-    box-shadow: $shadow-xs;
+    border-radius: $radius-xl;
+    border: 1px solid $border-light;
+    box-shadow: $shadow-card;
     margin-bottom: $space-6;
+    transition: $transition-all;
+
+    &:hover {
+      box-shadow: $shadow-card-hover;
+    }
 
     h3 {
       font-size: $font-size-2xl;
@@ -850,14 +1336,40 @@ $backdrop-blur-lg: blur(20px);
       color: $text-primary;
       margin-bottom: $space-5;
       font-family: $font-family-heading;
+      display: flex;
+      align-items: center;
+      gap: $space-3;
+
+      &::before {
+        content: '';
+        width: 4px;
+        height: 22px;
+        background: $primary-gradient;
+        border-radius: $radius-full;
+        flex-shrink: 0;
+      }
     }
 
     .sidebar-title {
       font-size: $font-size-xl;
       font-weight: $font-weight-bold;
       color: $text-primary;
-      margin-bottom: $space-5;
+      margin-bottom: $space-6;
       font-family: $font-family-heading;
+      display: flex;
+      align-items: center;
+      gap: $space-3;
+      padding-bottom: $space-4;
+      border-bottom: 2px solid $border-light;
+
+      &::before {
+        content: '';
+        width: 4px;
+        height: 20px;
+        background: $primary-gradient;
+        border-radius: $radius-full;
+        flex-shrink: 0;
+      }
     }
 
     .info-row {
@@ -865,27 +1377,49 @@ $backdrop-blur-lg: blur(20px);
       gap: $space-4;
       margin-bottom: $space-5;
       align-items: flex-start;
+      padding: $space-3;
+      border-radius: $radius-lg;
+      transition: background $transition-base;
+
+      &:hover {
+        background: $bg-gray-50;
+      }
+
+      &:last-child {
+        margin-bottom: 0;
+      }
 
       .icon {
         color: $primary-color;
-        font-size: 20px;
+        font-size: 18px;
         background: $primary-light;
-        padding: $space-2;
-        border-radius: $radius-full;
-        min-width: 36px;
-        height: 36px;
+        padding: $space-3;
+        border-radius: $radius-lg;
+        min-width: 42px;
+        height: 42px;
         display: flex;
         align-items: center;
         justify-content: center;
+        transition: $transition-all;
+      }
+
+      &:hover .icon {
+        background: $primary-gradient;
+        color: #fff;
+        box-shadow: $shadow-primary;
       }
 
       .text {
         flex: 1;
+        padding-top: 2px;
 
         div:first-child {
-          font-size: $font-size-sm;
-          color: $text-secondary;
+          font-size: $font-size-xs;
+          color: $text-tertiary;
           margin-bottom: $space-1;
+          text-transform: uppercase;
+          letter-spacing: $letter-spacing-wide;
+          font-weight: $font-weight-semibold;
         }
 
         div:last-child {
@@ -898,7 +1432,308 @@ $backdrop-blur-lg: blur(20px);
   }
 }
 
-// Responsive chung
+// ============================================
+// 8. PAGE HERO — JOB & COMPANY LISTING PAGES
+// ============================================
+.page-job,
+.page-company {
+  background: $bg-body;
+  min-height: calc(100vh - 72px);
+}
+
+.page-hero {
+  background: linear-gradient(160deg, #eff6ff 0%, #f5f3ff 40%, #fdf2f8 80%, #fff 100%);
+  padding: $space-16 0 $space-12;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -100px;
+    right: -60px;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(37, 99, 235, 0.06) 0%, transparent 70%);
+    pointer-events: none;
+    animation: floatOrb 8s ease-in-out infinite;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -60px;
+    left: -80px;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(124, 58, 237, 0.05) 0%, transparent 70%);
+    pointer-events: none;
+    animation: floatOrb 10s ease-in-out infinite reverse;
+  }
+
+  .page-hero-content {
+    text-align: center;
+    max-width: 680px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+    margin-bottom: $space-8;
+  }
+
+  .page-hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-2;
+    background: $primary-light;
+    color: $primary-color;
+    padding: $space-2 $space-4;
+    border-radius: $radius-full;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-bold;
+    letter-spacing: $letter-spacing-wide;
+    text-transform: uppercase;
+    margin-bottom: $space-5;
+    animation: fadeInUp 0.5s ease-out;
+    border: 1px solid rgba(37, 99, 235, 0.15);
+
+    span {
+      line-height: 1;
+    }
+  }
+
+  .page-hero-title {
+    font-size: $font-size-4xl;
+    font-weight: $font-weight-extrabold;
+    color: $text-primary;
+    margin-bottom: $space-4;
+    line-height: 1.2;
+    font-family: $font-family-heading;
+    letter-spacing: $letter-spacing-tight;
+    animation: fadeInUp 0.6s ease-out 0.1s backwards;
+
+    span {
+      background: $primary-gradient;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    @media (max-width: 768px) {
+      font-size: $font-size-3xl;
+    }
+  }
+
+  .page-hero-desc {
+    font-size: $font-size-lg;
+    color: $text-secondary;
+    line-height: $line-height-relaxed;
+    max-width: 540px;
+    margin: 0 auto;
+    animation: fadeInUp 0.6s ease-out 0.2s backwards;
+
+    @media (max-width: 768px) {
+      font-size: $font-size-md;
+    }
+  }
+
+  .page-search-wrapper {
+    max-width: 800px;
+    margin: 0 auto;
+    background: $bg-white;
+    padding: $space-3;
+    border-radius: $radius-xl;
+    box-shadow: $shadow-xl, 0 0 0 1px rgba(0, 0, 0, 0.03);
+    border: 1px solid $border-light;
+    transition: $transition-all;
+    animation: fadeInUp 0.6s ease-out 0.35s backwards;
+    position: relative;
+    z-index: 1;
+
+    &:hover {
+      box-shadow: $shadow-2xl, 0 0 0 1px rgba(37, 99, 235, 0.08);
+      border-color: rgba(37, 99, 235, 0.15);
+    }
+
+    &:focus-within {
+      border-color: rgba(37, 99, 235, 0.25);
+      box-shadow: $shadow-2xl, 0 0 0 3px rgba(37, 99, 235, 0.08);
+    }
+  }
+}
+
+// ============================================
+// 9. STATS BAR
+// ============================================
+.stats-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-8;
+  padding: $space-6 $space-8;
+  background: $bg-white;
+  border-radius: $radius-xl;
+  border: 1px solid $border-light;
+  box-shadow: $shadow-card;
+  margin-top: -$space-8;
+  margin-bottom: $space-10;
+  position: relative;
+  z-index: 2;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: $space-4;
+    margin-top: -$space-6;
+    padding: $space-5 $space-6;
+  }
+
+  .stat-item {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    color: $text-secondary;
+    font-size: $font-size-md;
+    font-weight: $font-weight-semibold;
+    transition: $transition-all;
+
+    :global(.anticon) {
+      font-size: 18px;
+      color: $primary-color;
+      background: $primary-light;
+      padding: $space-2;
+      border-radius: $radius-md;
+      width: 34px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    &:hover {
+      color: $primary-color;
+    }
+  }
+
+  .stat-divider {
+    width: 1px;
+    height: 32px;
+    background: $border-color;
+
+    @media (max-width: 768px) {
+      width: 60px;
+      height: 1px;
+    }
+  }
+}
+
+// ============================================
+// 10. JOB CARD ENHANCEMENTS — SKILL TAGS & CTA
+// ============================================
+.job-card-modern {
+  .card-body {
+    .skill-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: $space-3;
+
+      .skill-tag {
+        background: $primary-light;
+        color: $primary-color;
+        border: 1px solid rgba(37, 99, 235, 0.12);
+        border-radius: $radius-full;
+        padding: 2px 10px;
+        font-size: 11px;
+        font-weight: $font-weight-semibold;
+        letter-spacing: 0.01em;
+        line-height: 20px;
+        margin: 0;
+        transition: $transition-all;
+
+        &:hover {
+          background: rgba(37, 99, 235, 0.12);
+        }
+      }
+
+      .skill-tag-more {
+        background: $bg-gray-100;
+        color: $text-secondary;
+        border: 1px solid $border-color;
+        border-radius: $radius-full;
+        padding: 2px 10px;
+        font-size: 11px;
+        font-weight: $font-weight-semibold;
+        line-height: 20px;
+        margin: 0;
+      }
+    }
+
+    .salary {
+      display: flex;
+      align-items: center;
+      gap: $space-2;
+
+      :global(.anticon) {
+        color: $success-color;
+      }
+
+      &::before {
+        display: none; // Remove emoji, use icon instead
+      }
+    }
+  }
+
+  // Card CTA — visible on hover
+  .card-cta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: $space-2;
+    padding: $space-3 0 0;
+    margin-top: $space-3;
+    border-top: 1px dashed $border-light;
+    color: $primary-color;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-bold;
+    letter-spacing: $letter-spacing-wide;
+    text-transform: uppercase;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: $transition-all;
+
+    :global(.anticon) {
+      font-size: 10px;
+      transition: transform 300ms $ease-in-out;
+    }
+  }
+
+  &:hover .card-cta {
+    opacity: 1;
+    transform: translateY(0);
+
+    :global(.anticon) {
+      transform: translateX(4px);
+    }
+  }
+}
+
+// ============================================
+// 11. EMPTY STATE
+// ============================================
+.empty {
+  width: 100%;
+  padding: $space-16 0;
+  text-align: center;
+
+  :global(.ant-empty) {
+    .ant-empty-description {
+      color: $text-secondary;
+      font-size: $font-size-md;
+    }
+  }
+}
+
+// ============================================
+// 12. RESPONSIVE
 @media (max-width: 768px) {
   .container {
     padding: 0 15px;
@@ -906,11 +1741,66 @@ $backdrop-blur-lg: blur(20px);
 
   .job-detail-section .header-content {
     flex-direction: column;
+
+    .btn-apply {
+      min-width: auto;
+      width: 100%;
+    }
+  }
+
+  .homepage-container .hero-section {
+    padding: $space-16 0 $space-12;
+  }
+
+  .page-hero {
+    padding: $space-12 0 $space-10;
+
+    .page-hero-title {
+      font-size: $font-size-3xl;
+    }
+
+    .page-hero-desc {
+      font-size: $font-size-md;
+    }
   }
 }
 
+// ============================================
+// 13. ANT DESIGN OVERRIDES
+// ============================================
 :global {
   .ant-pagination {
     margin-bottom: 20px;
+
+    .ant-pagination-item-active {
+      border-color: $primary-color;
+
+      a {
+        color: $primary-color;
+      }
+    }
+  }
+
+  .ant-breadcrumb {
+    font-size: $font-size-sm;
+
+    a {
+      color: $text-secondary !important;
+      transition: color 200ms;
+
+      &:hover {
+        color: $primary-color !important;
+      }
+    }
+  }
+
+  .ant-tag-geekblue {
+    border-radius: $radius-full;
+    padding: 4px 14px;
+    font-weight: 600;
+  }
+
+  .ant-spin-nested-loading {
+    min-height: 200px;
   }
 }

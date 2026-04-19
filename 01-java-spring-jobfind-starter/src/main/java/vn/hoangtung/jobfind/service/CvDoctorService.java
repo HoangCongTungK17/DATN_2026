@@ -1,50 +1,37 @@
 package vn.hoangtung.jobfind.service;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.prompt.Prompt;
-import org.springframework.ai.chat.prompt.PromptTemplate;
-import java.util.Map;
-import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import vn.hoangtung.jobfind.domain.CvAnalysis;
+import vn.hoangtung.jobfind.domain.Job;
 import vn.hoangtung.jobfind.domain.Resume;
 import vn.hoangtung.jobfind.domain.User;
 import vn.hoangtung.jobfind.domain.response.ResultPaginationDTO;
 import vn.hoangtung.jobfind.domain.response.ai.ResCvAnalysisDTO;
 import vn.hoangtung.jobfind.domain.response.ai.ResCvHistoryDTO;
 import vn.hoangtung.jobfind.domain.response.ai.ResCvMatchDTO;
-import vn.hoangtung.jobfind.domain.CvAnalysis;
-import vn.hoangtung.jobfind.domain.User;
-import vn.hoangtung.jobfind.util.SecurityUtil;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import vn.hoangtung.jobfind.domain.response.ResultPaginationDTO;
-import vn.hoangtung.jobfind.domain.response.ai.ResCvHistoryDTO;
-import java.util.stream.Collectors;
-
-import vn.hoangtung.jobfind.domain.Resume;
-import vn.hoangtung.jobfind.domain.Job;
-import vn.hoangtung.jobfind.domain.response.ai.ResCvMatchDTO;
-import vn.hoangtung.jobfind.repository.ResumeRepository;
-import org.springframework.beans.factory.annotation.Value;
-
-import java.util.List;
-import java.util.ArrayList;
-
 import vn.hoangtung.jobfind.repository.CvAnalysisRepository;
+import vn.hoangtung.jobfind.repository.ResumeRepository;
 import vn.hoangtung.jobfind.repository.UserRepository;
 import vn.hoangtung.jobfind.util.SecurityUtil;
 
@@ -578,6 +565,9 @@ public class CvDoctorService {
             entity.setStrengths(objectMapper.writeValueAsString(result.getStrengths()));
             entity.setSuggestions(objectMapper.writeValueAsString(result.getSuggestions()));
 
+            // Lưu raw AI response để debug production
+            entity.setRawAiResponse(objectMapper.writeValueAsString(result));
+
             return cvAnalysisRepository.save(entity);
 
         } catch (JsonProcessingException e) {
@@ -604,8 +594,10 @@ public class CvDoctorService {
         // 2. Đọc PDF text từ CV (trực tiếp bằng PDFBox, không qua MultipartFile)
         String cvText;
         try {
-            String baseUri = uploadFileBaseUri.replace("file:", "").replace("/", java.io.File.separator);
-            java.io.File pdfFile = new java.io.File(baseUri + "resume" + java.io.File.separator + resume.getUrl());
+            // Dùng java.nio.file.Paths để xử lý path cross-platform an toàn
+            java.net.URI baseURI = java.net.URI.create(uploadFileBaseUri);
+            java.nio.file.Path basePath = java.nio.file.Paths.get(baseURI);
+            java.io.File pdfFile = basePath.resolve("resume").resolve(resume.getUrl()).toFile();
 
             if (!pdfFile.exists()) {
                 throw new IllegalArgumentException("Không tìm thấy file CV: " + resume.getUrl());
@@ -751,6 +743,13 @@ public class CvDoctorService {
     public ResCvAnalysisDTO getCvAnalysisById(Long id) {
         CvAnalysis entity = cvAnalysisRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy kết quả phân tích CV"));
+
+        // Kiểm tra quyền sở hữu: chỉ user tạo ra CV analysis mới được xem
+        String email = SecurityUtil.getCurrentUserLogin().orElse("");
+        User currentUser = userRepository.findByEmail(email);
+        if (currentUser == null || entity.getUser().getId() != currentUser.getId()) {
+            throw new IllegalArgumentException("Bạn không có quyền xem kết quả phân tích này");
+        }
 
         try {
             ObjectMapper objectMapper = new ObjectMapper();

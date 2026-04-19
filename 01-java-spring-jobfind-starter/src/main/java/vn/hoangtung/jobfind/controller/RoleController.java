@@ -83,7 +83,7 @@ public class RoleController {
 
         Role role = this.roleService.fetchById(id);
         if (role == null) {
-            throw new IdInvalidException("Resume với id = " + id + " không tồn tại");
+            throw new IdInvalidException("Role với id = " + id + " không tồn tại");
         }
 
         return ResponseEntity.ok().body(role);

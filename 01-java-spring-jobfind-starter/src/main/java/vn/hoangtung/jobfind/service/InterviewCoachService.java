@@ -236,9 +236,10 @@ public class InterviewCoachService {
     // 2. GỬI CÂU TRẢ LỜI + NHẬN FEEDBACK
     // =============================================
     public ResAnswerFeedbackDTO submitAnswer(ReqAnswerDTO req) {
-        // 1. Lấy session
+        // 1. Lấy session và kiểm tra quyền sở hữu
         InterviewSession session = sessionRepository.findById(req.getSessionId())
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy phiên phỏng vấn"));
+        validateSessionOwnership(session);
 
         if (session.getStatus() != InterviewStatusEnum.IN_PROGRESS) {
             throw new IllegalArgumentException("Phiên phỏng vấn đã kết thúc");
@@ -252,6 +253,12 @@ public class InterviewCoachService {
 
             int currentQ = session.getCurrentQuestion();
             QuestionData currentQuestion = questions.get(currentQ - 1);
+
+            // Kiểm tra xem câu hỏi đã được trả lời chưa (chống ghi đè)
+            if (currentQuestion.answer != null && !currentQuestion.answer.isEmpty()) {
+                throw new IllegalArgumentException(
+                        "Câu hỏi #" + currentQ + " đã được trả lời rồi. Không thể gửi lại.");
+            }
 
             // 3. Lưu câu trả lời
             currentQuestion.answer = req.getAnswer();
@@ -333,6 +340,7 @@ public class InterviewCoachService {
     public ResInterviewQuestionDTO getCurrentQuestion(long sessionId) {
         InterviewSession session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy phiên phỏng vấn"));
+        validateSessionOwnership(session);
 
         try {
             List<QuestionData> questions = objectMapper.readValue(
@@ -360,6 +368,7 @@ public class InterviewCoachService {
     public ResInterviewSummaryDTO getSessionSummary(long sessionId) {
         InterviewSession session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy phiên phỏng vấn"));
+        validateSessionOwnership(session);
 
         try {
             List<QuestionData> questions = objectMapper.readValue(
@@ -540,6 +549,17 @@ public class InterviewCoachService {
         if (!isValid) {
             throw new IllegalArgumentException(
                     "JobFind chỉ hỗ trợ phỏng vấn cho các vị trí IT. Vui lòng chọn vị trí IT từ danh sách.");
+        }
+    }
+
+    // =============================================
+    // HELPER: Kiểm tra quyền sở hữu session
+    // =============================================
+    private void validateSessionOwnership(InterviewSession session) {
+        String email = SecurityUtil.getCurrentUserLogin().orElse("");
+        User currentUser = userRepository.findByEmail(email);
+        if (currentUser == null || session.getUser().getId() != currentUser.getId()) {
+            throw new IllegalArgumentException("Bạn không có quyền truy cập phiên phỏng vấn này");
         }
     }
 

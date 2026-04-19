@@ -108,11 +108,15 @@ public class ResumeService {
         res.setUpdatedBy(resume.getUpdatedBy());
 
         if (resume.getJob() != null) {
-            res.setCompanyName(resume.getJob().getCompany().getName());
+            if (resume.getJob().getCompany() != null) {
+                res.setCompanyName(resume.getJob().getCompany().getName());
+            }
+            res.setJob(new ResFetchResumeDTO.JobResume(resume.getJob().getId(), resume.getJob().getName()));
         }
 
-        res.setUser(new ResFetchResumeDTO.UserResume(resume.getUser().getId(), resume.getUser().getName()));
-        res.setJob(new ResFetchResumeDTO.JobResume(resume.getJob().getId(), resume.getJob().getName()));
+        if (resume.getUser() != null) {
+            res.setUser(new ResFetchResumeDTO.UserResume(resume.getUser().getId(), resume.getUser().getName()));
+        }
 
         return res;
     }

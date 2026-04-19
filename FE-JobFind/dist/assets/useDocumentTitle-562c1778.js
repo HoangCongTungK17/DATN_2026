@@ -1,0 +1,1 @@
+import{Z as i}from"./index-d42780c0.js";const c=(t,e=!0)=>{i.useEffect(()=>{const o=document.title;return document.title=t?`${t} | JobFind`:"JobFind — Nền tảng tìm việc IT hàng đầu Việt Nam",()=>{e&&(document.title=o)}},[t,e])};export{c as u};

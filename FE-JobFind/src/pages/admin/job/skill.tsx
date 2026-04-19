@@ -2,9 +2,13 @@
 import DataTable from "@/components/client/data-table";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { ISkill } from "@/types/backend";
-import { DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
+import {
+    DeleteOutlined,
+    EditOutlined,
+    PlusOutlined,
+} from "@ant-design/icons";
 import { ActionType, ProColumns } from '@ant-design/pro-components';
-import { Button, Popconfirm, Space, message, notification } from "antd";
+import { Button, Popconfirm, Space, Tag, Tooltip, message, notification } from "antd";
 import { useState, useRef } from 'react';
 import dayjs from 'dayjs';
 import { callDeleteSkill } from "@/config/api";
@@ -28,7 +32,7 @@ const SkillPage = () => {
         if (id) {
             const res = await callDeleteSkill(id);
             if (res && +res.statusCode === 200) {
-                message.success('Xóa Skill thành công');
+                message.success('Xóa kỹ năng thành công');
                 reloadTable();
             } else {
                 notification.error({
@@ -47,99 +51,114 @@ const SkillPage = () => {
         {
             title: 'STT',
             key: 'index',
-            width: 50,
+            width: 55,
             align: "center",
-            render: (text, record, index) => {
-                return (
-                    <>
-                        {(index + 1) + (meta.page - 1) * (meta.pageSize)}
-                    </>)
-            },
+            render: (text, record, index) => (
+                <span style={{
+                    fontWeight: 700, color: '#64748b', fontSize: 13,
+                    width: 28, height: 28, borderRadius: 8,
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                    background: '#f1f5f9',
+                }}>
+                    {(index + 1) + (meta.page - 1) * (meta.pageSize)}
+                </span>
+            ),
             hideInSearch: true,
         },
         {
-            title: 'Name',
+            title: 'Tên Kỹ Năng',
             dataIndex: 'name',
             sorter: true,
+            fieldProps: { placeholder: 'Tìm theo tên kỹ năng...' },
+            render: (text, record) => (
+                <span style={{ fontWeight: 600, color: '#0f172a', fontSize: 14 }}>
+                    {record.name}
+                </span>
+            ),
         },
-
         {
-            title: 'Created By',
+            title: 'Người Tạo',
             dataIndex: 'createdBy',
             hideInSearch: true,
+            render: (text) => (
+                <span style={{ color: '#475569', fontSize: 13 }}>
+                    {text as string || '—'}
+                </span>
+            ),
         },
-
         {
-            title: 'Updated By',
+            title: 'Người Cập Nhật',
             dataIndex: 'updatedBy',
             hideInSearch: true,
+            render: (text) => (
+                <span style={{ color: '#475569', fontSize: 13 }}>
+                    {text as string || '—'}
+                </span>
+            ),
         },
-
-
         {
-            title: 'CreatedAt',
+            title: 'Ngày Tạo',
             dataIndex: 'createdAt',
-            width: 200,
+            width: 155,
             sorter: true,
-            render: (text, record, index, action) => {
-                return (
-                    <>{record.createdAt ? dayjs(record.createdAt).format('DD-MM-YYYY HH:mm:ss') : ""}</>
-                )
-            },
+            render: (text, record) => (
+                <span style={{ color: '#64748b', fontSize: 13 }}>
+                    {record.createdAt ? dayjs(record.createdAt).format('DD/MM/YYYY HH:mm') : "—"}
+                </span>
+            ),
             hideInSearch: true,
         },
         {
-            title: 'UpdatedAt',
+            title: 'Cập Nhật',
             dataIndex: 'updatedAt',
-            width: 200,
+            width: 155,
             sorter: true,
-            render: (text, record, index, action) => {
-                return (
-                    <>{record.updatedAt ? dayjs(record.updatedAt).format('DD-MM-YYYY HH:mm:ss') : ""}</>
-                )
-            },
+            render: (text, record) => (
+                <span style={{ color: '#64748b', fontSize: 13 }}>
+                    {record.updatedAt ? dayjs(record.updatedAt).format('DD/MM/YYYY HH:mm') : "—"}
+                </span>
+            ),
             hideInSearch: true,
         },
         {
-
-            title: 'Actions',
+            title: 'Thao Tác',
             hideInSearch: true,
-            width: 50,
+            width: 100,
+            align: 'center',
             render: (_value, entity, _index, _action) => (
                 <Space>
-
-                    <EditOutlined
-                        style={{
-                            fontSize: 20,
-                            color: '#ffa500',
-                        }}
-                        type=""
-                        onClick={() => {
-                            setOpenModal(true);
-                            setDataInit(entity);
-                        }}
-                    />
-
+                    <Tooltip title="Chỉnh sửa">
+                        <EditOutlined
+                            style={{
+                                fontSize: 16, color: '#6366f1', cursor: 'pointer',
+                                padding: 6, borderRadius: 8, background: '#eef2ff',
+                            }}
+                            onClick={() => {
+                                setOpenModal(true);
+                                setDataInit(entity);
+                            }}
+                        />
+                    </Tooltip>
                     <Popconfirm
                         placement="leftTop"
-                        title={"Xác nhận xóa skill"}
-                        description={"Bạn có chắc chắn muốn xóa skill này ?"}
+                        title="Xác nhận xóa"
+                        description="Bạn có chắc chắn muốn xóa kỹ năng này?"
                         onConfirm={() => handleDeleteSkill(entity.id)}
                         okText="Xác nhận"
                         cancelText="Hủy"
+                        okButtonProps={{ danger: true }}
                     >
-                        <span style={{ cursor: "pointer", margin: "0 10px" }}>
+                        <Tooltip title="Xóa">
                             <DeleteOutlined
                                 style={{
-                                    fontSize: 20,
-                                    color: '#ff4d4f',
+                                    fontSize: 16, color: '#dc2626', cursor: 'pointer',
+                                    padding: 6, borderRadius: 8, background: '#fee2e2',
                                 }}
                             />
-                        </span>
+                        </Tooltip>
                     </Popconfirm>
                 </Space>
             ),
-
         },
     ];
 
@@ -182,7 +201,7 @@ const SkillPage = () => {
         <div>
             <DataTable<ISkill>
                 actionRef={tableRef}
-                headerTitle="Danh sách Skill"
+                headerTitle="Danh Sách Kỹ Năng"
                 rowKey="id"
                 loading={isFetching}
                 columns={columns}
@@ -192,15 +211,17 @@ const SkillPage = () => {
                     dispatch(fetchSkill({ query }))
                 }}
                 scroll={{ x: true }}
-                pagination={
-                    {
-                        current: meta.page,
-                        pageSize: meta.pageSize,
-                        showSizeChanger: true,
-                        total: meta.total,
-                        showTotal: (total, range) => { return (<div> {range[0]}-{range[1]} trên {total} rows</div>) }
-                    }
-                }
+                pagination={{
+                    current: meta.page,
+                    pageSize: meta.pageSize,
+                    showSizeChanger: true,
+                    total: meta.total,
+                    showTotal: (total, range) => (
+                        <span style={{ color: '#64748b', fontSize: 13 }}>
+                            Hiển thị <strong style={{ color: '#0f172a' }}>{range[0]}-{range[1]}</strong> trên <strong style={{ color: '#0f172a' }}>{total}</strong> kỹ năng
+                        </span>
+                    )
+                }}
                 rowSelection={false}
                 toolBarRender={(_action, _rows): any => {
                     return (
@@ -208,8 +229,13 @@ const SkillPage = () => {
                             icon={<PlusOutlined />}
                             type="primary"
                             onClick={() => setOpenModal(true)}
+                            style={{
+                                borderRadius: 10, height: 40, fontWeight: 600,
+                                background: 'linear-gradient(135deg, #6366f1, #a855f7)',
+                                border: 'none', boxShadow: '0 4px 14px rgba(99, 102, 241, 0.3)',
+                            }}
                         >
-                            Thêm mới
+                            Thêm Kỹ Năng
                         </Button>
                     );
                 }}

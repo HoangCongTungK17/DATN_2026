@@ -11,6 +11,8 @@ import {
   ClockCircleOutlined,
   CalendarOutlined,
   SafetyCertificateOutlined,
+  TeamOutlined,
+  SendOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -118,6 +120,7 @@ const ClientJobDetailPage = (props: any) => {
                     size="large"
                     className={styles["btn-apply"]}
                     onClick={() => setIsModalOpen(true)}
+                    icon={<SendOutlined />}
                   >
                     Ứng Tuyển Ngay
                   </Button>
@@ -132,26 +135,32 @@ const ClientJobDetailPage = (props: any) => {
                 <Col span={24} md={16}>
                   <div className={styles["job-description-card"]}>
                     <h3>Mô tả công việc</h3>
-                    <Divider style={{ margin: "12px 0 20px" }} />
+                    <Divider style={{ margin: "0 0 20px" }} />
                     {parse(jobDetail.description)}
 
-                    {/* Phần Kỹ năng bổ sung nếu cần */}
+                    {/* Phần Kỹ năng */}
                     {jobDetail.skills && jobDetail.skills.length > 0 && (
-                      <div style={{ marginTop: 20 }}>
-                        <h4>Kỹ năng yêu cầu:</h4>
+                      <div style={{ marginTop: 28 }}>
+                        <h3>Kỹ năng yêu cầu</h3>
                         <div
                           style={{
                             display: "flex",
                             flexWrap: "wrap",
                             gap: 10,
-                            marginTop: 10,
+                            marginTop: 12,
                           }}
                         >
                           {jobDetail?.skills?.map((item, index) => (
                             <Tag
                               color="geekblue"
                               key={index}
-                              style={{ fontSize: 14, padding: "5px 10px" }}
+                              style={{
+                                fontSize: 13,
+                                padding: "5px 16px",
+                                borderRadius: 20,
+                                fontWeight: 600,
+                                letterSpacing: "0.02em",
+                              }}
                             >
                               {item.name}
                             </Tag>
@@ -238,8 +247,11 @@ const ClientJobDetailPage = (props: any) => {
                       style={{
                         display: "flex",
                         alignItems: "center",
-                        gap: 12,
-                        marginBottom: 15,
+                        gap: 14,
+                        marginBottom: 16,
+                        padding: "12px",
+                        background: "#f8fafc",
+                        borderRadius: 12,
                       }}
                     >
                       <img
@@ -248,11 +260,13 @@ const ClientJobDetailPage = (props: any) => {
                         }/storage/company/${jobDetail.company?.logo}`}
                         alt="logo"
                         style={{
-                          width: 50,
-                          height: 50,
+                          width: 52,
+                          height: 52,
                           objectFit: "contain",
-                          borderRadius: 8,
-                          border: "1px solid #f0f0f0",
+                          borderRadius: 12,
+                          border: "2px solid #f1f5f9",
+                          background: "#fff",
+                          padding: 4,
                         }}
                         onError={(e: any) => {
                           e.target.onerror = null;
@@ -262,8 +276,9 @@ const ClientJobDetailPage = (props: any) => {
                       <div
                         style={{
                           fontWeight: 700,
-                          fontSize: 16,
+                          fontSize: 15,
                           lineHeight: 1.4,
+                          color: "#0f172a",
                         }}
                       >
                         {jobDetail.company?.name}
@@ -271,13 +286,15 @@ const ClientJobDetailPage = (props: any) => {
                     </div>
                     <div
                       style={{
-                        color: "#666",
+                        color: "#64748b",
                         fontSize: 14,
-                        marginBottom: 15,
                         lineHeight: 1.5,
+                        display: "flex",
+                        alignItems: "flex-start",
+                        gap: 8,
                       }}
                     >
-                      <EnvironmentOutlined style={{ marginRight: 6 }} />
+                      <EnvironmentOutlined style={{ marginTop: 3, color: "#2563eb" }} />
                       {/* Gọi hàm fix lỗi địa chỉ */}
                       {getJobLocation()}
                     </div>

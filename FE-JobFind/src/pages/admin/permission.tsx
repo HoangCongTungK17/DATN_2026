@@ -1,9 +1,15 @@
 import DataTable from "@/components/client/data-table";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { IPermission } from "@/types/backend";
-import { DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
+import {
+    DeleteOutlined,
+    EditOutlined,
+    PlusOutlined,
+    ApiOutlined,
+    CodeOutlined,
+} from "@ant-design/icons";
 import { ActionType, ProColumns } from '@ant-design/pro-components';
-import { Button, Popconfirm, Space, message, notification } from "antd";
+import { Button, Popconfirm, Space, Tag, Tooltip, message, notification } from "antd";
 import { useState, useRef } from 'react';
 import dayjs from 'dayjs';
 import { callDeletePermission } from "@/config/api";
@@ -11,9 +17,53 @@ import queryString from 'query-string';
 import { fetchPermission } from "@/redux/slice/permissionSlide";
 import ViewDetailPermission from "@/components/admin/permission/view.permission";
 import ModalPermission from "@/components/admin/permission/modal.permission";
-import { colorMethod } from "@/config/utils";
 import Access from "@/components/share/access";
 import { ALL_PERMISSIONS } from "@/config/permissions";
+
+const getMethodTag = (method: string) => {
+    const config: Record<string, { color: string; bg: string }> = {
+        'GET': { color: '#059669', bg: '#ecfdf5' },
+        'POST': { color: '#2563eb', bg: '#eff6ff' },
+        'PUT': { color: '#f59e0b', bg: '#fef3c7' },
+        'PATCH': { color: '#8b5cf6', bg: '#f5f3ff' },
+        'DELETE': { color: '#dc2626', bg: '#fee2e2' },
+    };
+    const cfg = config[method?.toUpperCase()] || { color: '#64748b', bg: '#f1f5f9' };
+    return (
+        <Tag style={{
+            borderRadius: 6, fontWeight: 700, fontSize: 11,
+            padding: '3px 10px', border: 'none',
+            background: cfg.bg, color: cfg.color,
+            fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+            letterSpacing: '0.04em',
+            minWidth: 60, textAlign: 'center', display: 'inline-block',
+        }}>
+            {method?.toUpperCase()}
+        </Tag>
+    );
+};
+
+const getModuleTag = (module: string) => {
+    const colors = [
+        { color: '#6366f1', bg: '#eef2ff' },
+        { color: '#ec4899', bg: '#fdf2f8' },
+        { color: '#0ea5e9', bg: '#e0f2fe' },
+        { color: '#059669', bg: '#ecfdf5' },
+        { color: '#f59e0b', bg: '#fef3c7' },
+        { color: '#ef4444', bg: '#fee2e2' },
+    ];
+    const idx = (module || '').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % colors.length;
+    const cfg = colors[idx];
+    return (
+        <Tag style={{
+            borderRadius: 20, fontWeight: 600, fontSize: 11,
+            padding: '2px 12px', border: 'none',
+            background: cfg.bg, color: cfg.color,
+        }}>
+            {module}
+        </Tag>
+    );
+};
 
 const PermissionPage = () => {
     const [openModal, setOpenModal] = useState<boolean>(false);
@@ -31,7 +81,7 @@ const PermissionPage = () => {
         if (id) {
             const res = await callDeletePermission(id);
             if (res && res.statusCode === 200) {
-                message.success('Xóa Permission thành công');
+                message.success('Xóa quyền hạn thành công');
                 reloadTable();
             } else {
                 notification.error({
@@ -48,118 +98,136 @@ const PermissionPage = () => {
 
     const columns: ProColumns<IPermission>[] = [
         {
-            title: 'Id',
-            dataIndex: 'id',
-            width: 50,
-            render: (text, record, index, action) => {
-                return (
-                    <a href="#" onClick={() => {
-                        setOpenViewDetail(true);
-                        setDataInit(record);
-                    }}>
-                        {record.id}
-                    </a>
-                )
-            },
+            title: 'STT',
+            key: 'index',
+            width: 55,
+            align: 'center',
+            render: (text, record, index) => (
+                <span style={{
+                    fontWeight: 700, color: '#64748b', fontSize: 13,
+                    width: 28, height: 28, borderRadius: 8,
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                    background: '#f1f5f9',
+                }}>
+                    {(index + 1) + (meta.page - 1) * (meta.pageSize)}
+                </span>
+            ),
             hideInSearch: true,
         },
-        {
-            title: 'Name',
+            title: 'Tên',
             dataIndex: 'name',
             sorter: true,
+            fieldProps: { placeholder: 'Tìm theo tên quyền...' },
+            render: (text, record) => (
+                <a
+                    href="#"
+                    onClick={() => {
+                        setOpenViewDetail(true);
+                        setDataInit(record);
+                    }}
+                    style={{ fontWeight: 600, color: '#0f172a', fontSize: 14 }}
+                >
+                    {record.name}
+                </a>
+            ),
         },
-        {
-            title: 'API',
+            title: 'API Path',
             dataIndex: 'apiPath',
             sorter: true,
+            fieldProps: { placeholder: 'Tìm theo đường dẫn API...' },
+            render: (text) => (
+                <code style={{
+                    fontSize: 12, color: '#6366f1', fontWeight: 500,
+                    background: '#f8fafc', padding: '3px 8px', borderRadius: 6,
+                    fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+                    border: '1px solid #e2e8f0',
+                }}>
+                    {text as string}
+                </code>
+            ),
         },
-        {
             title: 'Method',
             dataIndex: 'method',
             sorter: true,
-            render(dom, entity, index, action, schema) {
-                return (
-                    <p style={{ paddingLeft: 10, fontWeight: 'bold', marginBottom: 0, color: colorMethod(entity?.method as string) }}>{entity?.method || ''}</p>
-                )
-            },
+            width: 100,
+            align: 'center',
+            fieldProps: { placeholder: 'GET, POST, PUT...' },
+            render: (text, entity) => getMethodTag(entity?.method as string),
         },
-        {
             title: 'Module',
             dataIndex: 'module',
             sorter: true,
+            width: 140,
+            fieldProps: { placeholder: 'Tìm theo module...' },
+            render: (text) => getModuleTag(text as string),
         },
         {
-            title: 'CreatedAt',
+            title: 'Ngày Tạo',
             dataIndex: 'createdAt',
-            width: 200,
+            width: 155,
             sorter: true,
-            render: (text, record, index, action) => {
-                return (
-                    <>{record.createdAt ? dayjs(record.createdAt).format('DD-MM-YYYY HH:mm:ss') : ""}</>
-                )
-            },
+            render: (text, record) => (
+                <span style={{ color: '#64748b', fontSize: 13 }}>
+                    {record.createdAt ? dayjs(record.createdAt).format('DD/MM/YYYY HH:mm') : "—"}
+                </span>
+            ),
             hideInSearch: true,
         },
         {
-            title: 'UpdatedAt',
+            title: 'Cập Nhật',
             dataIndex: 'updatedAt',
-            width: 200,
+            width: 155,
             sorter: true,
-            render: (text, record, index, action) => {
-                return (
-                    <>{record.updatedAt ? dayjs(record.updatedAt).format('DD-MM-YYYY HH:mm:ss') : ""}</>
-                )
-            },
+            render: (text, record) => (
+                <span style={{ color: '#64748b', fontSize: 13 }}>
+                    {record.updatedAt ? dayjs(record.updatedAt).format('DD/MM/YYYY HH:mm') : "—"}
+                </span>
+            ),
             hideInSearch: true,
         },
         {
-
-            title: 'Actions',
+            title: 'Thao Tác',
             hideInSearch: true,
-            width: 50,
+            width: 100,
+            align: 'center',
             render: (_value, entity, _index, _action) => (
                 <Space>
-                    <Access
-                        permission={ALL_PERMISSIONS.PERMISSIONS.UPDATE}
-                        hideChildren
-                    >
-                        <EditOutlined
-                            style={{
-                                fontSize: 20,
-                                color: '#ffa500',
-                            }}
-                            type=""
-                            onClick={() => {
-                                setOpenModal(true);
-                                setDataInit(entity);
-                            }}
-                        />
+                    <Access permission={ALL_PERMISSIONS.PERMISSIONS.UPDATE} hideChildren>
+                        <Tooltip title="Chỉnh sửa">
+                            <EditOutlined
+                                style={{
+                                    fontSize: 16, color: '#6366f1', cursor: 'pointer',
+                                    padding: 6, borderRadius: 8, background: '#eef2ff',
+                                }}
+                                onClick={() => {
+                                    setOpenModal(true);
+                                    setDataInit(entity);
+                                }}
+                            />
+                        </Tooltip>
                     </Access>
-                    <Access
-                        permission={ALL_PERMISSIONS.PERMISSIONS.DELETE}
-                        hideChildren
-                    >
+                    <Access permission={ALL_PERMISSIONS.PERMISSIONS.DELETE} hideChildren>
                         <Popconfirm
                             placement="leftTop"
-                            title={"Xác nhận xóa permission"}
-                            description={"Bạn có chắc chắn muốn xóa permission này ?"}
+                            title="Xác nhận xóa"
+                            description="Bạn có chắc chắn muốn xóa quyền hạn này?"
                             onConfirm={() => handleDeletePermission(entity.id)}
                             okText="Xác nhận"
                             cancelText="Hủy"
+                            okButtonProps={{ danger: true }}
                         >
-                            <span style={{ cursor: "pointer", margin: "0 10px" }}>
+                            <Tooltip title="Xóa">
                                 <DeleteOutlined
                                     style={{
-                                        fontSize: 20,
-                                        color: '#ff4d4f',
+                                        fontSize: 16, color: '#dc2626', cursor: 'pointer',
+                                        padding: 6, borderRadius: 8, background: '#fee2e2',
                                     }}
                                 />
-                            </span>
+                            </Tooltip>
                         </Popconfirm>
                     </Access>
                 </Space>
             ),
-
         },
     ];
 
@@ -194,12 +262,11 @@ const PermissionPage = () => {
             for (const field of fields) {
                 if (sort[field]) {
                     sortBy = `sort=${field},${sort[field] === 'ascend' ? 'asc' : 'desc'}`;
-                    break;  // Remove this if you want to handle multiple sort parameters
+                    break;
                 }
             }
         }
 
-        //mặc định sort theo updatedAt
         if (Object.keys(sortBy).length === 0) {
             temp = `${temp}&sort=updatedAt,desc`;
         } else {
@@ -211,12 +278,10 @@ const PermissionPage = () => {
 
     return (
         <div>
-            <Access
-                permission={ALL_PERMISSIONS.PERMISSIONS.GET_PAGINATE}
-            >
+            <Access permission={ALL_PERMISSIONS.PERMISSIONS.GET_PAGINATE}>
                 <DataTable<IPermission>
                     actionRef={tableRef}
-                    headerTitle="Danh sách Permissions (Quyền Hạn)"
+                    headerTitle="Danh Sách Quyền Hạn"
                     rowKey="id"
                     loading={isFetching}
                     columns={columns}
@@ -226,15 +291,17 @@ const PermissionPage = () => {
                         dispatch(fetchPermission({ query }))
                     }}
                     scroll={{ x: true }}
-                    pagination={
-                        {
-                            current: meta.page,
-                            pageSize: meta.pageSize,
-                            showSizeChanger: true,
-                            total: meta.total,
-                            showTotal: (total, range) => { return (<div> {range[0]}-{range[1]} trên {total} rows</div>) }
-                        }
-                    }
+                    pagination={{
+                        current: meta.page,
+                        pageSize: meta.pageSize,
+                        showSizeChanger: true,
+                        total: meta.total,
+                        showTotal: (total, range) => (
+                            <span style={{ color: '#64748b', fontSize: 13 }}>
+                                Hiển thị <strong style={{ color: '#0f172a' }}>{range[0]}-{range[1]}</strong> trên <strong style={{ color: '#0f172a' }}>{total}</strong> quyền
+                            </span>
+                        )
+                    }}
                     rowSelection={false}
                     toolBarRender={(_action, _rows): any => {
                         return (
@@ -242,8 +309,13 @@ const PermissionPage = () => {
                                 icon={<PlusOutlined />}
                                 type="primary"
                                 onClick={() => setOpenModal(true)}
+                                style={{
+                                    borderRadius: 10, height: 40, fontWeight: 600,
+                                    background: 'linear-gradient(135deg, #6366f1, #a855f7)',
+                                    border: 'none', boxShadow: '0 4px 14px rgba(99, 102, 241, 0.3)',
+                                }}
                             >
-                                Thêm mới
+                                Thêm Quyền Hạn
                             </Button>
                         );
                     }}

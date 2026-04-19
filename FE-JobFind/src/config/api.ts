@@ -18,7 +18,57 @@ export const callFetchAccount = () => {
 }
 
 export const callFetchChat = (message: string) => {
-    return axios.get<IBackendRes<string>>(`/api/v1/ai/chat?message=${encodeURIComponent(message)}`);
+    return axios.post<IBackendRes<string>>('/api/v1/ai/chat', { message });
+}
+
+/**
+ * Module AI — CV Doctor
+ */
+export const callAnalyzeCV = (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return axios<IBackendRes<any>>({
+        method: 'post',
+        url: '/api/v1/ai/cv/analyze',
+        data: formData,
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 60000, // 60s vì AI xử lý lâu
+    });
+}
+
+export const callFetchCvHistory = (query: string) => {
+    return axios.get<IBackendRes<any>>(`/api/v1/ai/cv/history?${query}`);
+}
+
+export const callFetchCvAnalysisById = (id: number) => {
+    return axios.get<IBackendRes<any>>(`/api/v1/ai/cv/detail/${id}`);
+}
+
+export const callMatchCvWithJob = (resumeId: number) => {
+    return axios.post<IBackendRes<any>>(`/api/v1/ai/cv/match?resumeId=${resumeId}`);
+}
+
+/**
+ * Module AI — Interview Coach
+ */
+export const callStartInterview = (data: { jobPosition: string; level: string; totalQuestions: number }) => {
+    return axios.post<IBackendRes<any>>('/api/v1/ai/interview/start', data, { timeout: 60000 });
+}
+
+export const callSubmitAnswer = (data: { sessionId: number; answer: string }) => {
+    return axios.post<IBackendRes<any>>('/api/v1/ai/interview/answer', data, { timeout: 60000 });
+}
+
+export const callGetCurrentQuestion = (sessionId: number) => {
+    return axios.get<IBackendRes<any>>(`/api/v1/ai/interview/question/${sessionId}`);
+}
+
+export const callGetInterviewSummary = (sessionId: number) => {
+    return axios.get<IBackendRes<any>>(`/api/v1/ai/interview/summary/${sessionId}`);
+}
+
+export const callGetInterviewHistory = (query: string) => {
+    return axios.get<IBackendRes<any>>(`/api/v1/ai/interview/history?${query}`);
 }
 
 export const callRefreshToken = () => {

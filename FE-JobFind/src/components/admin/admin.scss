@@ -1,0 +1,1071 @@
+// ============================================
+// ADMIN PANEL — PREMIUM DARK SIDEBAR
+// ============================================
+
+// === Variables ===
+$sidebar-bg: #0f172a;
+$sidebar-bg-alt: #1e293b;
+$sidebar-border: rgba(255, 255, 255, 0.06);
+$sidebar-text: rgba(255, 255, 255, 0.65);
+$sidebar-text-active: #ffffff;
+$sidebar-text-muted: rgba(255, 255, 255, 0.35);
+$sidebar-hover: rgba(255, 255, 255, 0.06);
+$sidebar-active-bg: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(168, 85, 247, 0.15) 100%);
+$sidebar-active-indicator: linear-gradient(180deg, #6366f1 0%, #a855f7 100%);
+
+$admin-primary: #6366f1;
+$admin-primary-light: #eef2ff;
+$admin-accent: #a855f7;
+$admin-bg: #f1f5f9;
+$admin-header-bg: #ffffff;
+$admin-text: #0f172a;
+$admin-text-secondary: #64748b;
+$admin-text-muted: #94a3b8;
+$admin-border: #e2e8f0;
+$admin-border-light: #f1f5f9;
+$admin-radius: 12px;
+$admin-radius-lg: 16px;
+$admin-transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+$admin-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+$admin-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+$admin-shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.08);
+
+// ============================================
+// LAYOUT
+// ============================================
+.admin-layout-premium {
+  background: $admin-bg !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+// ============================================
+// DARK SIDEBAR
+// ============================================
+.admin-sidebar-dark {
+  background: $sidebar-bg !important;
+  border-right: none !important;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15) !important;
+  position: relative;
+  z-index: 10;
+  overflow: hidden;
+
+  // Subtle gradient overlay
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(180deg, rgba(99, 102, 241, 0.04) 0%, rgba(15, 23, 42, 0) 40%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .ant-layout-sider-children {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    position: relative;
+    z-index: 1;
+  }
+
+  .ant-layout-sider-trigger {
+    display: none;
+  }
+}
+
+// === Sidebar Logo ===
+.sidebar-logo-dark {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 22px 24px;
+  cursor: pointer;
+  border-bottom: 1px solid $sidebar-border;
+  margin-bottom: 8px;
+  transition: $admin-transition;
+
+  &:hover {
+    .logo-icon-wrapper {
+      transform: scale(1.05);
+      box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+    }
+  }
+
+  .logo-icon-wrapper {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: #fff;
+    flex-shrink: 0;
+    transition: $admin-transition;
+    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+  }
+
+  .logo-text {
+    font-size: 21px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.04em;
+    font-family: 'Poppins', 'Inter', sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .logo-highlight {
+      background: linear-gradient(135deg, #6366f1, #a855f7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .logo-badge {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: #a855f7;
+      background: rgba(168, 85, 247, 0.12);
+      border: 1px solid rgba(168, 85, 247, 0.2);
+      padding: 2px 7px;
+      border-radius: 5px;
+      line-height: 1;
+      margin-top: 2px;
+    }
+  }
+}
+
+// === Sidebar Menu ===
+.sidebar-menu-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 12px;
+
+  // Scrollbar - thin dark style
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+  }
+}
+
+.admin-menu-dark {
+  background: transparent !important;
+  border-right: none !important;
+
+  // Group Titles
+  .ant-menu-item-group-title {
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.12em;
+    color: $sidebar-text-muted !important;
+    padding: 24px 16px 10px !important;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+
+  // Menu Items
+  .ant-menu-item {
+    height: 44px !important;
+    line-height: 44px !important;
+    border-radius: 10px !important;
+    margin: 3px 0 !important;
+    padding-left: 16px !important;
+    font-weight: 500;
+    font-size: 14px;
+    color: $sidebar-text !important;
+    transition: $admin-transition;
+    position: relative;
+    overflow: visible;
+
+    .anticon {
+      font-size: 18px !important;
+      color: $sidebar-text !important;
+      transition: $admin-transition;
+    }
+
+    a {
+      color: inherit !important;
+      font-weight: inherit;
+    }
+
+    &:hover {
+      background: $sidebar-hover !important;
+      color: $sidebar-text-active !important;
+
+      .anticon {
+        color: $sidebar-text-active !important;
+      }
+
+      a {
+        color: $sidebar-text-active !important;
+      }
+    }
+
+    // Selected State — Gradient highlight
+    &.ant-menu-item-selected {
+      background: $sidebar-active-bg !important;
+      color: $sidebar-text-active !important;
+      font-weight: 600;
+
+      // Left indicator bar
+      &::after {
+        content: '' !important;
+        position: absolute !important;
+        left: 0 !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        width: 3px !important;
+        height: 26px !important;
+        background: $sidebar-active-indicator !important;
+        border-radius: 0 4px 4px 0 !important;
+        right: auto !important;
+        border: none !important;
+        opacity: 1 !important;
+      }
+
+      .anticon {
+        color: #a78bfa !important;
+      }
+
+      a {
+        color: $sidebar-text-active !important;
+      }
+    }
+  }
+
+  // Remove default Ant Menu selected border
+  .ant-menu-item::after {
+    border-right: none !important;
+  }
+}
+
+// === Sidebar Footer ===
+.sidebar-footer-dark {
+  padding: 16px;
+  border-top: 1px solid $sidebar-border;
+  margin-top: auto;
+}
+
+.sidebar-user-card-dark {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+  border: 1px solid $sidebar-border;
+  cursor: pointer;
+  transition: $admin-transition;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.1);
+
+    .logout-icon {
+      color: #f87171;
+      opacity: 1;
+    }
+  }
+
+  .user-meta {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .user-name {
+    font-weight: 700;
+    font-size: 13px;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
+  }
+
+  .user-role {
+    font-size: 11px;
+    color: $sidebar-text-muted;
+    font-weight: 500;
+    line-height: 1.3;
+  }
+
+  .logout-icon {
+    font-size: 15px;
+    color: $sidebar-text-muted;
+    cursor: pointer;
+    transition: $admin-transition;
+    opacity: 0.5;
+    padding: 4px;
+
+    &:hover {
+      color: #f87171 !important;
+      opacity: 1;
+    }
+  }
+}
+
+.sidebar-collapsed-logout {
+  width: 44px;
+  height: 44px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  color: $sidebar-text-muted;
+  font-size: 16px;
+  cursor: pointer;
+  transition: $admin-transition;
+  border: 1px solid $sidebar-border;
+
+  &:hover {
+    background: rgba(248, 113, 113, 0.1);
+    color: #f87171;
+    border-color: rgba(248, 113, 113, 0.2);
+  }
+}
+
+// ============================================
+// HEADER
+// ============================================
+.admin-header-premium {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 24px;
+  height: 64px;
+  background: $admin-header-bg;
+  border-bottom: 1px solid $admin-border;
+  box-shadow: $admin-shadow-sm;
+  position: sticky;
+  top: 0;
+  z-index: 9;
+
+  .admin-header-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+
+    .collapse-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: $admin-text-secondary;
+      transition: $admin-transition;
+
+      &:hover {
+        background: $admin-primary-light;
+        color: $admin-primary;
+      }
+    }
+
+    .page-banner {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      .page-banner-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 19px;
+        color: #fff;
+        flex-shrink: 0;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
+      }
+
+      .page-banner-text {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+
+        .page-banner-title {
+          margin: 0;
+          font-size: 16px;
+          font-weight: 700;
+          color: $admin-text;
+          letter-spacing: -0.02em;
+          font-family: 'Poppins', 'Inter', sans-serif;
+          line-height: 1.3;
+        }
+
+        .page-banner-desc {
+          margin: 0;
+          font-size: 12px;
+          color: $admin-text-muted;
+          font-weight: 400;
+          line-height: 1.3;
+        }
+      }
+    }
+  }
+
+  .admin-header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .header-action-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      color: $admin-text-secondary;
+      transition: $admin-transition;
+
+      &:hover {
+        background: $admin-primary-light;
+        color: $admin-primary;
+      }
+    }
+
+    .header-divider {
+      width: 1px;
+      height: 28px;
+      background: $admin-border;
+      margin: 0 4px;
+    }
+
+    .admin-user-dropdown {
+      padding: 6px 12px 6px 6px;
+      border-radius: $admin-radius;
+      transition: $admin-transition;
+      border: 1px solid transparent;
+
+      &:hover {
+        background: $admin-primary-light;
+        border-color: $admin-border;
+      }
+
+      .admin-user-text {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        line-height: 1.3;
+
+        .admin-user-name {
+          font-weight: 700;
+          font-size: 13px;
+          color: $admin-text;
+        }
+
+        .admin-user-role {
+          font-size: 11px;
+          color: $admin-text-muted;
+          font-weight: 500;
+        }
+      }
+    }
+  }
+}
+
+// ============================================
+// CONTENT AREA
+// ============================================
+.admin-content-premium {
+  padding: 24px !important;
+  background: $admin-bg;
+  min-height: calc(100vh - 64px);
+
+  // Cards
+  .ant-card {
+    border-radius: $admin-radius !important;
+    border: 1px solid $admin-border;
+    box-shadow: $admin-shadow-sm;
+    transition: $admin-transition;
+
+    &:hover {
+      box-shadow: $admin-shadow;
+    }
+
+    .ant-card-head {
+      border-bottom: 1px solid $admin-border-light;
+      font-weight: 700;
+      font-size: 15px;
+      color: $admin-text;
+
+      .ant-card-head-title {
+        font-family: 'Poppins', 'Inter', sans-serif;
+      }
+    }
+  }
+
+  // ============================================
+  // PRO TABLE — Premium Overrides
+  // ============================================
+  .ant-pro-table {
+
+    // === Search Form (Query Filter) ===
+    .ant-pro-table-search {
+      margin-bottom: 20px !important;
+      padding: 0 !important;
+      background: transparent !important;
+
+      .ant-pro-query-filter {
+        background: #fff;
+        border-radius: $admin-radius !important;
+        border: 1px solid $admin-border;
+        box-shadow: $admin-shadow-sm;
+        padding: 20px 24px 8px !important;
+
+        // Form labels
+        .ant-form-item-label > label {
+          font-weight: 600;
+          font-size: 13px;
+          color: $admin-text-secondary;
+        }
+
+        // Input fields
+        .ant-input,
+        .ant-select-selector {
+          border-radius: 8px !important;
+          border: 1.5px solid $admin-border !important;
+          height: 38px !important;
+          font-size: 14px;
+          transition: $admin-transition;
+
+          &:hover {
+            border-color: lighten($admin-primary, 15%) !important;
+          }
+        }
+
+        .ant-input:focus,
+        .ant-input-focused {
+          border-color: $admin-primary !important;
+          box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.08) !important;
+        }
+
+        .ant-select-focused .ant-select-selector {
+          border-color: $admin-primary !important;
+          box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.08) !important;
+        }
+
+        // Search / Reset buttons row
+        .ant-pro-query-filter-actions {
+          .ant-space {
+            gap: 8px !important;
+          }
+
+          .ant-btn {
+            height: 38px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            padding: 0 20px;
+            transition: $admin-transition;
+          }
+
+          // Search button
+          .ant-btn-primary {
+            background: linear-gradient(135deg, $admin-primary, $admin-accent) !important;
+            border: none !important;
+            box-shadow: 0 3px 10px rgba(99, 102, 241, 0.25);
+
+            &:hover {
+              box-shadow: 0 5px 16px rgba(99, 102, 241, 0.35);
+              transform: translateY(-1px);
+            }
+          }
+
+          // Reset button
+          .ant-btn-default {
+            border: 1.5px solid $admin-border;
+            color: $admin-text-secondary;
+
+            &:hover {
+              border-color: $admin-primary;
+              color: $admin-primary;
+              background: $admin-primary-light;
+            }
+          }
+        }
+
+        // Collapse link
+        .ant-pro-query-filter-collapse-button {
+          color: $admin-primary !important;
+          font-weight: 500;
+          font-size: 13px;
+
+          &:hover {
+            color: $admin-accent !important;
+          }
+        }
+      }
+    }
+
+    // === List Toolbar (Header + Add Button area) ===
+    .ant-pro-table-list-toolbar {
+      padding: 0 0 16px !important;
+
+      .ant-pro-table-list-toolbar-container {
+        padding: 16px 20px;
+        background: #fff;
+        border-radius: $admin-radius;
+        border: 1px solid $admin-border;
+        box-shadow: $admin-shadow-sm;
+      }
+    }
+
+    .ant-pro-table-list-toolbar-title {
+      font-weight: 700;
+      font-size: 16px;
+      color: $admin-text;
+      font-family: 'Poppins', 'Inter', sans-serif;
+      letter-spacing: -0.02em;
+    }
+
+    // === Table wrapper ===
+    .ant-table-wrapper {
+      background: #fff;
+      border-radius: $admin-radius;
+      border: 1px solid $admin-border;
+      box-shadow: $admin-shadow-sm;
+      overflow: hidden;
+    }
+  }
+
+  // Tables
+  .ant-table {
+    border-radius: $admin-radius !important;
+
+    .ant-table-thead > tr > th {
+      background: #f8fafc !important;
+      font-weight: 700;
+      font-size: 12px;
+      color: $admin-text-secondary;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 2px solid $admin-border;
+    }
+
+    .ant-table-tbody > tr {
+      transition: $admin-transition;
+
+      &:hover > td {
+        background: $admin-primary-light !important;
+      }
+
+      > td {
+        padding: 14px 16px;
+        font-size: 14px;
+        color: $admin-text;
+        border-bottom: 1px solid $admin-border-light;
+      }
+    }
+  }
+
+  // Buttons
+  .ant-btn-primary {
+    border-radius: 8px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
+    transition: $admin-transition;
+
+    &:hover {
+      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+      transform: translateY(-1px);
+    }
+  }
+
+  // Form Items
+  .ant-form-item-label > label {
+    font-weight: 600;
+    color: $admin-text;
+  }
+
+  .ant-input,
+  .ant-select-selector,
+  .ant-input-number {
+    border-radius: 8px !important;
+  }
+
+  .ant-input:focus,
+  .ant-select-focused .ant-select-selector {
+    border-color: $admin-primary !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
+  }
+
+  // Tags
+  .ant-tag {
+    border-radius: 6px;
+    font-weight: 600;
+    padding: 2px 10px;
+    font-size: 12px;
+  }
+
+  // ============================================
+  // PAGINATION — Premium Overrides
+  // ============================================
+  .ant-pagination {
+    padding: 16px 0 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+
+    // === Page Number Items ===
+    .ant-pagination-item {
+      min-width: 36px;
+      height: 36px;
+      line-height: 34px;
+      border-radius: 10px;
+      border: 1.5px solid $admin-border;
+      font-weight: 600;
+      font-size: 13px;
+      transition: $admin-transition;
+      background: #fff;
+
+      a {
+        color: $admin-text-secondary;
+        font-weight: 600;
+        padding: 0;
+      }
+
+      &:hover:not(.ant-pagination-item-active) {
+        border-color: rgba(99, 102, 241, 0.35);
+        background: $admin-primary-light;
+
+        a {
+          color: $admin-primary;
+        }
+      }
+
+      // === Active Page ===
+      &.ant-pagination-item-active {
+        background: linear-gradient(135deg, $admin-primary 0%, $admin-accent 100%);
+        border-color: transparent;
+        box-shadow: 0 3px 10px rgba(99, 102, 241, 0.3);
+
+        a {
+          color: #fff !important;
+          font-weight: 700;
+        }
+
+        &:hover {
+          background: linear-gradient(135deg, darken($admin-primary, 4%) 0%, darken($admin-accent, 4%) 100%);
+          box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+        }
+      }
+    }
+
+    // === Prev / Next Buttons ===
+    .ant-pagination-prev,
+    .ant-pagination-next {
+      min-width: 36px;
+      height: 36px;
+      line-height: 34px;
+      border-radius: 10px;
+      border: 1.5px solid $admin-border;
+      background: #fff;
+      transition: $admin-transition;
+
+      button {
+        color: $admin-text-secondary !important;
+        border-radius: 10px;
+      }
+
+      &:hover:not(.ant-pagination-disabled) {
+        border-color: rgba(99, 102, 241, 0.35);
+        background: $admin-primary-light;
+
+        button {
+          color: $admin-primary !important;
+        }
+      }
+
+      &.ant-pagination-disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+
+        button {
+          color: $admin-text-muted !important;
+        }
+      }
+    }
+
+    // === Jump Prev / Next (Ellipsis ...) ===
+    .ant-pagination-jump-prev,
+    .ant-pagination-jump-next {
+      min-width: 36px;
+      height: 36px;
+      line-height: 36px;
+      border-radius: 10px;
+      transition: $admin-transition;
+
+      .ant-pagination-item-container {
+        .ant-pagination-item-ellipsis {
+          color: $admin-text-muted;
+          letter-spacing: 1px;
+        }
+
+        .ant-pagination-item-link-icon {
+          color: $admin-primary;
+        }
+      }
+
+      &:hover {
+        background: $admin-primary-light;
+      }
+    }
+
+    // === Page Size Selector (10 / trang) ===
+    .ant-pagination-options {
+      margin-left: 8px;
+
+      .ant-select {
+        .ant-select-selector {
+          height: 36px !important;
+          border-radius: 10px !important;
+          border: 1.5px solid $admin-border !important;
+          padding: 0 12px !important;
+          font-size: 13px;
+          font-weight: 500;
+          color: $admin-text-secondary;
+          background: #fff;
+          transition: $admin-transition;
+          display: flex;
+          align-items: center;
+
+          .ant-select-selection-item {
+            line-height: 34px;
+            font-weight: 600;
+            color: $admin-text-secondary;
+          }
+        }
+
+        &:hover .ant-select-selector,
+        &.ant-select-focused .ant-select-selector {
+          border-color: $admin-primary !important;
+          box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.08) !important;
+        }
+
+        // Dropdown Menu
+        .ant-select-dropdown {
+          border-radius: 10px;
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+          border: 1px solid $admin-border;
+          padding: 4px;
+
+          .ant-select-item {
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            padding: 6px 12px;
+            transition: $admin-transition;
+
+            &-option-selected {
+              background: $admin-primary-light;
+              color: $admin-primary;
+              font-weight: 700;
+            }
+
+            &-option-active:not(&-option-selected) {
+              background: #f8fafc;
+            }
+          }
+        }
+      }
+    }
+
+    // === Total Display Text ===
+    .ant-pagination-total-text {
+      flex: 1;
+      font-size: 13px;
+      color: $admin-text-secondary;
+      font-weight: 500;
+      margin-right: 8px;
+      display: flex;
+      align-items: center;
+      height: 36px;
+      line-height: 36px;
+    }
+  }
+}
+
+// ============================================
+// STAT CARDS — Dashboard
+// ============================================
+.admin-stat-card {
+  border-radius: $admin-radius-lg !important;
+  border: none !important;
+  overflow: hidden;
+  transition: $admin-transition;
+  cursor: default;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: $admin-shadow-lg;
+  }
+
+  .ant-card-body {
+    padding: 24px !important;
+  }
+}
+
+// ============================================
+// RESUME MATCH SCORE
+// ============================================
+.match-score-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .match-bar {
+    flex: 1;
+    height: 6px;
+    background: #e2e8f0;
+    border-radius: 3px;
+    overflow: hidden;
+    max-width: 60px;
+
+    .match-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.6s ease;
+    }
+  }
+
+  .match-value {
+    font-weight: 700;
+    font-size: 13px;
+    min-width: 36px;
+    text-align: right;
+
+    &.high { color: #059669; }
+    &.medium { color: #f59e0b; }
+    &.low { color: #dc2626; }
+  }
+}
+
+.match-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: $admin-primary-light;
+  border-radius: $admin-radius;
+  margin-bottom: 16px;
+  border: 1px solid rgba(99, 102, 241, 0.1);
+
+  .match-filter-label {
+    font-weight: 600;
+    font-size: 13px;
+    color: $admin-primary;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+}
+
+// ============================================
+// PREMIUM TABS — Job/Skill Management
+// ============================================
+.admin-job-tabs-wrapper {
+  .admin-premium-tabs {
+
+    // === Tab Bar ===
+    .ant-tabs-nav {
+      margin-bottom: 20px !important;
+      background: #fff;
+      border-radius: $admin-radius;
+      border: 1px solid $admin-border;
+      box-shadow: $admin-shadow-sm;
+      padding: 6px 8px !important;
+
+      &::before {
+        display: none !important;
+      }
+    }
+
+    // === Individual Tab ===
+    .ant-tabs-tab {
+      padding: 10px 24px !important;
+      margin: 0 4px !important;
+      border-radius: 10px !important;
+      font-weight: 600;
+      font-size: 14px;
+      color: $admin-text-secondary;
+      transition: $admin-transition;
+      border: 1.5px solid transparent;
+      background: transparent;
+
+      &:hover {
+        color: $admin-primary;
+        background: $admin-primary-light;
+      }
+
+      .anticon {
+        transition: $admin-transition;
+      }
+    }
+
+    // === Active Tab ===
+    .ant-tabs-tab-active {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(168, 85, 247, 0.06)) !important;
+      border-color: rgba(99, 102, 241, 0.2) !important;
+
+      .ant-tabs-tab-btn {
+        color: $admin-primary !important;
+        font-weight: 700;
+      }
+
+      .anticon {
+        color: $admin-accent !important;
+      }
+    }
+
+    // === Active Indicator Line ===
+    .ant-tabs-ink-bar {
+      display: none !important;
+    }
+
+    // === Tab Content Panel ===
+    .ant-tabs-content-holder {
+      .ant-tabs-tabpane {
+        // Fix nested boxes: remove the extra border/shadow from
+        // ProTable search area when it's inside tabs
+        .ant-pro-table {
+          .ant-pro-table-search {
+            margin-bottom: 16px !important;
+
+            .ant-pro-query-filter {
+              border: 1px solid $admin-border;
+              box-shadow: $admin-shadow-sm;
+              border-radius: $admin-radius !important;
+            }
+          }
+        }
+      }
+    }
+
+    // === Tab Extra Operations ===
+    .ant-tabs-extra-content {
+      display: flex;
+      align-items: center;
+    }
+  }
+}

@@ -1,0 +1,1 @@
+import{Z as e,a7 as d,a8 as a}from"./index-d42780c0.js";import{C as l}from"./DeleteOutlined-7ef1f7fd.js";var r=function(n,t){return e.createElement(d,a(a({},n),{},{ref:t,icon:l}))};r.displayName="CalendarOutlined";const c=e.forwardRef(r);export{c as C};

@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.validation.Valid;
+
 import vn.hoangtung.jobfind.domain.request.ReqAnswerDTO;
 import vn.hoangtung.jobfind.domain.request.ReqStartInterviewDTO;
 import vn.hoangtung.jobfind.domain.response.ResultPaginationDTO;
@@ -37,7 +39,7 @@ public class InterviewCoachController {
     @PostMapping("/start")
     @ApiMessage("Bắt đầu phiên phỏng vấn")
     public ResponseEntity<ResInterviewQuestionDTO> startInterview(
-            @RequestBody ReqStartInterviewDTO req) {
+            @Valid @RequestBody ReqStartInterviewDTO req) {
         ResInterviewQuestionDTO result = interviewCoachService.startInterview(req);
         return ResponseEntity.ok().body(result);
     }
@@ -50,7 +52,7 @@ public class InterviewCoachController {
     @PostMapping("/answer")
     @ApiMessage("Gửi câu trả lời phỏng vấn")
     public ResponseEntity<ResAnswerFeedbackDTO> submitAnswer(
-            @RequestBody ReqAnswerDTO req) {
+            @Valid @RequestBody ReqAnswerDTO req) {
         ResAnswerFeedbackDTO result = interviewCoachService.submitAnswer(req);
         return ResponseEntity.ok().body(result);
     }

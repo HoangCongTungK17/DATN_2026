@@ -1,0 +1,1 @@
+import{am as e}from"./index-d42780c0.js";const i=t=>e.post("/api/v1/ai/interview/start",t),a=t=>e.post("/api/v1/ai/interview/answer",t),n=t=>e.get(`/api/v1/ai/interview/question/${t}`),s=t=>e.get(`/api/v1/ai/interview/summary/${t}`),o=t=>e.get(`/api/v1/ai/interview/history?${t}`);export{a,n as b,i as c,s as d,o as e};

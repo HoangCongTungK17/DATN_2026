@@ -1,10 +1,12 @@
 import { Card, Col, Row, Statistic, Spin, Table } from "antd";
 import CountUp from 'react-countup';
 import {
-    AppstoreOutlined,
-    ShopOutlined,
+    ScheduleOutlined,
+    BankOutlined,
     TeamOutlined,
-    FileTextOutlined,
+    FileSearchOutlined,
+    ArrowUpOutlined,
+    TrophyOutlined,
 } from "@ant-design/icons";
 import { useEffect, useState } from "react";
 import { callFetchJob, callFetchCompany, callFetchUser, callFetchResume } from "@/config/api";
@@ -15,16 +17,17 @@ import {
     YAxis,
     CartesianGrid,
     Tooltip,
-    Legend,
     ResponsiveContainer,
     PieChart,
     Pie,
     Cell,
     LineChart,
     Line,
+    Area,
+    AreaChart,
 } from "recharts";
 
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8", "#FF6B9D", "#C44569"];
+const COLORS = ["#2563eb", "#7c3aed", "#f59e0b", "#ef4444", "#059669", "#ec4899", "#0ea5e9"];
 
 const DashboardPage = () => {
     const [loading, setLoading] = useState(false);
@@ -51,18 +54,14 @@ const DashboardPage = () => {
 
     const fetchDashboardData = async () => {
         setLoading(true);
-        console.log("Starting to fetch dashboard data...");
         try {
-            // Fetch all data concurrently with reduced size to prevent timeout
             const [jobsRes, companiesRes, usersRes, resumesRes] = await Promise.all([
                 callFetchJob("page=1&size=100"),
                 callFetchCompany("page=1&size=100"),
                 callFetchUser("page=1&size=100"),
                 callFetchResume("page=1&size=100"),
             ]);
-            console.log("Data fetched successfully:", { jobsRes, companiesRes, usersRes, resumesRes });
 
-            // Set statistics
             setStats({
                 totalJobs: jobsRes?.data?.meta?.total || 0,
                 totalCompanies: companiesRes?.data?.meta?.total || 0,
@@ -70,7 +69,6 @@ const DashboardPage = () => {
                 totalResumes: resumesRes?.data?.meta?.total || 0,
             });
 
-            // Process jobs by location
             if (jobsRes?.data?.result) {
                 const locationCount: Record<string, number> = {};
                 jobsRes.data.result.forEach((job: any) => {
@@ -80,14 +78,8 @@ const DashboardPage = () => {
                             location.includes("Đà Nẵng") ? "Đà Nẵng" : "Khác";
                     locationCount[key] = (locationCount[key] || 0) + 1;
                 });
+                setLocationData(Object.entries(locationCount).map(([name, value]) => ({ name, value })));
 
-                const locData = Object.entries(locationCount).map(([name, value]) => ({
-                    name,
-                    value,
-                }));
-                setLocationData(locData);
-
-                // Process jobs by skills
                 const skillCount: Record<string, number> = {};
                 jobsRes.data.result.forEach((job: any) => {
                     if (job.skills && Array.isArray(job.skills)) {
@@ -97,14 +89,13 @@ const DashboardPage = () => {
                         });
                     }
                 });
+                setSkillsData(
+                    Object.entries(skillCount)
+                        .sort(([, a], [, b]) => (b as number) - (a as number))
+                        .slice(0, 8)
+                        .map(([name, value]) => ({ name, value }))
+                );
 
-                const topSkills = Object.entries(skillCount)
-                    .sort(([, a], [, b]) => (b as number) - (a as number))
-                    .slice(0, 8)
-                    .map(([name, value]) => ({ name, value }));
-                setSkillsData(topSkills);
-
-                // Process job status (active/inactive)
                 const statusCount = { "Đang tuyển": 0, "Hết hạn": 0 };
                 const now = new Date();
                 jobsRes.data.result.forEach((job: any) => {
@@ -121,22 +112,20 @@ const DashboardPage = () => {
                 ]);
             }
 
-            // Process top companies by job count
             if (companiesRes?.data?.result && jobsRes?.data?.result) {
                 const companyJobCount: Record<string, number> = {};
                 jobsRes.data.result.forEach((job: any) => {
                     const companyName = job.company?.name || "Unknown";
                     companyJobCount[companyName] = (companyJobCount[companyName] || 0) + 1;
                 });
-
-                const topComps = Object.entries(companyJobCount)
-                    .sort(([, a], [, b]) => (b as number) - (a as number))
-                    .slice(0, 5)
-                    .map(([name, value]) => ({ name, jobs: value }));
-                setTopCompanies(topComps);
+                setTopCompanies(
+                    Object.entries(companyJobCount)
+                        .sort(([, a], [, b]) => (b as number) - (a as number))
+                        .slice(0, 5)
+                        .map(([name, value], index) => ({ name, jobs: value, rank: index + 1 }))
+                );
             }
 
-            // Process resume status
             if (resumesRes?.data?.result) {
                 const statusCount: Record<string, number> = {};
                 resumesRes.data.result.forEach((resume: any) => {
@@ -150,28 +139,18 @@ const DashboardPage = () => {
                     const statusName = statusMap[status] || status;
                     statusCount[statusName] = (statusCount[statusName] || 0) + 1;
                 });
-
-                const statusData = Object.entries(statusCount).map(([name, value]) => ({
-                    name,
-                    value,
-                }));
-                setResumeStatusData(statusData);
+                setResumeStatusData(Object.entries(statusCount).map(([name, value]) => ({ name, value })));
             }
 
-            // Process jobs over time (last 7 days)
             if (jobsRes?.data?.result) {
                 const dailyJobs: Record<string, number> = {};
                 const today = new Date();
-
-                // Initialize last 7 days
                 for (let i = 6; i >= 0; i--) {
                     const date = new Date(today);
                     date.setDate(date.getDate() - i);
                     const dateStr = date.toLocaleDateString("vi-VN", { month: "short", day: "numeric" });
                     dailyJobs[dateStr] = 0;
                 }
-
-                // Count jobs created in last 7 days
                 jobsRes.data.result.forEach((job: any) => {
                     const createdDate = new Date(job.createdAt);
                     const dateStr = createdDate.toLocaleDateString("vi-VN", { month: "short", day: "numeric" });
@@ -179,135 +158,201 @@ const DashboardPage = () => {
                         dailyJobs[dateStr]++;
                     }
                 });
-
-                const timeData = Object.entries(dailyJobs).map(([date, count]) => ({
-                    date,
-                    jobs: count,
-                }));
-                setJobsOverTime(timeData);
+                setJobsOverTime(Object.entries(dailyJobs).map(([date, count]) => ({ date, jobs: count })));
             }
         } catch (error) {
             console.error("Error fetching dashboard data:", error);
-            // Set empty data on error to prevent infinite loading
             setStats({ totalJobs: 0, totalCompanies: 0, totalUsers: 0, totalResumes: 0 });
         } finally {
-            console.log("Dashboard data fetch completed");
             setLoading(false);
         }
     };
 
     const companyColumns = [
         {
+            title: "#",
+            dataIndex: "rank",
+            key: "rank",
+            width: 50,
+            render: (rank: number) => (
+                <span style={{
+                    width: 28, height: 28, borderRadius: 8,
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                    background: rank <= 3 ? 'linear-gradient(135deg, #f59e0b, #ef4444)' : '#f1f5f9',
+                    color: rank <= 3 ? '#fff' : '#64748b',
+                    fontWeight: 700, fontSize: 12,
+                }}>
+                    {rank}
+                </span>
+            ),
+        },
+        {
             title: "Công ty",
             dataIndex: "name",
             key: "name",
+            render: (text: string) => (
+                <span style={{ fontWeight: 600, color: '#0f172a' }}>{text}</span>
+            ),
         },
         {
-            title: "Số việc làm",
+            title: "Việc làm",
             dataIndex: "jobs",
             key: "jobs",
-            sorter: (a: any, b: any) => b.jobs - a.jobs,
+            width: 80,
+            align: 'center' as const,
+            render: (jobs: number) => (
+                <span style={{
+                    background: '#eff6ff', color: '#2563eb', padding: '4px 12px',
+                    borderRadius: 20, fontWeight: 700, fontSize: 13,
+                }}>
+                    {jobs}
+                </span>
+            ),
         },
     ];
 
+    // Stat cards configuration
+    const statCards = [
+        {
+            title: 'Việc Làm',
+            value: stats.totalJobs,
+            icon: <ScheduleOutlined />,
+            gradient: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+            iconBg: 'rgba(255,255,255,0.2)',
+        },
+        {
+            title: 'Công Ty',
+            value: stats.totalCompanies,
+            icon: <BankOutlined />,
+            gradient: 'linear-gradient(135deg, #ec4899 0%, #f43f5e 100%)',
+            iconBg: 'rgba(255,255,255,0.2)',
+        },
+        {
+            title: 'Người Dùng',
+            value: stats.totalUsers,
+            icon: <TeamOutlined />,
+            gradient: 'linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%)',
+            iconBg: 'rgba(255,255,255,0.2)',
+        },
+        {
+            title: 'Hồ Sơ CV',
+            value: stats.totalResumes,
+            icon: <FileSearchOutlined />,
+            gradient: 'linear-gradient(135deg, #059669 0%, #10b981 100%)',
+            iconBg: 'rgba(255,255,255,0.2)',
+        },
+    ];
+
+    const CustomTooltip = ({ active, payload, label }: any) => {
+        if (active && payload && payload.length) {
+            return (
+                <div style={{
+                    background: '#0f172a', color: '#fff', padding: '10px 14px',
+                    borderRadius: 10, fontSize: 13, boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+                }}>
+                    <div style={{ fontWeight: 600, marginBottom: 4 }}>{label}</div>
+                    <div style={{ color: '#94a3b8' }}>
+                        {payload[0].name}: <span style={{ color: '#fff', fontWeight: 700 }}>{payload[0].value}</span>
+                    </div>
+                </div>
+            );
+        }
+        return null;
+    };
+
     return (
         <Spin spinning={loading} tip="Đang tải dữ liệu...">
-            <div style={{ padding: "20px" }}>
-                {/* Statistics Cards */}
+            <div>
+                {/* Stat Cards */}
                 <Row gutter={[20, 20]}>
-                    <Col span={24} md={6}>
-                        <Card bordered={false} style={{ background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)", color: "white" }}>
-                            <Statistic
-                                title={<span style={{ color: "rgba(255,255,255,0.9)", fontSize: 14 }}>Tổng Công Việc</span>}
-                                value={stats.totalJobs}
-                                formatter={formatter}
-                                valueStyle={{ color: "white", fontSize: 28, fontWeight: "bold" }}
-                                prefix={<AppstoreOutlined style={{ fontSize: 24, marginRight: 8 }} />}
-                            />
-                        </Card>
-                    </Col>
-                    <Col span={24} md={6}>
-                        <Card bordered={false} style={{ background: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)", color: "white" }}>
-                            <Statistic
-                                title={<span style={{ color: "rgba(255,255,255,0.9)", fontSize: 14 }}>Tổng Công Ty</span>}
-                                value={stats.totalCompanies}
-                                formatter={formatter}
-                                valueStyle={{ color: "white", fontSize: 28, fontWeight: "bold" }}
-                                prefix={<ShopOutlined style={{ fontSize: 24, marginRight: 8 }} />}
-                            />
-                        </Card>
-                    </Col>
-                    <Col span={24} md={6}>
-                        <Card bordered={false} style={{ background: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)", color: "white" }}>
-                            <Statistic
-                                title={<span style={{ color: "rgba(255,255,255,0.9)", fontSize: 14 }}>Tổng Người Dùng</span>}
-                                value={stats.totalUsers}
-                                formatter={formatter}
-                                valueStyle={{ color: "white", fontSize: 28, fontWeight: "bold" }}
-                                prefix={<TeamOutlined style={{ fontSize: 24, marginRight: 8 }} />}
-                            />
-                        </Card>
-                    </Col>
-                    <Col span={24} md={6}>
-                        <Card bordered={false} style={{ background: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)", color: "white" }}>
-                            <Statistic
-                                title={<span style={{ color: "rgba(255,255,255,0.9)", fontSize: 14 }}>Tổng Hồ Sơ</span>}
-                                value={stats.totalResumes}
-                                formatter={formatter}
-                                valueStyle={{ color: "white", fontSize: 28, fontWeight: "bold" }}
-                                prefix={<FileTextOutlined style={{ fontSize: 24, marginRight: 8 }} />}
-                            />
-                        </Card>
-                    </Col>
+                    {statCards.map((card, index) => (
+                        <Col span={24} md={6} key={index}>
+                            <Card
+                                bordered={false}
+                                className="admin-stat-card"
+                                style={{ background: card.gradient }}
+                            >
+                                <div style={{
+                                    width: 48, height: 48, borderRadius: 14,
+                                    background: card.iconBg, display: 'flex',
+                                    alignItems: 'center', justifyContent: 'center',
+                                    fontSize: 22, color: '#fff', marginBottom: 16,
+                                    backdropFilter: 'blur(8px)',
+                                }}>
+                                    {card.icon}
+                                </div>
+                                <Statistic
+                                    title={<span style={{ color: 'rgba(255,255,255,0.8)', fontSize: 13, fontWeight: 500 }}>{card.title}</span>}
+                                    value={card.value}
+                                    formatter={formatter}
+                                    valueStyle={{ color: '#fff', fontSize: 32, fontWeight: 800, lineHeight: 1.2 }}
+                                />
+                            </Card>
+                        </Col>
+                    ))}
                 </Row>
 
                 {/* Charts Row 1 */}
                 <Row gutter={[20, 20]} style={{ marginTop: 20 }}>
-                    {/* Jobs by Location */}
                     <Col span={24} md={12}>
-                        <Card title="Công Việc Theo Địa Điểm" bordered={false}>
+                        <Card
+                            title={<span style={{ fontSize: 15 }}>📍 Việc Làm Theo Địa Điểm</span>}
+                            bordered={false}
+                        >
                             <ResponsiveContainer width="100%" height={300}>
                                 <PieChart>
                                     <Pie
                                         data={locationData}
                                         cx="50%"
                                         cy="50%"
-                                        labelLine={false}
-                                        label={(entry) => `${entry.name}: ${entry.value}`}
+                                        innerRadius={60}
                                         outerRadius={100}
-                                        fill="#8884d8"
+                                        paddingAngle={4}
                                         dataKey="value"
+                                        label={({ name, value }) => `${name}: ${value}`}
+                                        labelLine={false}
                                     >
                                         {locationData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                            <Cell
+                                                key={`cell-${index}`}
+                                                fill={COLORS[index % COLORS.length]}
+                                                stroke="none"
+                                            />
                                         ))}
                                     </Pie>
-                                    <Tooltip />
+                                    <Tooltip content={<CustomTooltip />} />
                                 </PieChart>
                             </ResponsiveContainer>
                         </Card>
                     </Col>
 
-                    {/* Resume Status */}
                     <Col span={24} md={12}>
-                        <Card title="Trạng Thái Hồ Sơ" bordered={false}>
+                        <Card
+                            title={<span style={{ fontSize: 15 }}>📋 Trạng Thái Hồ Sơ</span>}
+                            bordered={false}
+                        >
                             <ResponsiveContainer width="100%" height={300}>
                                 <PieChart>
                                     <Pie
                                         data={resumeStatusData}
                                         cx="50%"
                                         cy="50%"
-                                        labelLine={false}
-                                        label={(entry) => `${entry.name}: ${entry.value}`}
+                                        innerRadius={60}
                                         outerRadius={100}
-                                        fill="#8884d8"
+                                        paddingAngle={4}
                                         dataKey="value"
+                                        label={({ name, value }) => `${name}: ${value}`}
+                                        labelLine={false}
                                     >
                                         {resumeStatusData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                            <Cell
+                                                key={`cell-${index}`}
+                                                fill={COLORS[index % COLORS.length]}
+                                                stroke="none"
+                                            />
                                         ))}
                                     </Pie>
-                                    <Tooltip />
+                                    <Tooltip content={<CustomTooltip />} />
                                 </PieChart>
                             </ResponsiveContainer>
                         </Card>
@@ -316,16 +361,24 @@ const DashboardPage = () => {
 
                 {/* Charts Row 2 */}
                 <Row gutter={[20, 20]} style={{ marginTop: 20 }}>
-                    {/* Top Skills */}
                     <Col span={24} md={12}>
-                        <Card title="Kỹ Năng Được Yêu Cầu Nhiều Nhất" bordered={false}>
+                        <Card
+                            title={<span style={{ fontSize: 15 }}>🔥 Kỹ Năng Được Yêu Cầu Nhiều Nhất</span>}
+                            bordered={false}
+                        >
                             <ResponsiveContainer width="100%" height={300}>
-                                <BarChart data={skillsData}>
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
-                                    <YAxis />
-                                    <Tooltip />
-                                    <Bar dataKey="value" fill="#8884d8">
+                                <BarChart data={skillsData} barSize={28}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                                    <XAxis
+                                        dataKey="name"
+                                        angle={-45}
+                                        textAnchor="end"
+                                        height={80}
+                                        tick={{ fontSize: 11, fill: '#64748b' }}
+                                    />
+                                    <YAxis tick={{ fontSize: 11, fill: '#64748b' }} />
+                                    <Tooltip content={<CustomTooltip />} />
+                                    <Bar dataKey="value" radius={[6, 6, 0, 0]}>
                                         {skillsData.map((entry, index) => (
                                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                         ))}
@@ -335,26 +388,29 @@ const DashboardPage = () => {
                         </Card>
                     </Col>
 
-                    {/* Job Status */}
                     <Col span={24} md={12}>
-                        <Card title="Trạng Thái Công Việc" bordered={false}>
+                        <Card
+                            title={<span style={{ fontSize: 15 }}>📊 Trạng Thái Công Việc</span>}
+                            bordered={false}
+                        >
                             <ResponsiveContainer width="100%" height={300}>
                                 <PieChart>
                                     <Pie
                                         data={jobStatusData}
                                         cx="50%"
                                         cy="50%"
-                                        labelLine={false}
-                                        label={(entry) => `${entry.name}: ${entry.value}`}
+                                        innerRadius={60}
                                         outerRadius={100}
-                                        fill="#8884d8"
+                                        paddingAngle={4}
                                         dataKey="value"
+                                        label={({ name, value }) => `${name}: ${value}`}
+                                        labelLine={false}
                                     >
                                         {jobStatusData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="none" />
                                         ))}
                                     </Pie>
-                                    <Tooltip />
+                                    <Tooltip content={<CustomTooltip />} />
                                 </PieChart>
                             </ResponsiveContainer>
                         </Card>
@@ -363,31 +419,53 @@ const DashboardPage = () => {
 
                 {/* Charts Row 3 */}
                 <Row gutter={[20, 20]} style={{ marginTop: 20 }}>
-                    {/* Jobs Over Time */}
                     <Col span={24} md={16}>
-                        <Card title="Công Việc Được Đăng (7 Ngày Gần Đây)" bordered={false}>
+                        <Card
+                            title={<span style={{ fontSize: 15 }}>📈 Việc Làm Được Đăng (7 Ngày)</span>}
+                            bordered={false}
+                        >
                             <ResponsiveContainer width="100%" height={300}>
-                                <LineChart data={jobsOverTime}>
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis dataKey="date" />
-                                    <YAxis />
-                                    <Tooltip />
-                                    <Legend />
-                                    <Line type="monotone" dataKey="jobs" stroke="#8884d8" strokeWidth={2} />
-                                </LineChart>
+                                <AreaChart data={jobsOverTime}>
+                                    <defs>
+                                        <linearGradient id="colorJobs" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#2563eb" stopOpacity={0.15} />
+                                            <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                                    <XAxis dataKey="date" tick={{ fontSize: 12, fill: '#64748b' }} />
+                                    <YAxis tick={{ fontSize: 12, fill: '#64748b' }} />
+                                    <Tooltip content={<CustomTooltip />} />
+                                    <Area
+                                        type="monotone"
+                                        dataKey="jobs"
+                                        stroke="#2563eb"
+                                        strokeWidth={3}
+                                        fill="url(#colorJobs)"
+                                        dot={{ r: 5, fill: '#2563eb', strokeWidth: 2, stroke: '#fff' }}
+                                        activeDot={{ r: 7, fill: '#2563eb', strokeWidth: 2, stroke: '#fff' }}
+                                    />
+                                </AreaChart>
                             </ResponsiveContainer>
                         </Card>
                     </Col>
 
-                    {/* Top Companies Table */}
                     <Col span={24} md={8}>
-                        <Card title="Top 5 Công Ty" bordered={false}>
+                        <Card
+                            title={
+                                <span style={{ fontSize: 15, display: 'flex', alignItems: 'center', gap: 6 }}>
+                                    <TrophyOutlined style={{ color: '#f59e0b' }} /> Top 5 Công Ty
+                                </span>
+                            }
+                            bordered={false}
+                        >
                             <Table
                                 columns={companyColumns}
                                 dataSource={topCompanies}
                                 pagination={false}
                                 size="small"
                                 rowKey="name"
+                                showHeader={false}
                             />
                         </Card>
                     </Col>

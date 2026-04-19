@@ -29,6 +29,9 @@ import ClientJobPage from "./pages/job";
 import ClientJobDetailPage from "./pages/job/detail";
 import ClientCompanyPage from "./pages/company";
 import ClientCompanyDetailPage from "./pages/company/detail";
+import AIHubPage from "./pages/ai-hub";
+import CvDoctorPage from "./pages/cv-doctor";
+import InterviewCoachPage from "./pages/interview-coach";
 import JobTabs from "./pages/admin/job/job.tabs";
 import { ConfigProvider, App as AntdApp } from "antd";
 const THEME_CONFIG = {
@@ -203,6 +206,9 @@ export default function App() {
         { path: "job/:id", element: <ClientJobDetailPage /> },
         { path: "company", element: <ClientCompanyPage /> },
         { path: "company/:id", element: <ClientCompanyDetailPage /> },
+        { path: "ai-hub", element: <AIHubPage /> },
+        { path: "cv-doctor", element: <CvDoctorPage /> },
+        { path: "interview-coach", element: <InterviewCoachPage /> },
       ],
     },
 

@@ -181,3 +181,92 @@ export interface ISubscribers {
   createdAt?: string;
   updatedAt?: string;
 }
+
+// ===============================
+// AI FEATURES — CV Doctor
+// ===============================
+export interface ICvAnalysisSuggestion {
+  category: string;   // FORMAT, CONTENT, KEYWORD, IMPACT
+  priority: string;   // HIGH, MEDIUM, LOW
+  issue: string;
+  suggestion: string;
+}
+
+export interface ICvAnalysis {
+  id: number;
+  fileName: string;
+  overallScore: number;
+  formatScore: number;
+  contentScore: number;
+  keywordScore: number;
+  impactScore: number;
+  summary: string;
+  strengths: string[];
+  suggestions: ICvAnalysisSuggestion[];
+  createdAt: string;
+}
+
+export interface ICvHistory {
+  id: number;
+  fileName: string;
+  overallScore: number;
+  createdAt: string;
+}
+
+export interface ICvMatch {
+  resumeId: number;
+  jobId: number;
+  jobName: string;
+  matchScore: number;
+  summary: string;
+  matchedSkills: string[];
+  missingSkills: string[];
+  recommendations: string[];
+}
+
+// ===============================
+// AI FEATURES — Interview Coach
+// ===============================
+export interface IInterviewQuestion {
+  sessionId: number;
+  questionNumber: number;
+  totalQuestions: number;
+  question: string;
+  category: string;    // TECHNICAL, BEHAVIORAL, SYSTEM_DESIGN
+  difficulty: string;  // EASY, MEDIUM, HARD
+}
+
+export interface IAnswerFeedback {
+  sessionId: number;
+  questionNumber: number;
+  score: number;
+  feedback: string;
+  betterAnswer: string;
+  lastQuestion: boolean;
+  nextQuestion: IInterviewQuestion | null;
+}
+
+export interface IInterviewSummary {
+  sessionId: number;
+  jobPosition: string;
+  level: string;
+  overallScore: number;
+  finalSummary: string;
+  questions: {
+    questionNumber: number;
+    question: string;
+    answer: string;
+    score: number;
+    feedback: string;
+  }[];
+  createdAt: string;
+}
+
+export interface IInterviewHistory {
+  sessionId: number;
+  jobPosition: string;
+  level: string;
+  overallScore: number;
+  status: string;
+  createdAt: string;
+}

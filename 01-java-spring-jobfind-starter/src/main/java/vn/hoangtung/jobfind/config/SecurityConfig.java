@@ -96,7 +96,7 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.GET, "/api/v1/jobs/**").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/skills/**").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
-                                .requestMatchers("/api/v1/ai/**").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/api/v1/ai/chat").permitAll()
                                 // Bất kỳ request nào khác (không khớp các quy tắc trên) đều phải được xác
                                 // thực
                                 .anyRequest().authenticated())

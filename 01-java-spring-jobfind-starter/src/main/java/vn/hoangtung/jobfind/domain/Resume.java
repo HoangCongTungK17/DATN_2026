@@ -13,6 +13,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
@@ -42,6 +43,15 @@ public class Resume {
 
     private String createdBy;
     private String updatedBy;
+
+    // AI CV-JD Matching fields
+    private Integer aiMatchScore;
+
+    @Column(columnDefinition = "TEXT")
+    private String aiMatchSummary;
+
+    @Column(columnDefinition = "TEXT")
+    private String aiMatchDetails;
 
     @ManyToOne
     @JoinColumn(name = "user_id")

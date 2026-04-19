@@ -1,0 +1,328 @@
+// ===== Interview Coach — Premium Design v3 =====
+
+$primary: #4f46e5;
+$primary-light: #818cf8;
+$violet: #7c3aed;
+$success: #10b981;
+$dark: #0f172a;
+$dark-2: #1e293b;
+$gray-50: #f8fafc;
+$gray-100: #f1f5f9;
+$gray-200: #e2e8f0;
+$gray-400: #94a3b8;
+$gray-500: #64748b;
+$gray-600: #475569;
+$white: #fff;
+$r-lg: 16px;
+$r-xl: 20px;
+$ease: cubic-bezier(0.4, 0, 0.2, 1);
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 24px 80px;
+}
+
+// === HEADER ===
+.header {
+  text-align: center;
+  padding: 56px 24px 40px;
+  background: linear-gradient(160deg, $dark 0%, #1a1145 50%, $dark-2 100%);
+  margin: 0 -24px 40px;
+
+  h1 {
+    font-size: 36px;
+    font-weight: 900;
+    color: $white;
+    margin-bottom: 10px;
+    letter-spacing: -0.5px;
+
+    span {
+      background: linear-gradient(135deg, $primary-light, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+  }
+
+  p {
+    color: $gray-400;
+    font-size: 16px;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+}
+
+// === FORM BẮT ĐẦU ===
+.startForm {
+  background: $white;
+  border-radius: $r-xl;
+  padding: 36px;
+  border: 1px solid $gray-200;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  max-width: 520px;
+  margin: 0 auto;
+  transition: all 0.3s $ease;
+
+  &:hover {
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+  }
+
+  :global(.ant-btn-primary) {
+    height: 48px !important;
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    background: linear-gradient(135deg, $primary, $violet) !important;
+    border: none !important;
+    font-size: 15px !important;
+
+    &:hover {
+      box-shadow: 0 4px 20px rgba($primary, 0.35) !important;
+    }
+  }
+}
+
+// === GIAO DIỆN PHỎNG VẤN ===
+.interviewArea {
+  background: $white;
+  border-radius: $r-xl;
+  padding: 36px;
+  border: 1px solid $gray-200;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+
+  :global(.ant-btn-primary) {
+    height: 48px !important;
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    background: linear-gradient(135deg, $primary, $violet) !important;
+    border: none !important;
+    font-size: 15px !important;
+  }
+}
+
+.progressBar {
+  margin-bottom: 28px;
+
+  :global(.ant-progress-text) {
+    font-weight: 700;
+    color: $primary;
+  }
+}
+
+.questionCard {
+  background: linear-gradient(135deg, $gray-50, #eef2ff);
+  border: 1px solid rgba($primary, 0.08);
+  border-radius: $r-lg;
+  padding: 28px;
+  margin-bottom: 28px;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(135deg, $primary, $violet);
+    border-radius: $r-lg $r-lg 0 0;
+  }
+
+  .questionNumber {
+    font-size: 13px;
+    color: $primary;
+    font-weight: 700;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .questionText {
+    font-size: 18px;
+    font-weight: 600;
+    color: $dark;
+    line-height: 1.65;
+  }
+
+  .tags {
+    margin-top: 16px;
+    display: flex;
+    gap: 8px;
+  }
+}
+
+.answerArea {
+  margin-bottom: 20px;
+
+  textarea {
+    border-radius: 12px !important;
+    font-size: 15px;
+    min-height: 130px;
+    border-color: $gray-200 !important;
+    transition: border-color 0.2s, box-shadow 0.2s;
+
+    &:focus {
+      border-color: $primary !important;
+      box-shadow: 0 0 0 3px rgba($primary, 0.1) !important;
+    }
+  }
+}
+
+// === FEEDBACK ===
+.feedbackCard {
+  border-radius: $r-lg !important;
+  margin-bottom: 28px;
+  border: 1px solid $gray-200 !important;
+  overflow: hidden;
+
+  .scoreCircle {
+    text-align: center;
+    padding: 28px 0 16px;
+  }
+
+  .feedbackText {
+    padding: 0 28px 20px;
+    font-size: 15px;
+    line-height: 1.7;
+    color: $gray-600;
+  }
+
+  .betterAnswer {
+    background: linear-gradient(135deg, #f0fdf4, #ecfdf5);
+    border-top: 1px solid rgba($success, 0.1);
+    padding: 24px 28px;
+
+    h4 {
+      color: $success;
+      margin-bottom: 10px;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    p {
+      color: $gray-600;
+      line-height: 1.7;
+      font-size: 14px;
+    }
+  }
+}
+
+// === TỔNG KẾT ===
+.summaryCard {
+  background: $white;
+  border-radius: $r-xl;
+  padding: 48px 36px;
+  border: 1px solid $gray-200;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  text-align: center;
+
+  .summaryScore {
+    margin: 32px 0;
+  }
+
+  .summaryText {
+    font-size: 16px;
+    color: $gray-500;
+    margin-bottom: 32px;
+    line-height: 1.7;
+    text-align: left;
+    background: $gray-50;
+    padding: 20px 24px;
+    border-radius: $r-lg;
+  }
+
+  :global(.ant-btn-primary) {
+    height: 48px !important;
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    background: linear-gradient(135deg, $primary, $violet) !important;
+    border: none !important;
+  }
+}
+
+.questionResult {
+  text-align: left;
+  padding: 20px;
+  border: 1px solid $gray-200;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  transition: all 0.25s $ease;
+
+  &:hover {
+    border-color: rgba($primary, 0.15);
+    background: #fafbff;
+    transform: translateY(-1px);
+  }
+
+  .qHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .qQuestion {
+    font-weight: 600;
+    color: $dark;
+    margin-bottom: 6px;
+    font-size: 15px;
+  }
+
+  .qAnswer {
+    color: $gray-500;
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 8px;
+    padding: 10px 14px;
+    background: $gray-50;
+    border-radius: 8px;
+    border-left: 3px solid $gray-200;
+  }
+}
+
+// === LỊCH SỬ ===
+.historySection {
+  margin-top: 40px;
+
+  .historyItem {
+    background: $white;
+    border-radius: 12px;
+    padding: 18px 22px;
+    margin-bottom: 12px;
+    border: 1px solid $gray-200;
+    cursor: pointer;
+    transition: all 0.25s $ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    &:hover {
+      border-color: rgba($primary, 0.2);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+      transform: translateY(-2px);
+    }
+  }
+}
+
+// === RESPONSIVE ===
+@media (max-width: 768px) {
+  .header {
+    padding: 40px 16px 32px;
+
+    h1 { font-size: 28px; }
+  }
+
+  .startForm,
+  .interviewArea,
+  .summaryCard {
+    padding: 24px;
+  }
+
+  .questionCard {
+    padding: 20px;
+
+    .questionText {
+      font-size: 16px;
+    }
+  }
+}

@@ -1,8 +1,13 @@
 import { callFetchJob } from "@/config/api";
 import { convertSlug, getLocationName, LOCATION_LIST } from "@/config/utils";
 import { IJob } from "@/types/backend";
-import { EnvironmentOutlined, ClockCircleOutlined } from "@ant-design/icons";
-import { Card, Col, Empty, Pagination, Row, Spin } from "antd";
+import {
+  EnvironmentOutlined,
+  ClockCircleOutlined,
+  DollarOutlined,
+  RightOutlined,
+} from "@ant-design/icons";
+import { Card, Col, Empty, Pagination, Row, Spin, Tag } from "antd";
 import { useState, useEffect } from "react";
 import {
   Link,
@@ -146,8 +151,9 @@ const JobCard = (props: IProps) => {
                     <div className={styles["card-header"]}>
                       <img
                         alt="company-logo"
-                        src={`${import.meta.env.VITE_BACKEND_URL
-                          }/storage/company/${item?.company?.logo}`}
+                        src={`${
+                          import.meta.env.VITE_BACKEND_URL
+                        }/storage/company/${item?.company?.logo}`}
                         onError={(e: any) => {
                           e.target.onerror = null;
                           e.target.src = "/images/company/default-company.png";
@@ -162,7 +168,24 @@ const JobCard = (props: IProps) => {
                     </div>
 
                     <div className={styles["card-body"]}>
+                      {/* Skills tags */}
+                      {item.skills && item.skills.length > 0 && (
+                        <div className={styles["skill-tags"]}>
+                          {item.skills.slice(0, 3).map((skill, idx) => (
+                            <Tag key={idx} className={styles["skill-tag"]}>
+                              {skill.name}
+                            </Tag>
+                          ))}
+                          {item.skills.length > 3 && (
+                            <Tag className={styles["skill-tag-more"]}>
+                              +{item.skills.length - 3}
+                            </Tag>
+                          )}
+                        </div>
+                      )}
+
                       <div className={styles["salary"]}>
+                        <DollarOutlined />
                         {(item.salary + "")?.replace(
                           /\B(?=(\d{3})+(?!\d))/g,
                           ","
@@ -173,7 +196,7 @@ const JobCard = (props: IProps) => {
                       <div className={styles["footer"]}>
                         <div className={styles["location"]}>
                           <EnvironmentOutlined
-                            style={{ color: "#0A65CC", marginRight: 4 }}
+                            style={{ color: "#2563eb", marginRight: 4 }}
                           />
                           <span
                             className={styles["text-ellipsis"]}
@@ -189,6 +212,12 @@ const JobCard = (props: IProps) => {
                             : dayjs(item.createdAt).locale("en").fromNow()}
                         </div>
                       </div>
+                    </div>
+
+                    {/* Hover CTA */}
+                    <div className={styles["card-cta"]}>
+                      <span>Xem chi tiết</span>
+                      <RightOutlined />
                     </div>
                   </Card>
                 </Col>

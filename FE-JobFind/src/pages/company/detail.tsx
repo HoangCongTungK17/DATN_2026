@@ -5,7 +5,12 @@ import { callFetchCompanyById } from "@/config/api";
 import styles from "@/styles/client.module.scss";
 import parse from "html-react-parser";
 import { Col, Row, Spin, Breadcrumb, Empty, Button } from "antd";
-import { EnvironmentOutlined, ArrowLeftOutlined } from "@ant-design/icons";
+import {
+  EnvironmentOutlined,
+  ArrowLeftOutlined,
+  GlobalOutlined,
+  TeamOutlined,
+} from "@ant-design/icons";
 
 const ClientCompanyDetailPage = (props: any) => {
   const [companyDetail, setCompanyDetail] = useState<ICompany | null>(null);
@@ -66,7 +71,12 @@ const ClientCompanyDetailPage = (props: any) => {
             <Button
               type="primary"
               onClick={() => navigate("/company")}
-              style={{ marginTop: 20 }}
+              style={{
+                marginTop: 20,
+                borderRadius: 8,
+                height: 44,
+                fontWeight: 600,
+              }}
               icon={<ArrowLeftOutlined />}
             >
               Quay lại danh sách
@@ -125,7 +135,7 @@ const ClientCompanyDetailPage = (props: any) => {
           <Col span={24} md={16}>
             <div className={styles["job-description-card"]}>
               <h3>Giới thiệu công ty</h3>
-              <div style={{ marginTop: 15, lineHeight: "1.8", color: "#444" }}>
+              <div style={{ marginTop: 15, lineHeight: "1.8", color: "#334155" }}>
                 {parse(
                   companyDetail?.description ?? "<p>Chưa có mô tả chi tiết.</p>"
                 )}
@@ -145,6 +155,26 @@ const ClientCompanyDetailPage = (props: any) => {
                 <div className={styles["text"]}>
                   <div>Địa chỉ</div>
                   <div>{companyDetail?.address ?? "Chưa cập nhật"}</div>
+                </div>
+              </div>
+
+              <div className={styles["info-row"]}>
+                <div className={styles["icon"]}>
+                  <GlobalOutlined />
+                </div>
+                <div className={styles["text"]}>
+                  <div>Lĩnh vực</div>
+                  <div>Công nghệ thông tin</div>
+                </div>
+              </div>
+
+              <div className={styles["info-row"]}>
+                <div className={styles["icon"]}>
+                  <TeamOutlined />
+                </div>
+                <div className={styles["text"]}>
+                  <div>Quy mô</div>
+                  <div>Đang cập nhật</div>
                 </div>
               </div>
             </div>

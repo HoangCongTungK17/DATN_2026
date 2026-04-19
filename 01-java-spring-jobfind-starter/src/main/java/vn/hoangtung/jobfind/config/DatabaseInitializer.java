@@ -88,8 +88,8 @@ public class DatabaseInitializer implements CommandLineRunner {// https://stacko
             arr.add(new Permission("Get subscriber's skill pagination", "/api/v1/subscribers/skills", "POST",
                     "SUBSCRIBERS"));
 
-            arr.add(new Permission("Download a file", "/api/v1/files", "POST", "FILES"));
-            arr.add(new Permission("Upload a file", "/api/v1/files", "GET", "FILES"));
+            arr.add(new Permission("Upload a file", "/api/v1/files", "POST", "FILES"));
+            arr.add(new Permission("Download a file", "/api/v1/files", "GET", "FILES"));
 
             this.permissionRepository.saveAll(arr);
         }
@@ -130,12 +130,9 @@ public class DatabaseInitializer implements CommandLineRunner {// https://stacko
             adminRole.setPermissions(allPermissions);
             this.roleRepository.save(adminRole);
 
-            // Cập nhật lại Password cho User Admin (để chắc chắn là 123456)
+            // Chỉ gán lại role, KHÔNG reset password mỗi lần khởi động
             adminUser.setRole(adminRole);
-            adminUser.setPassword(this.passwordEncoder.encode("123456"));
             this.userRepository.save(adminUser);
-
-            //System.out.println(">>> SUCCESS: Đã cập nhật Full Quyền và Reset mật khẩu (123456) cho Admin!");
         }
 
         System.out.println(">>> END INIT DATABASE");

@@ -207,15 +207,13 @@ public class UserService {
             throw new Exception("User không tồn tại");
         }
 
-        // Verify current password (assuming you have PasswordEncoder bean)
-        // You'll need to inject PasswordEncoder in constructor
-        // For now, comparing directly - NEEDS BCrypt verification in production
-        if (!user.getPassword().equals(currentPassword)) {
+        // Verify current password bằng passwordEncoder.matches()
+        if (!this.passwordEncoder.matches(currentPassword, user.getPassword())) {
             throw new Exception("Mật khẩu hiện tại không đúng");
         }
 
-        // Update password (should be hashed with BCrypt)
-        user.setPassword(newPassword);
+        // Encode password mới và lưu
+        user.setPassword(this.passwordEncoder.encode(newPassword));
         this.userRepository.save(user);
     }
 

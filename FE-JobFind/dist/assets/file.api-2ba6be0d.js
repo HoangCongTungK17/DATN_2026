@@ -1,0 +1,1 @@
+import{am as t}from"./index-d42780c0.js";const p=(e,o)=>{const a=new FormData;return a.append("file",e),a.append("folder",o),t({method:"post",url:"/api/v1/files",data:a,headers:{"Content-Type":"multipart/form-data"}})};export{p as c};

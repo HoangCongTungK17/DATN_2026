@@ -1,0 +1,1 @@
+import{am as t}from"./index-d42780c0.js";const r=a=>{const e=new FormData;return e.append("file",a),t({method:"post",url:"/api/v1/ai/cv/analyze",data:e,headers:{"Content-Type":"multipart/form-data"}})},s=a=>t.get(`/api/v1/ai/cv/history?${a}`),c=a=>t.get(`/api/v1/ai/cv/detail/${a}`),i=a=>t.post(`/api/v1/ai/cv/match?resumeId=${a}`);export{s as a,c as b,r as c,i as d};

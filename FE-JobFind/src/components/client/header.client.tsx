@@ -1,16 +1,16 @@
-// src/components/client/header.client.tsx
-
 import { useState, useEffect } from "react";
 import {
   CodeOutlined,
-  ContactsOutlined,
-  DashOutlined,
   LogoutOutlined,
   MenuFoldOutlined,
   RiseOutlined,
-  FireOutlined, // Đổi icon sang ngọn lửa cho "Hot/Trendy"
+  ThunderboltFilled,
   UserOutlined,
   HomeOutlined,
+  RobotOutlined,
+  SettingOutlined,
+  CrownOutlined,
+  CaretDownOutlined,
 } from "@ant-design/icons";
 import {
   Avatar,
@@ -22,7 +22,6 @@ import {
   Menu,
   Button,
   Layout,
-  theme, // Giữ lại theme nhưng style chủ yếu sẽ do CSS module xử lý
 } from "antd";
 import styles from "@/styles/client.module.scss";
 import { isMobile } from "react-device-detect";
@@ -37,7 +36,6 @@ const { Header: AntHeader } = Layout;
 const Header = (props: any) => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  // Không dùng colorBgContainer mặc định nữa để dùng Glassmorphism trong CSS
 
   const isAuthenticated = useAppSelector(
     (state) => state.account.isAuthenticated
@@ -70,6 +68,11 @@ const Header = (props: any) => {
       key: "/company",
       icon: <RiseOutlined />,
     },
+    {
+      label: <Link to={"/ai-hub"}>AI Hub</Link>,
+      key: "/ai-hub",
+      icon: <RobotOutlined />,
+    },
   ];
 
   const onClick: MenuProps["onClick"] = (e) => {
@@ -85,7 +88,82 @@ const Header = (props: any) => {
     }
   };
 
-  const itemsDropdown = [
+  // Custom Dropdown Overlay — Premium Design
+  const dropdownContent = (
+    <div className={styles["dropdown-premium"]}>
+      {/* User Info Header */}
+      <div className={styles["dropdown-user-header"]}>
+        <Avatar
+          src={`${import.meta.env.VITE_BACKEND_URL}/images/avatar/${user?.name}`}
+          icon={<UserOutlined />}
+          size={44}
+          style={{
+            background: "linear-gradient(135deg, #2563eb, #7c3aed)",
+            border: "2px solid #e0e7ff",
+          }}
+        />
+        <div className={styles["dropdown-user-info"]}>
+          <div className={styles["dropdown-user-name"]}>{user?.name}</div>
+          <div className={styles["dropdown-user-email"]}>{user?.email}</div>
+        </div>
+      </div>
+
+      {/* Divider */}
+      <div className={styles["dropdown-divider"]} />
+
+      {/* Menu Items */}
+      <div className={styles["dropdown-menu-items"]}>
+        <div
+          className={styles["dropdown-menu-item"]}
+          onClick={() => setOpenManageAccount(true)}
+        >
+          <div className={styles["dropdown-item-icon"]} style={{ background: "#eff6ff", color: "#2563eb" }}>
+            <SettingOutlined />
+          </div>
+          <div className={styles["dropdown-item-content"]}>
+            <span className={styles["dropdown-item-label"]}>Quản lý tài khoản</span>
+            <span className={styles["dropdown-item-desc"]}>CV, thông tin, bảo mật</span>
+          </div>
+        </div>
+
+        {user.role?.permissions?.length ? (
+          <div
+            className={styles["dropdown-menu-item"]}
+            onClick={() => navigate("/admin")}
+          >
+            <div className={styles["dropdown-item-icon"]} style={{ background: "#f5f3ff", color: "#7c3aed" }}>
+              <CrownOutlined />
+            </div>
+            <div className={styles["dropdown-item-content"]}>
+              <span className={styles["dropdown-item-label"]}>Trang Quản Trị</span>
+              <span className={styles["dropdown-item-desc"]}>Dashboard Admin</span>
+            </div>
+          </div>
+        ) : null}
+      </div>
+
+      {/* Divider */}
+      <div className={styles["dropdown-divider"]} />
+
+      {/* Logout */}
+      <div className={styles["dropdown-menu-items"]}>
+        <div
+          className={`${styles["dropdown-menu-item"]} ${styles["dropdown-item-danger"]}`}
+          onClick={() => handleLogout()}
+        >
+          <div className={styles["dropdown-item-icon"]} style={{ background: "#fee2e2", color: "#dc2626" }}>
+            <LogoutOutlined />
+          </div>
+          <div className={styles["dropdown-item-content"]}>
+            <span className={styles["dropdown-item-label"]}>Đăng xuất</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const itemsMobiles = [
+    ...items,
     {
       label: (
         <label
@@ -96,14 +174,14 @@ const Header = (props: any) => {
         </label>
       ),
       key: "manage-account",
-      icon: <ContactsOutlined />,
+      icon: <SettingOutlined />,
     },
     ...(user.role?.permissions?.length
       ? [
           {
             label: <Link to={"/admin"}>Trang Quản Trị</Link>,
             key: "admin",
-            icon: <DashOutlined />,
+            icon: <CrownOutlined />,
           },
         ]
       : []),
@@ -118,8 +196,6 @@ const Header = (props: any) => {
     },
   ];
 
-  const itemsMobiles = [...items, ...itemsDropdown];
-
   return (
     <>
       <AntHeader className={styles["header-section"]}>
@@ -128,7 +204,7 @@ const Header = (props: any) => {
             <div className={styles["header-desktop"]}>
               {/* Logo Area */}
               <div className={styles["brand"]} onClick={() => navigate("/")}>
-                <FireOutlined className={styles["brand-icon"]} />
+                <ThunderboltFilled className={styles["brand-icon"]} />
                 <span className={styles["brand-text"]}>
                   JOB<span className={styles["brand-highlight"]}>FIND</span>
                 </span>
@@ -150,14 +226,11 @@ const Header = (props: any) => {
               <div className={styles["extra"]}>
                 {isAuthenticated === false ? (
                   <Space size="small">
-                    {" "}
-                    {/* Giảm size space để CSS control tốt hơn */}
                     <Link to={"/login"} className={styles["login-link"]}>
                       Đăng Nhập
                     </Link>
                     <Button
                       type="primary"
-                      // shape="round" -> Đã xử lý border-radius trong CSS
                       onClick={() => navigate("/register")}
                       className={styles["register-btn"]}
                     >
@@ -166,10 +239,9 @@ const Header = (props: any) => {
                   </Space>
                 ) : (
                   <Dropdown
-                    menu={{ items: itemsDropdown }}
-                    trigger={["click", "hover"]} // Thêm hover cho tiện
+                    dropdownRender={() => dropdownContent}
+                    trigger={["click"]}
                     placement="bottomRight"
-                    arrow // Thêm mũi tên chỉ vào avatar cho đẹp
                   >
                     <Space className={styles["user-dropdown"]}>
                       <Avatar
@@ -178,9 +250,12 @@ const Header = (props: any) => {
                         }/images/avatar/${user?.name}`}
                         icon={<UserOutlined />}
                         className={styles["user-avatar"]}
-                        size="large" // Tăng kích thước avatar
+                        size="large"
                       />
                       <span className={styles["user-name"]}>{user?.name}</span>
+                      <CaretDownOutlined
+                        style={{ fontSize: 10, color: "#94a3b8", marginLeft: -4 }}
+                      />
                     </Space>
                   </Dropdown>
                 )}
@@ -192,8 +267,8 @@ const Header = (props: any) => {
                 className={styles["brand-mobile"]}
                 onClick={() => navigate("/")}
               >
-                <FireOutlined className={styles["brand-icon"]} />
-                <span className={styles["brand-text"]}>JOBHUNT</span>
+                <ThunderboltFilled className={styles["brand-icon"]} />
+                <span className={styles["brand-text"]}>JOBFIND</span>
               </div>
               <MenuFoldOutlined
                 className={styles["menu-trigger"]}
