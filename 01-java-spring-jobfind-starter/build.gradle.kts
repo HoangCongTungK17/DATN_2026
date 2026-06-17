@@ -45,6 +45,7 @@ dependencies {
 	runtimeOnly("com.mysql:mysql-connector-j")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.security:spring-security-test")
+	testRuntimeOnly("com.h2database:h2")
 	implementation("org.springframework.ai:spring-ai-openai-spring-boot-starter") // Dùng để gọi Groq
     implementation("org.springframework.ai:spring-ai-transformers-spring-boot-starter") // Tạo Embedding miễn phí (offline)
     implementation("org.springframework.ai:spring-ai-pinecone-store-spring-boot-starter") // Lưu Vector

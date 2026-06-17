@@ -1,1 +1,65 @@
+# ===== GitNexus =====
 .gitnexus
+
+# ===== Java / Gradle (backend: 01-java-spring-jobfind-starter) =====
+# Compiled output
+**/bin/
+**/build/
+**/out/
+*.class
+
+# Gradle
+.gradle/
+.gradle-user-home/
+**/.gradle/
+gradle-app.setting
+
+# Maven (nếu dùng)
+**/target/
+
+# Packaged artifacts
+*.jar
+*.war
+*.ear
+# Giữ lại gradle wrapper jar
+!**/gradle/wrapper/gradle-wrapper.jar
+
+# ===== Spring Boot =====
+# Biến môi trường & secrets — KHÔNG commit
+.env
+.env.*
+**/application-local.properties
+**/application-secret.properties
+# Cấu hình MCP cục bộ (chứa ANTHROPIC_API_KEY) — KHÔNG commit
+mcp.json
+
+# Uploaded files (runtime)
+/Upload/
+**/Upload/
+
+# ===== Node / Frontend (FE-JobFind) =====
+node_modules/
+dist/
+.vite/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# ===== IDE / Editor =====
+.idea/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===== Logs =====
+*.log
+logs/

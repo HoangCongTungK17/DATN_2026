@@ -52,6 +52,10 @@ public class RoleService {
         return null;
     }
 
+    public Role fetchByName(String name) {
+        return this.roleRepository.findByName(name);
+    }
+
     public Role update(Role r) {
         Role roleDB = this.fetchById(r.getId());
         // check permissions

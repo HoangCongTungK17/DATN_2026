@@ -1,6 +1,11 @@
 import { useState, useRef, useEffect } from "react";
 import "./chatbot.scss";
-import { callFetchChat } from "@/config/api";
+import {
+  callFetchChat,
+  callFetchChatAsync,
+  isAiTaskSubmitted,
+  waitForAiTaskResult,
+} from "@/config/api";
 
 interface IMessage {
   text: string;
@@ -8,6 +13,66 @@ interface IMessage {
   timestamp: Date;
   isError?: boolean;
 }
+
+const toText = (value: unknown) => {
+  if (Array.isArray(value)) return value.filter(Boolean).join(" ");
+  if (typeof value === "string") return value;
+  if (value && typeof value === "object") return JSON.stringify(value);
+  return "";
+};
+
+const getErrorStatus = (payload: any) => {
+  const rawStatus = payload?.status ?? payload?.statusCode ?? payload?.response?.status;
+  const status = typeof rawStatus === "string" ? Number(rawStatus) : rawStatus;
+  return Number.isFinite(status) ? status : undefined;
+};
+
+const extractErrorDetail = (error: any) => {
+  const data = error?.response?.data ?? error;
+  return (
+    toText(data?.message) ||
+    toText(data?.error) ||
+    toText(error?.message)
+  );
+};
+
+const unwrapBackendData = <T,>(response: any): T | undefined => {
+  const status = getErrorStatus(response);
+  if ((status && status >= 400) || response?.error) {
+    const detail = toText(response?.message) || toText(response?.error) || "Server AI trả về lỗi.";
+    const backendError = new Error(detail) as Error & {
+      status?: number;
+      response?: { status?: number; data: unknown };
+    };
+    backendError.status = status;
+    backendError.response = { status, data: response };
+    throw backendError;
+  }
+  return response?.data as T | undefined;
+};
+
+const buildChatbotErrorMessage = (error: any) => {
+  const status = getErrorStatus(error) ?? getErrorStatus(error?.response?.data);
+  const detail = extractErrorDetail(error);
+
+  if (status === 401 || status === 403) {
+    return "⚠️ Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại để dùng ChatBot.";
+  }
+  if (status === 500) {
+    return "⚠️ Server AI gặp lỗi. Vui lòng thử lại sau ít phút.";
+  }
+  if (status === 404) {
+    return "⚠️ API không tồn tại. Vui lòng kiểm tra backend.";
+  }
+  if (error?.message?.includes("Network Error")) {
+    return "⚠️ Không thể kết nối đến server. Vui lòng kiểm tra backend đang chạy ở đúng cổng.";
+  }
+  if (detail) {
+    return `⚠️ ${detail}`;
+  }
+
+  return "⚠️ Lỗi kết nối Server AI. Vui lòng thử lại!";
+};
 
 const ChatBot = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -39,13 +104,28 @@ const ChatBot = () => {
     setIsLoading(true);
 
     try {
-      // Call the updated API with proper response handling
-      const res = await callFetchChat(userMsg);
+      const hasAccessToken = Boolean(window.localStorage.getItem("access_token"));
+      let botMsg = "";
 
-      // The axios interceptor already extracts res.data, so res is IBackendRes<string>
-      // Therefore, res.data is the actual string response from the AI
-      const botMsg =
-        res?.data || "Xin lỗi, tôi không nhận được phản hồi từ server.";
+      if (hasAccessToken) {
+        const submittedRes = await callFetchChatAsync(userMsg);
+        const submitted = unwrapBackendData<any>(submittedRes);
+        if (isAiTaskSubmitted(submitted)) {
+          botMsg = await waitForAiTaskResult<string>(submitted.taskId, {
+            pollIntervalMs: submitted.pollIntervalMillis || 1500,
+            timeoutMs: 90000,
+          });
+        } else {
+          botMsg = typeof submitted === "string" ? submitted : toText(submitted);
+        }
+      } else {
+        const res = await callFetchChat(userMsg);
+        botMsg = unwrapBackendData<string>(res) || "";
+      }
+
+      if (!botMsg) {
+        botMsg = "Xin lỗi, tôi không nhận được phản hồi từ server.";
+      }
 
       setMessages((prev) => [
         ...prev,
@@ -57,17 +137,7 @@ const ChatBot = () => {
       ]);
     } catch (error: any) {
       console.error("ChatBot Error:", error);
-
-      let errorMessage = "⚠️ Lỗi kết nối Server AI. Vui lòng thử lại!";
-
-      // Handle specific error cases
-      if (error?.response?.status === 500) {
-        errorMessage = "⚠️ Server AI gặp lỗi. Vui lòng thử lại sau ít phút.";
-      } else if (error?.response?.status === 404) {
-        errorMessage = "⚠️ API không tồn tại. Vui lòng kiểm tra backend.";
-      } else if (error?.message?.includes("Network Error")) {
-        errorMessage = "⚠️ Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.";
-      }
+      const errorMessage = buildChatbotErrorMessage(error);
 
       setMessages((prev) => [
         ...prev,

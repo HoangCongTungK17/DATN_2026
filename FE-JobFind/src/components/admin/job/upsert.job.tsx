@@ -26,8 +26,8 @@ import { useState, useEffect } from "react";
 import {
   callCreateJob,
   callFetchAllSkill,
-  callFetchCompany,
-  callFetchJobById,
+  callFetchAdminCompany,
+  callFetchAdminJobById,
   callUpdateJob,
 } from "@/config/api";
 import ReactQuill from "react-quill";
@@ -62,7 +62,7 @@ const ViewUpsertJob = (props: any) => {
       setSkills(temp);
 
       if (id) {
-        const res = await callFetchJobById(id);
+        const res = await callFetchAdminJobById(id);
         if (res && res.data) {
           setDataUpdate(res.data);
           setValue(res.data.description);
@@ -102,7 +102,7 @@ const ViewUpsertJob = (props: any) => {
 
   // Usage of DebounceSelect
   async function fetchCompanyList(name: string): Promise<ICompanySelect[]> {
-    const res = await callFetchCompany(`page=1&size=100&name ~ '${name}'`);
+    const res = await callFetchAdminCompany(`page=1&size=100&name ~ '${name}'`);
     if (res && res.data) {
       const list = res.data.result;
       const temp = list.map((item) => {

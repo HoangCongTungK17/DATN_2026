@@ -2,7 +2,7 @@ import DataTable from "@/components/client/data-table";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { IResume } from "@/types/backend";
 import { ActionType, ProColumns, ProFormSelect } from '@ant-design/pro-components';
-import { Space, message, notification, Tag, Slider, Tooltip } from "antd";
+import { Popconfirm, Space, message, notification, Tag, Slider, Tooltip } from "antd";
 import { useState, useRef, useMemo } from 'react';
 import dayjs from 'dayjs';
 import { callDeleteResume } from "@/config/api";
@@ -14,6 +14,7 @@ import Access from "@/components/share/access";
 import { sfIn } from "spring-filter-query-builder";
 import {
     EditOutlined,
+    DeleteOutlined,
     CheckCircleOutlined,
     ClockCircleOutlined,
     CloseCircleOutlined,
@@ -24,44 +25,16 @@ import {
 } from "@ant-design/icons";
 
 // ============================================
-// MATCH SCORE SIMULATOR
-// Giả lập % khớp giữa CV và Job dựa trên các yếu tố có sẵn
-// (Trong thực tế sẽ gọi AI API để tính toán)
+// MATCH SCORE — Đọc từ dữ liệu AI thật (backend field: aiMatchScore)
 // ============================================
-const calculateMatchScore = (resume: IResume): number => {
-    // Tạo score giả lập ổn định dựa trên ID + status
-    let seed = 0;
-    const id = resume.id || '';
-    for (let i = 0; i < id.length; i++) {
-        seed += id.charCodeAt(i);
-    }
-
-    // Status ảnh hưởng đến score
-    const statusBonus: Record<string, number> = {
-        'APPROVED': 20,
-        'REVIEWING': 10,
-        'PENDING': 0,
-        'REJECTED': -15,
-    };
-    const bonus = statusBonus[resume.status || 'PENDING'] || 0;
-
-    // Score từ 35-98%, ưu tiên khoảng 55-85%
-    const baseScore = 35 + (seed % 50);
-    const finalScore = Math.min(98, Math.max(20, baseScore + bonus));
-
-    return finalScore;
+const getMatchScore = (resume: any): number | null => {
+    return resume.aiMatchScore ?? null;
 };
 
 const getMatchColor = (score: number): string => {
     if (score >= 75) return '#059669';
     if (score >= 50) return '#f59e0b';
     return '#dc2626';
-};
-
-const getMatchBg = (score: number): string => {
-    if (score >= 75) return '#ecfdf5';
-    if (score >= 50) return '#fffbeb';
-    return '#fee2e2';
 };
 
 const getMatchLabel = (score: number): string => {
@@ -88,7 +61,7 @@ const ResumePage = () => {
     const handleDeleteResume = async (id: string | undefined) => {
         if (id) {
             const res = await callDeleteResume(id);
-            if (res && res.data) {
+            if (res && +res.statusCode === 200) {
                 message.success('Xóa Resume thành công');
                 reloadTable();
             } else {
@@ -107,8 +80,10 @@ const ResumePage = () => {
     // Filtered resumes by match score
     const filteredResumes = useMemo(() => {
         if (!resumes) return resumes;
-        return resumes.filter(resume => {
-            const score = calculateMatchScore(resume);
+        if (matchFilter[0] === 0 && matchFilter[1] === 100) return resumes;
+        return resumes.filter((resume: any) => {
+            const score = getMatchScore(resume);
+            if (score === null) return matchFilter[0] === 0;
             return score >= matchFilter[0] && score <= matchFilter[1];
         });
     }, [resumes, matchFilter]);
@@ -236,15 +211,21 @@ const ResumePage = () => {
                     </span>
                 </Tooltip>
             ),
-            dataIndex: 'matchScore',
+            dataIndex: 'aiMatchScore',
             width: 160,
             hideInSearch: true,
-            sorter: (a: IResume, b: IResume) => calculateMatchScore(a) - calculateMatchScore(b),
+            sorter: (a: any, b: any) => (getMatchScore(a) ?? -1) - (getMatchScore(b) ?? -1),
             defaultSortOrder: 'descend',
-            render: (text, record) => {
-                const score = calculateMatchScore(record);
+            render: (_text: any, record: any) => {
+                const score = getMatchScore(record);
+                if (score === null) {
+                    return (
+                        <div className="match-score-cell">
+                            <span style={{ color: '#94a3b8', fontSize: 13, fontStyle: 'italic' }}>Chưa phân tích</span>
+                        </div>
+                    );
+                }
                 const color = getMatchColor(score);
-                const bg = getMatchBg(score);
                 const label = getMatchLabel(score);
 
                 return (
@@ -286,7 +267,7 @@ const ResumePage = () => {
 
             title: 'Thao Tác',
             hideInSearch: true,
-            width: 80,
+            width: 120,
             align: 'center',
             render: (_value, entity, _index, _action) => (
                 <Space>
@@ -307,6 +288,31 @@ const ResumePage = () => {
                             }}
                         />
                     </Tooltip>
+                    <Access permission={ALL_PERMISSIONS.RESUMES.DELETE} hideChildren>
+                        <Popconfirm
+                            placement="leftTop"
+                            title="Xac nhan xoa"
+                            description="Ban co chac chan muon xoa CV nay?"
+                            onConfirm={() => handleDeleteResume(entity.id)}
+                            okText="Xac nhan"
+                            cancelText="Huy"
+                            okButtonProps={{ danger: true }}
+                        >
+                            <Tooltip title="Xoa CV">
+                                <DeleteOutlined
+                                    style={{
+                                        fontSize: 18,
+                                        color: '#dc2626',
+                                        cursor: 'pointer',
+                                        padding: 6,
+                                        borderRadius: 8,
+                                        background: '#fee2e2',
+                                        transition: 'all 0.2s',
+                                    }}
+                                />
+                            </Tooltip>
+                        </Popconfirm>
+                    </Access>
                 </Space>
             ),
 

@@ -16,6 +16,7 @@ import queryString from 'query-string';
 import { sfLike } from "spring-filter-query-builder";
 import { fetchSkill } from "@/redux/slice/skillSlide";
 import ModalSkill from "@/components/admin/skill/modal.skill";
+import { isHrRoleName } from "@/config/admin-navigation";
 
 const SkillPage = () => {
     const [openModal, setOpenModal] = useState<boolean>(false);
@@ -26,6 +27,8 @@ const SkillPage = () => {
     const isFetching = useAppSelector(state => state.skill.isFetching);
     const meta = useAppSelector(state => state.skill.meta);
     const skills = useAppSelector(state => state.skill.result);
+    const roleName = useAppSelector(state => state.account.user.role?.name);
+    const isHr = isHrRoleName(roleName);
     const dispatch = useAppDispatch();
 
     const handleDeleteSkill = async (id: string | undefined) => {
@@ -123,9 +126,10 @@ const SkillPage = () => {
         {
             title: 'Thao Tác',
             hideInSearch: true,
+            hideInTable: isHr,
             width: 100,
             align: 'center',
-            render: (_value, entity, _index, _action) => (
+            render: (_value, entity, _index, _action) => isHr ? null : (
                 <Space>
                     <Tooltip title="Chỉnh sửa">
                         <EditOutlined
@@ -224,7 +228,7 @@ const SkillPage = () => {
                 }}
                 rowSelection={false}
                 toolBarRender={(_action, _rows): any => {
-                    return (
+                    return !isHr ? (
                         <Button
                             icon={<PlusOutlined />}
                             type="primary"
@@ -237,7 +241,7 @@ const SkillPage = () => {
                         >
                             Thêm Kỹ Năng
                         </Button>
-                    );
+                    ) : null;
                 }}
             />
             <ModalSkill

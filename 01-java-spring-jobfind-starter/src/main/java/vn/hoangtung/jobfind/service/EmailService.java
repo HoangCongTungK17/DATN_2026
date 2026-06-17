@@ -43,6 +43,9 @@ public class EmailService {
     }
 
     public void sendEmailSync(String to, String subject, String content, boolean isMultipart, boolean isHtml) {
+        System.out.println(">>> EMAIL DEBUG: preparing email to=" + to
+                + ", subject=" + subject
+                + ", isHtml=" + isHtml);
         // Prepare message using a Spring helper
         MimeMessage mimeMessage = this.javaMailSender.createMimeMessage();
         try {
@@ -51,6 +54,7 @@ public class EmailService {
             message.setSubject(subject);
             message.setText(content, isHtml);
             this.javaMailSender.send(mimeMessage);
+            System.out.println(">>> EMAIL DEBUG: sent successfully to=" + to);
         } catch (MailException | MessagingException e) {
             System.out.println("ERROR SEND EMAIL: " + e);
         }

@@ -9,24 +9,32 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import lombok.Getter;
 import lombok.Setter;
 import vn.hoangtung.jobfind.util.SecurityUtil;
 import vn.hoangtung.jobfind.util.constant.InterviewStatusEnum;
 
 @Entity
-@Table(name = "interview_sessions")
+@Table(name = "interview_sessions", indexes = {
+        @Index(name = "idx_interview_user_created_at", columnList = "user_id, created_at"),
+        @Index(name = "idx_interview_status", columnList = "status")
+})
 @Getter
 @Setter
 public class InterviewSession {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
+
+    @Version
+    private long version;
 
     // Thông tin phiên phỏng vấn
     private String jobPosition; // "Java Backend Developer"

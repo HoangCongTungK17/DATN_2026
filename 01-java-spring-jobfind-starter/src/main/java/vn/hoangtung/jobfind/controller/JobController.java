@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.turkraft.springfilter.boot.Filter;
@@ -69,20 +70,32 @@ public class JobController {
     @ApiMessage("Get job with pagination")
     public ResponseEntity<ResultPaginationDTO> getAllJob(
             @Filter Specification<Job> spec,
+            @RequestParam(name = "scope", required = false) String scope,
             Pageable pageable) {
 
-        return ResponseEntity.ok().body(this.jobService.fetchAll(spec, pageable));
+        if (isAdminScope(scope)) {
+            return ResponseEntity.ok().body(this.jobService.fetchAllForAdminScope(spec, pageable));
+        }
+        return ResponseEntity.ok().body(this.jobService.fetchAllPublic(spec, pageable));
     }
 
     @GetMapping("/jobs/{id}")
     @ApiMessage("Get a job by id")
-    public ResponseEntity<Job> getJob(@PathVariable("id") long id) throws IdInvalidException {
-        Optional<Job> currentJob = this.jobService.fetchJobById(id);
+    public ResponseEntity<Job> getJob(
+            @PathVariable("id") long id,
+            @RequestParam(name = "scope", required = false) String scope) throws IdInvalidException {
+        Optional<Job> currentJob = isAdminScope(scope)
+                ? this.jobService.fetchJobByIdForAdminScope(id)
+                : this.jobService.fetchJobById(id);
         if (!currentJob.isPresent()) {
             throw new IdInvalidException("Job not found");
         }
 
         return ResponseEntity.ok().body(currentJob.get());
+    }
+
+    private boolean isAdminScope(String scope) {
+        return "admin".equalsIgnoreCase(scope);
     }
 
 }

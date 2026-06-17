@@ -1,0 +1,57 @@
+@startuml ThietKeChiTiet_InterviewCoach
+title Thiết kế chi tiết gói Luyện phỏng vấn AI (Interview Coach)
+
+' Quy ước quan hệ (UML):
+'   ..>   Dependency   (phụ thuộc)
+'   --    Association  (kết hợp)
+'   o--   Aggregation  (kết tập)
+'   *--   Composition  (hợp thành)
+'   --|>  Inheritance  (kế thừa)
+'   ..|>  Implementation (thực thi)
+
+skinparam classBackgroundColor #FFFFCC
+skinparam classBorderColor black
+skinparam backgroundColor #FEFECE
+skinparam ArrowColor black
+skinparam shadowing false
+
+' ===== BOUNDARY (Giao diện) =====
+class "InterviewCoachPage" <<boundary>> {}
+
+' ===== CONTROL (Xử lý logic) =====
+class "config/api.ts" as ApiItv <<control>> {}
+class "InterviewCoachController" <<control>> {}
+class "AiRateLimitService" <<control>> {}
+class "AiTaskExecutorService" <<control>> {}
+class "InterviewCoachService" <<control>> {}
+class "AiGatewayService" <<control>> {}
+class "ChatModel (Spring AI)" as ChatModel <<control>> {}
+class "InterviewSessionRepository" <<control>> {}
+
+' ===== ENTITY (Dữ liệu) =====
+class "AiTask" <<entity>> {}
+class "InterviewSession" <<entity>> {}
+class "User" <<entity>> {}
+class "Resume" <<entity>> {}
+
+' ===== Phụ thuộc: Front-end -> Back-end =====
+"InterviewCoachPage" ..> ApiItv : callStartInterview / callSubmitAnswer / callGetAiTaskStatus / callGetInterviewSummary
+ApiItv ..> "InterviewCoachController" : <<HTTP REST / JSON>>
+
+' ===== Phụ thuộc: Back-end =====
+"InterviewCoachController" ..> "AiRateLimitService" : kiểm tra hạn mức
+"InterviewCoachController" ..> "AiTaskExecutorService" : submitTask (bất đồng bộ)
+"InterviewCoachController" ..> "InterviewCoachService" : truy vấn câu hỏi/tổng kết
+"AiTaskExecutorService" ..> "AiTask" : tạo / cập nhật tiến độ
+"AiTaskExecutorService" ..> "InterviewCoachService" : xử lý nền (async)
+"InterviewCoachService" ..> "AiGatewayService" : sinh câu hỏi & chấm điểm
+"InterviewCoachService" ..> "InterviewSessionRepository" : uses
+"InterviewCoachService" ..> "Resume" : lấy bối cảnh CV
+"InterviewSessionRepository" ..> "InterviewSession" : truy vấn (JPA)
+"AiGatewayService" ..> "ChatModel" : <<Spring AI / Groq>>
+
+' ===== Quan hệ giữa các thực thể (JPA) =====
+"InterviewSession" "*" -- "1" "User" : của ứng viên
+"AiTask" "*" -- "1" "User" : của người dùng
+
+@enduml

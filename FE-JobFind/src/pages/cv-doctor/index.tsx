@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Upload,
   Button,
@@ -24,8 +24,12 @@ import {
 } from "@ant-design/icons";
 import {
   callAnalyzeCV,
+  callCancelAiTask,
   callFetchCvHistory,
   callFetchCvAnalysisById,
+  IAiTaskStatus,
+  isAiTaskSubmitted,
+  waitForAiTaskResult,
 } from "@/config/api";
 import type {
   ICvAnalysis,
@@ -42,9 +46,12 @@ const CvDoctorPage = () => {
   const [fileName, setFileName] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState("");
+  const [currentTaskId, setCurrentTaskId] = useState<number | null>(null);
+  const [taskProgress, setTaskProgress] = useState(0);
   const [result, setResult] = useState<ICvAnalysis | null>(null);
   const [historyList, setHistoryList] = useState<ICvHistory[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const taskAbortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     fetchHistory();
@@ -76,26 +83,69 @@ const CvDoctorPage = () => {
       return;
     }
     setLoading(true);
-    setLoadingStep("Đang đọc CV...");
+    setTaskProgress(0);
+    setLoadingStep("Đang đưa CV vào hàng đợi AI...");
+    taskAbortRef.current?.abort();
+    const abortController = new AbortController();
+    taskAbortRef.current = abortController;
     try {
-      setTimeout(() => setLoadingStep("Đang phân tích nội dung..."), 2000);
-      setTimeout(() => setLoadingStep("Đang chấm điểm..."), 5000);
       const res = await callAnalyzeCV(file);
-      if (res.data) {
-        setResult(res.data as unknown as ICvAnalysis);
+      const submitted = (res as any)?.data;
+      if (isAiTaskSubmitted(submitted)) {
+        setCurrentTaskId(submitted.taskId);
+        const aiResult = await waitForAiTaskResult<ICvAnalysis>(submitted.taskId, {
+          signal: abortController.signal,
+          pollIntervalMs: submitted.pollIntervalMillis || 1500,
+          onStatus: (task: IAiTaskStatus) => {
+            setTaskProgress(task.progress || 0);
+            if (task.status === "PENDING") {
+              setLoadingStep(`Task #${task.taskId} đang chờ trong hàng đợi...`);
+            } else if (task.status === "PROCESSING") {
+              setLoadingStep(`AI đang phân tích CV... ${task.progress}%`);
+            } else if (task.status === "RETRYING") {
+              setLoadingStep(`AI lỗi tạm thời, đang retry ${task.retryCount}/${task.maxRetries}...`);
+            }
+          },
+        });
+        setResult(aiResult);
+        message.success("Phân tích CV thành công!");
+        fetchHistory();
+      } else if (submitted) {
+        setResult(submitted as ICvAnalysis);
         message.success("Phân tích CV thành công!");
         fetchHistory();
       } else {
         message.error("Không thể phân tích CV.");
       }
     } catch (error: unknown) {
+      if ((error as any)?.name === "AbortError") return;
       const axiosError = error as {
         response?: { data?: { message?: string } };
+        message?: string;
       };
-      message.error(axiosError?.response?.data?.message || "Có lỗi xảy ra.");
+      message.error(axiosError?.response?.data?.message || axiosError?.message || "Có lỗi xảy ra.");
     } finally {
       setLoading(false);
       setLoadingStep("");
+      setCurrentTaskId(null);
+      setTaskProgress(0);
+      taskAbortRef.current = null;
+    }
+  };
+
+  const handleCancelTask = async () => {
+    if (!currentTaskId) return;
+    try {
+      await callCancelAiTask(currentTaskId);
+      taskAbortRef.current?.abort();
+      message.info("Đã hủy task AI.");
+    } catch {
+      message.error("Không thể hủy task AI.");
+    } finally {
+      setLoading(false);
+      setLoadingStep("");
+      setCurrentTaskId(null);
+      setTaskProgress(0);
     }
   };
 
@@ -329,6 +379,11 @@ const CvDoctorPage = () => {
           }}
         >
           <Spin size="large" />
+          <Progress
+            percent={taskProgress}
+            style={{ maxWidth: 360, margin: "20px auto 0" }}
+            status={taskProgress >= 100 ? "success" : "active"}
+          />
           <div
             style={{
               fontSize: 16,
@@ -340,8 +395,13 @@ const CvDoctorPage = () => {
             {loadingStep}
           </div>
           <div style={{ color: "#94a3b8", marginTop: 8 }}>
-            Quá trình này mất khoảng 10-15 giây...
+            Frontend đang theo dõi task bằng SSE/polling, bạn có thể hủy nếu chờ quá lâu.
           </div>
+          {currentTaskId && (
+            <Button danger onClick={handleCancelTask} style={{ marginTop: 16 }}>
+              Hủy task #{currentTaskId}
+            </Button>
+          )}
         </div>
       )}
 

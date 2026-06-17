@@ -1,0 +1,64 @@
+@startuml ThietKeChiTiet_CvDoctor
+title Thiết kế chi tiết gói Phân tích CV bằng AI (CV Doctor)
+
+' Quy ước quan hệ (UML):
+'   ..>   Dependency   (phụ thuộc)
+'   --    Association  (kết hợp)
+'   o--   Aggregation  (kết tập)
+'   *--   Composition  (hợp thành)
+'   --|>  Inheritance  (kế thừa)
+'   ..|>  Implementation (thực thi)
+
+skinparam classBackgroundColor #FFFFCC
+skinparam classBorderColor black
+skinparam backgroundColor #FEFECE
+skinparam ArrowColor black
+skinparam shadowing false
+
+' ===== BOUNDARY (Giao diện) =====
+class "CvDoctorPage" <<boundary>> {}
+
+' ===== CONTROL (Xử lý logic) =====
+class "config/api.ts" as ApiCv <<control>> {}
+class "CvDoctorController" <<control>> {}
+class "AiRateLimitService" <<control>> {}
+class "AiTaskExecutorService" <<control>> {}
+class "CvDoctorService" <<control>> {}
+class "CvStructuredParserService" <<control>> {}
+class "CvVectorService" <<control>> {}
+class "AiGatewayService" <<control>> {}
+class "ChatModel (Spring AI)" as ChatModel <<control>> {}
+class "VectorStore (Pinecone)" as VectorStore <<control>> {}
+
+' ===== ENTITY (Dữ liệu) =====
+class "AiTask" <<entity>> {}
+class "CvAnalysis" <<entity>> {}
+class "CvChunk" <<entity>> {}
+class "Resume" <<entity>> {}
+class "User" <<entity>> {}
+
+' ===== Phụ thuộc: Front-end -> Back-end =====
+"CvDoctorPage" ..> ApiCv : callAnalyzeCV / callGetAiTaskStatus / callMatchCvWithJob
+ApiCv ..> "CvDoctorController" : <<HTTP REST / multipart>>
+
+' ===== Phụ thuộc: Back-end =====
+"CvDoctorController" ..> "AiRateLimitService" : kiểm tra hạn mức
+"CvDoctorController" ..> "AiTaskExecutorService" : submitTask (bất đồng bộ)
+"CvDoctorController" ..> "CvDoctorService" : extractTextFromPdf
+"AiTaskExecutorService" ..> "CvDoctorService" : xử lý nền (async)
+"AiTaskExecutorService" ..> "AiTask" : tạo / cập nhật tiến độ
+"CvDoctorService" ..> "AiGatewayService" : gọi LLM phân tích
+"CvDoctorService" ..> "CvStructuredParserService" : bóc tách CV
+"CvDoctorService" ..> "CvVectorService" : sinh & lưu embedding
+"CvDoctorService" ..> "CvAnalysis" : lưu kết quả
+"CvVectorService" ..> "VectorStore" : upsert vector
+"CvVectorService" ..> "CvChunk" : lưu phân đoạn
+"AiGatewayService" ..> "ChatModel" : <<Spring AI / Groq>>
+
+' ===== Quan hệ giữa các thực thể (JPA) =====
+"CvAnalysis" "*" -- "1" "User" : của người dùng
+"AiTask" "*" -- "1" "User" : của người dùng
+"CvAnalysis" "1" o-- "*" "CvChunk" : gồm các phân đoạn
+"CvChunk" "*" -- "1" "Resume" : trích từ hồ sơ
+
+@enduml

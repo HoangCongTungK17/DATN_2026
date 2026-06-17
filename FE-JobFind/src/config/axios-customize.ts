@@ -19,6 +19,21 @@ const instance = axiosClient.create({
 
 const mutex = new Mutex();
 const NO_RETRY_HEADER = 'x-no-retry';
+const AUTH_PUBLIC_ENDPOINTS = [
+    '/api/v1/auth/login',
+    '/api/v1/auth/google',
+    '/api/v1/auth/register',
+    '/api/v1/auth/refresh',
+];
+
+const isAuthPublicEndpoint = (url?: string) => {
+    if (!url) return false;
+    return AUTH_PUBLIC_ENDPOINTS.some(endpoint => url.includes(endpoint));
+};
+
+const isRefreshEndpoint = (url?: string) => {
+    return !!url && url.includes('/api/v1/auth/refresh');
+};
 
 const handleRefreshToken = async (): Promise<string | null> => {
     return await mutex.runExclusive(async () => {
@@ -29,7 +44,13 @@ const handleRefreshToken = async (): Promise<string | null> => {
 };
 
 instance.interceptors.request.use(function (config) {
-    if (typeof window !== "undefined" && window && window.localStorage && window.localStorage.getItem('access_token')) {
+    if (
+        typeof window !== "undefined"
+        && window
+        && window.localStorage
+        && window.localStorage.getItem('access_token')
+        && !isAuthPublicEndpoint(config.url)
+    ) {
         config.headers.Authorization = 'Bearer ' + window.localStorage.getItem('access_token');
     }
     if (!config.headers.Accept && config.headers["Content-Type"]) {
@@ -49,6 +70,7 @@ instance.interceptors.response.use(
         if (error.config && error.response
             && +error.response.status === 401
             && error.config.url !== '/api/v1/auth/login'
+            && !isRefreshEndpoint(error.config.url)
             && !error.config.headers[NO_RETRY_HEADER]
         ) {
             const access_token = await handleRefreshToken();
@@ -62,11 +84,11 @@ instance.interceptors.response.use(
 
         if (
             error.config && error.response
-            && +error.response.status === 400
-            && error.config.url === '/api/v1/auth/refresh'
-            && location.pathname.startsWith("/admin")
+            && [400, 401].includes(+error.response.status)
+            && isRefreshEndpoint(error.config.url)
         ) {
             const message = error?.response?.data?.error ?? "Có lỗi xảy ra, vui lòng login.";
+            localStorage.removeItem('access_token');
             //dispatch redux action
             store.dispatch(setRefreshTokenAction({ status: true, message }));
         }

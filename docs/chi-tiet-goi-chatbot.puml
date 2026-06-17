@@ -1,0 +1,56 @@
+@startuml ThietKeChiTiet_ChatBot
+title Thiết kế chi tiết gói ChatBot (AI Agent tư vấn việc làm)
+
+' Quy ước quan hệ (UML):
+'   ..>   Dependency   (phụ thuộc)
+'   --    Association  (kết hợp)
+'   o--   Aggregation  (kết tập)
+'   *--   Composition  (hợp thành)
+'   --|>  Inheritance  (kế thừa)
+'   ..|>  Implementation (thực thi)
+
+skinparam classBackgroundColor #FFFFCC
+skinparam classBorderColor black
+skinparam backgroundColor #FEFECE
+skinparam ArrowColor black
+skinparam shadowing false
+
+' ===== BOUNDARY (Giao diện) =====
+class "ChatBot" <<boundary>> {}
+
+' ===== CONTROL (Xử lý logic) =====
+class "config/api.ts" as ApiC <<control>> {}
+class "AIController" <<control>> {}
+class "AiRateLimitService" <<control>> {}
+class "AIService" <<control>> {}
+class "AiTaskExecutorService" <<control>> {}
+class "AiGatewayService" <<control>> {}
+class "ChatModel (Spring AI)" as ChatModel <<control>> {}
+class "VectorStore (Pinecone)" as VectorStore <<control>> {}
+class "JobRepository" <<control>> {}
+
+' ===== ENTITY (Dữ liệu) =====
+class "AiTask" <<entity>> {}
+class "Job" <<entity>> {}
+class "User" <<entity>> {}
+
+' ===== Phụ thuộc: Front-end -> Back-end =====
+"ChatBot" ..> ApiC : callFetchChat / callFetchChatAsync / callGetAiTaskStatus
+ApiC ..> "AIController" : <<HTTP REST / JSON>>
+
+' ===== Phụ thuộc: Back-end =====
+"AIController" ..> "AiRateLimitService" : checkChatLimit
+"AIController" ..> "AIService" : chat (đồng bộ)
+"AIController" ..> "AiTaskExecutorService" : submitTask(CHAT) (bất đồng bộ)
+"AiTaskExecutorService" ..> "AiTask" : tạo / cập nhật tiến độ
+"AiTaskExecutorService" ..> "AIService" : handleChat (async)
+"AIService" ..> "AiGatewayService" : gọi LLM
+"AIService" ..> "VectorStore" : truy hồi job liên quan (RAG)
+"AIService" ..> "JobRepository" : nạp dữ liệu job
+"JobRepository" ..> "Job" : truy vấn (JPA)
+"AiGatewayService" ..> "ChatModel" : <<Spring AI / Groq>>
+
+' ===== Quan hệ giữa các thực thể (JPA) =====
+"AiTask" "*" -- "1" "User" : của người dùng
+
+@enduml

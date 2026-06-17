@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.turkraft.springfilter.boot.Filter;
 
-import java.util.Optional;
 import jakarta.validation.Valid;
 import vn.hoangtung.jobfind.domain.Skill;
 import vn.hoangtung.jobfind.domain.response.ResultPaginationDTO;

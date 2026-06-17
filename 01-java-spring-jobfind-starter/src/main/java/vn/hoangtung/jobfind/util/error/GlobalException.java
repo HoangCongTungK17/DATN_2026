@@ -3,9 +3,12 @@ package vn.hoangtung.jobfind.util.error;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.lang.Exception;
+import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -27,6 +30,38 @@ public class GlobalException {
         res.setMessage(ex.getMessage());
         res.setError("Internal Server Error");
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(res);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<RestResponse<Object>> handleBadRequest(Exception ex) {
+        RestResponse<Object> res = new RestResponse<Object>();
+        res.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        res.setMessage(ex.getMessage());
+        res.setError("Bad Request");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
+    }
+
+    @ExceptionHandler(value = {
+            AccessDeniedException.class,
+    })
+    public ResponseEntity<RestResponse<Object>> handleAccessDenied(Exception ex) {
+        RestResponse<Object> res = new RestResponse<Object>();
+        res.setStatusCode(HttpStatus.FORBIDDEN.value());
+        res.setError("Forbidden");
+        res.setMessage(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(res);
+    }
+
+    @ExceptionHandler(value = {
+            CannotAcquireLockException.class,
+            ObjectOptimisticLockingFailureException.class,
+    })
+    public ResponseEntity<RestResponse<Object>> handleConflict(Exception ex) {
+        RestResponse<Object> res = new RestResponse<Object>();
+        res.setStatusCode(HttpStatus.CONFLICT.value());
+        res.setMessage("Dữ liệu đang được xử lý bởi yêu cầu khác. Vui lòng thử lại.");
+        res.setError("Conflict");
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(res);
     }
 
     // exception handling in spring boot rest api

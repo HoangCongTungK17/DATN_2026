@@ -67,9 +67,7 @@ public class SecurityConfig {
         // xác thực.
         String[] whiteList = {
                 "/", // Trang chủ
-                "/api/v1/auth/login", "/api/v1/auth/refresh", "/api/v1/auth/register", // Các API xác thực
-                "/storage/**", // Đường dẫn đến file tĩnh (ảnh,...)
-                "/api/v1/email/**", // API gửi email (nếu có)
+                "/api/v1/auth/login", "/api/v1/auth/google", "/api/v1/auth/refresh", "/api/v1/auth/register", // Các API xác thực
                 "/v3/api-docs/**", // API docs của Swagger
                 "/swagger-ui/**", // Giao diện Swagger UI
                 "/swagger-ui.html" // Trang Swagger UI
@@ -95,8 +93,13 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.GET, "/api/v1/companies/**").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/jobs/**").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/v1/skills/**").permitAll()
+
+                                // Cho phép truy cập công khai ảnh logo công ty và ảnh public
+                                .requestMatchers(HttpMethod.GET, "/storage/**").permitAll()
+
                                 .requestMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/api/v1/ai/chat").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/ai/tasks/*/stream").permitAll()
                                 // Bất kỳ request nào khác (không khớp các quy tắc trên) đều phải được xác
                                 // thực
                                 .anyRequest().authenticated())

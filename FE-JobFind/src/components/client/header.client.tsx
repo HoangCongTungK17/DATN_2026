@@ -30,6 +30,8 @@ import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { callLogout } from "@/config/api";
 import { setLogoutAction } from "@/redux/slice/accountSlide";
 import ManageAccount from "./modal/manage.account";
+import logo from '@/assets/logo-optimized.png';
+import { getFirstAllowedAdminPath, isHrRoleName } from "@/config/admin-navigation";
 
 const { Header: AntHeader } = Layout;
 
@@ -41,6 +43,15 @@ const Header = (props: any) => {
     (state) => state.account.isAuthenticated
   );
   const user = useAppSelector((state) => state.account.user);
+  const userRoleName = user.role?.name?.toUpperCase();
+  const userPermissions = user.role?.permissions;
+  const aclDisabled = import.meta.env.VITE_ACL_ENABLE === "false";
+  const isHr = isHrRoleName(user.role?.name);
+  const adminEntryPath = isHr
+    ? getFirstAllowedAdminPath(userPermissions, aclDisabled)
+    : "/admin";
+  const canAccessAdmin =
+    !!userRoleName && !["USER", "NORMAL_USER", "CANDIDATE"].includes(userRoleName);
   const [openMobileMenu, setOpenMobileMenu] = useState<boolean>(false);
 
   const [current, setCurrent] = useState("home");
@@ -126,17 +137,19 @@ const Header = (props: any) => {
           </div>
         </div>
 
-        {user.role?.permissions?.length ? (
+        {canAccessAdmin ? (
           <div
             className={styles["dropdown-menu-item"]}
-            onClick={() => navigate("/admin")}
+            onClick={() => navigate(adminEntryPath)}
           >
             <div className={styles["dropdown-item-icon"]} style={{ background: "#f5f3ff", color: "#7c3aed" }}>
               <CrownOutlined />
             </div>
             <div className={styles["dropdown-item-content"]}>
               <span className={styles["dropdown-item-label"]}>Trang Quản Trị</span>
-              <span className={styles["dropdown-item-desc"]}>Dashboard Admin</span>
+              <span className={styles["dropdown-item-desc"]}>
+                {isHr ? "Quản lý tuyển dụng" : "Dashboard Admin"}
+              </span>
             </div>
           </div>
         ) : null}
@@ -176,14 +189,14 @@ const Header = (props: any) => {
       key: "manage-account",
       icon: <SettingOutlined />,
     },
-    ...(user.role?.permissions?.length
+    ...(canAccessAdmin
       ? [
-          {
-            label: <Link to={"/admin"}>Trang Quản Trị</Link>,
-            key: "admin",
-            icon: <CrownOutlined />,
-          },
-        ]
+        {
+          label: <Link to={adminEntryPath}>Trang Quản Trị</Link>,
+          key: "admin",
+          icon: <CrownOutlined />,
+        },
+      ]
       : []),
     {
       label: (
@@ -203,11 +216,8 @@ const Header = (props: any) => {
           {!isMobile ? (
             <div className={styles["header-desktop"]}>
               {/* Logo Area */}
-              <div className={styles["brand"]} onClick={() => navigate("/")}>
-                <ThunderboltFilled className={styles["brand-icon"]} />
-                <span className={styles["brand-text"]}>
-                  JOB<span className={styles["brand-highlight"]}>FIND</span>
-                </span>
+              <div className={styles["brand"]} onClick={() => navigate("/")} style={{ height: '84px', width: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                <img src={logo} alt="JobFind Logo" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
               </div>
 
               {/* Navigation Menu */}
@@ -245,9 +255,8 @@ const Header = (props: any) => {
                   >
                     <Space className={styles["user-dropdown"]}>
                       <Avatar
-                        src={`${
-                          import.meta.env.VITE_BACKEND_URL
-                        }/images/avatar/${user?.name}`}
+                        src={`${import.meta.env.VITE_BACKEND_URL
+                          }/images/avatar/${user?.name}`}
                         icon={<UserOutlined />}
                         className={styles["user-avatar"]}
                         size="large"
@@ -266,9 +275,9 @@ const Header = (props: any) => {
               <div
                 className={styles["brand-mobile"]}
                 onClick={() => navigate("/")}
+                style={{ height: '72px', width: '150px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
               >
-                <ThunderboltFilled className={styles["brand-icon"]} />
-                <span className={styles["brand-text"]}>JOBFIND</span>
+                <img src={logo} alt="JobFind Logo" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
               </div>
               <MenuFoldOutlined
                 className={styles["menu-trigger"]}

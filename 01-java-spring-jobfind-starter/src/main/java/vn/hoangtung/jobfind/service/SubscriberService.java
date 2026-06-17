@@ -33,11 +33,6 @@ public class SubscriberService {
         this.jobRepository = jobRepository;
     }
 
-    // @Scheduled(cron = "*/10 * * * * *")
-    // public void testCron() {
-    // System.out.println(">>> TEST CRON");
-    // }
-
     public boolean isExistsByEmail(String email) {
         return this.subscriberRepository.existsByEmail(email);
     }
@@ -112,53 +107,44 @@ public class SubscriberService {
         }
     }
 
-    // Send email for a single subscriber
     public void sendSubscriberEmail(Subscriber subscriber) {
-        System.out.println("▶▶▶ [EMAIL] Starting email send for subscriber: " +
-                (subscriber != null ? subscriber.getEmail() : "null"));
-
         if (subscriber == null) {
-            System.out.println("❌ [EMAIL] Subscriber is null, aborting");
+            System.out.println(">>> SUBSCRIBER EMAIL DEBUG: subscriber is null, skip sending email");
             return;
         }
 
+        System.out.println(">>> SUBSCRIBER EMAIL DEBUG: email=" + subscriber.getEmail()
+                + ", name=" + subscriber.getName());
+
         List<Skill> listSkills = subscriber.getSkills();
-        System.out.println("▶▶▶ [EMAIL] Subscriber skills count: " +
-                (listSkills != null ? listSkills.size() : 0));
+        System.out.println(">>> SUBSCRIBER EMAIL DEBUG: skills="
+                + (listSkills == null ? "null" : listSkills.stream()
+                        .map(Skill::getName)
+                        .collect(Collectors.joining(", "))));
 
         if (listSkills != null && listSkills.size() > 0) {
-            System.out.println("▶▶▶ [EMAIL] Skills: " +
-                    listSkills.stream()
-                            .map(Skill::getName)
-                            .collect(Collectors.joining(", ")));
-
             List<Job> listJobs = this.jobRepository.findBySkillsIn(listSkills);
-            System.out.println("▶▶▶ [EMAIL] Found " +
-                    (listJobs != null ? listJobs.size() : 0) + " matching jobs");
+            System.out.println(">>> SUBSCRIBER EMAIL DEBUG: matchingJobs="
+                    + (listJobs == null ? 0 : listJobs.size()));
 
             if (listJobs != null && listJobs.size() > 0) {
-                System.out.println("▶▶▶ [EMAIL] Jobs: " +
-                        listJobs.stream()
-                                .map(Job::getName)
-                                .collect(Collectors.joining(", ")));
-
                 List<ResEmailJob> arr = listJobs.stream()
                         .map(job -> this.convertJobToSendEmail(job))
                         .collect(Collectors.toList());
 
-                System.out.println("✉️ [EMAIL] Sending email to: " + subscriber.getEmail());
+                System.out.println(">>> SUBSCRIBER EMAIL DEBUG: start sending email to "
+                        + subscriber.getEmail());
                 this.emailService.sendEmailFromTemplateSync(
                         subscriber.getEmail(),
                         "Cơ hội việc làm hot đang chờ đón bạn, khám phá ngay",
                         "job",
                         subscriber.getName(),
                         arr);
-                System.out.println("✅ [EMAIL] Email sent successfully");
             } else {
-                System.out.println("⚠️ [EMAIL] No matching jobs found for subscriber's skills");
+                System.out.println(">>> SUBSCRIBER EMAIL DEBUG: no matching jobs, email not sent");
             }
         } else {
-            System.out.println("⚠️ [EMAIL] Subscriber has no skills selected");
+            System.out.println(">>> SUBSCRIBER EMAIL DEBUG: no skills, email not sent");
         }
     }
 

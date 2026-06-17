@@ -1,0 +1,81 @@
+@startuml SoDoThietKeTongQuan_JobFind
+' ============================================================
+' SƠ ĐỒ THIẾT KẾ TỔNG QUAN (PACKAGE DIAGRAM) - HỆ THỐNG JobFind
+' Đồ án tốt nghiệp - Phản ánh kiến trúc THỰC TẾ của source code
+' Back-end: Spring Boot 3.2 / Java 17  |  Front-end: React 18 + TypeScript + Vite
+' ============================================================
+
+skinparam packageStyle folder
+skinparam shadowing false
+skinparam linetype ortho
+skinparam defaultFontName "Segoe UI"
+skinparam ArrowColor #555555
+skinparam packageBackgroundColor #FFFDE7
+skinparam packageBorderColor #999999
+
+title Sơ đồ thiết kế tổng quan hệ thống JobFind
+
+' ===================== FRONT-END =====================
+package "Front-end\n(React 18 + TypeScript + Vite + Redux Toolkit + Ant Design)" as FE #E8F5E9 {
+
+  package "Routing\n(App.tsx - createBrowserRouter\n+ react-router-dom)" as FE_Routes
+
+  package "Pages (View)\nadmin, client, auth, home, job,\nai-hub, cv-doctor, interview-coach" as FE_Pages
+
+  package "Components (UI)\nadmin, client, share" as FE_Components
+
+  package "Redux Store (State)\nslice: account, user, company, job,\nresume, role, permission, skill" as FE_Store
+
+  package "API Services\n(config/api.ts + axios-customize)" as FE_Api
+
+  package "Types & Hooks\n(backend.d.ts, hooks)" as FE_Shared
+}
+
+' ===================== BACK-END =====================
+package "Back-end\n(Spring Boot 3.2 / Java 17 - Kiến trúc phân tầng)" as BE #E3F2FD {
+
+  package "Config\n(Security/JWT, CORS, Async,\nPermissionInterceptor, OpenAPI)" as BE_Config
+
+  package "Controller (REST API)\nAuth, User, Job, Company, Resume,\nAI, CvDoctor, InterviewCoach, AiTask..." as BE_Controller
+
+  package "Service (Business Logic)\nUser, Job, Company, Resume...\n+ AI: AiGateway, CvDoctor,\nCvVector, InterviewCoach, AiTaskExecutor" as BE_Service
+
+  package "Repository\n(Spring Data JPA)" as BE_Repository
+
+  package "Domain\nEntity + request DTO + response DTO" as BE_Domain
+
+  package "Util\n(SecurityUtil, ai, constant,\nannotation, error)" as BE_Util
+}
+
+' ===================== HẠ TẦNG NGOÀI =====================
+database "MySQL\n(CSDL quan hệ)" as DB #FFF3E0
+cloud "AI Provider\n(Groq/OpenAI + Pinecone\nVector Store + Embeddings)" as AIEXT #F3E5F5
+node "SMTP Gmail\n(Spring Mail)" as MAIL #FFEBEE
+
+' ===================== QUAN HỆ PHỤ THUỘC FRONT-END =====================
+FE_Routes ..> FE_Pages
+FE_Pages ..> FE_Components
+FE_Pages ..> FE_Store
+FE_Components ..> FE_Store
+FE_Store ..> FE_Api
+FE_Pages ..> FE_Api
+FE_Api ..> FE_Shared
+
+' ===================== GIAO TIẾP FE <-> BE =====================
+FE_Api ..> BE_Controller : <<HTTP REST / JSON>>
+
+' ===================== QUAN HỆ PHỤ THUỘC BACK-END =====================
+BE_Config ..> BE_Controller
+BE_Controller ..> BE_Service
+BE_Controller ..> BE_Domain
+BE_Service ..> BE_Repository
+BE_Service ..> BE_Domain
+BE_Service ..> BE_Util
+BE_Repository ..> BE_Domain
+
+' ===================== TÍCH HỢP HẠ TẦNG NGOÀI =====================
+BE_Repository ..> DB : <<JPA / JDBC>>
+BE_Service ..> AIEXT : <<Spring AI>>
+BE_Service ..> MAIL : <<SMTP>>
+
+@enduml

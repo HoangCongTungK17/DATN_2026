@@ -114,6 +114,7 @@ const PermissionPage = () => {
             ),
             hideInSearch: true,
         },
+        {
             title: 'Tên',
             dataIndex: 'name',
             sorter: true,
@@ -131,6 +132,7 @@ const PermissionPage = () => {
                 </a>
             ),
         },
+        {
             title: 'API Path',
             dataIndex: 'apiPath',
             sorter: true,
@@ -146,6 +148,7 @@ const PermissionPage = () => {
                 </code>
             ),
         },
+        {
             title: 'Method',
             dataIndex: 'method',
             sorter: true,
@@ -154,6 +157,7 @@ const PermissionPage = () => {
             fieldProps: { placeholder: 'GET, POST, PUT...' },
             render: (text, entity) => getMethodTag(entity?.method as string),
         },
+        {
             title: 'Module',
             dataIndex: 'module',
             sorter: true,

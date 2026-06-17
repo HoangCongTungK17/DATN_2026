@@ -25,6 +25,7 @@ public class ResFetchResumeDTO {
     private String createdBy;
     private String updatedBy;
     private String companyName;
+    private Integer aiMatchScore;
     private UserResume user;
     private JobResume job;
 

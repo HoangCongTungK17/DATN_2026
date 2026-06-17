@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import vn.hoangtung.jobfind.util.ai.ParsedCv;
 
 @Getter
 @Setter
@@ -16,29 +17,30 @@ public class ResCvAnalysisDTO {
     private long id;
     private String fileName;
 
-    // Điểm số
     private int overallScore;
     private int formatScore;
     private int contentScore;
     private int keywordScore;
     private int impactScore;
 
-    // Kết quả chi tiết
     private String summary;
     private List<String> strengths;
     private List<Suggestion> suggestions;
+    private List<String> detectedSkills;
+    private ParsedCv parsedCv;
+    private String analysisVersion;
+    private boolean cached;
 
     private Instant createdAt;
 
-    // Inner class cho mỗi gợi ý
     @Getter
     @Setter
     @NoArgsConstructor
     @AllArgsConstructor
     public static class Suggestion {
-        private String category; // FORMAT, CONTENT, KEYWORD, IMPACT
-        private String priority; // HIGH, MEDIUM, LOW
-        private String issue; // Vấn đề
-        private String suggestion; // Gợi ý cải thiện
+        private String category;
+        private String priority;
+        private String issue;
+        private String suggestion;
     }
 }

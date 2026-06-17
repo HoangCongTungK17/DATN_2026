@@ -28,7 +28,9 @@ import { isMobile } from 'react-device-detect';
 import type { MenuProps } from 'antd';
 import { setLogoutAction } from '@/redux/slice/accountSlide';
 import { ALL_PERMISSIONS } from '@/config/permissions';
+import { getFirstAllowedAdminPath, isHrRoleName } from '@/config/admin-navigation';
 import './admin.scss';
+import logo from '@/assets/logo-optimized.png';
 
 const { Content, Sider } = Layout;
 
@@ -39,15 +41,17 @@ const LayoutAdmin = () => {
     const [activeMenu, setActiveMenu] = useState('');
     const user = useAppSelector(state => state.account.user);
 
-    const permissions = useAppSelector(state => state.account.user.role.permissions);
+    const permissions = useAppSelector(state => state.account.user.role?.permissions);
     const [menuItems, setMenuItems] = useState<MenuProps['items']>([]);
 
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
+    const aclDisabled = import.meta.env.VITE_ACL_ENABLE === 'false';
+    const isHr = isHrRoleName(user?.role?.name);
+    const defaultAdminPath = isHr ? getFirstAllowedAdminPath(permissions, aclDisabled) : '/admin';
 
     useEffect(() => {
-        const ACL_ENABLE = import.meta.env.VITE_ACL_ENABLE;
-        if (permissions?.length || ACL_ENABLE === 'false') {
+        if (permissions?.length || aclDisabled) {
 
             const viewCompany = permissions?.find(item =>
                 item.apiPath === ALL_PERMISSIONS.COMPANIES.GET_PAGINATE.apiPath
@@ -80,33 +84,33 @@ const LayoutAdmin = () => {
             )
 
             const full = [
-                {
+                ...(!isHr ? [{
                     label: <Link to='/admin'>Tổng Quan</Link>,
                     key: '/admin',
                     icon: <AppstoreOutlined />
-                },
+                }] : []),
 
                 // Group: Quản lý
                 {
                     type: 'group' as const,
                     label: !collapsed ? 'QUẢN LÝ' : '—',
                     children: [
-                        ...(viewCompany || ACL_ENABLE === 'false' ? [{
+                        ...(viewCompany || aclDisabled ? [{
                             label: <Link to='/admin/company'>Công Ty</Link>,
                             key: '/admin/company',
                             icon: <BankOutlined />,
                         }] : []),
-                        ...(viewUser || ACL_ENABLE === 'false' ? [{
+                        ...(!isHr && (viewUser || aclDisabled) ? [{
                             label: <Link to='/admin/user'>Người Dùng</Link>,
                             key: '/admin/user',
                             icon: <TeamOutlined />
                         }] : []),
-                        ...(viewJob || ACL_ENABLE === 'false' ? [{
+                        ...(viewJob || aclDisabled ? [{
                             label: <Link to='/admin/job'>Việc Làm</Link>,
                             key: '/admin/job',
                             icon: <SolutionOutlined />
                         }] : []),
-                        ...(viewResume || ACL_ENABLE === 'false' ? [{
+                        ...(viewResume || aclDisabled ? [{
                             label: <Link to='/admin/resume'>Hồ Sơ CV</Link>,
                             key: '/admin/resume',
                             icon: <FileSearchOutlined />
@@ -115,27 +119,33 @@ const LayoutAdmin = () => {
                 },
 
                 // Group: Hệ thống
-                {
+                ...(!isHr ? [{
                     type: 'group' as const,
                     label: !collapsed ? 'HỆ THỐNG' : '—',
                     children: [
-                        ...(viewPermission || ACL_ENABLE === 'false' ? [{
+                        ...(viewPermission || aclDisabled ? [{
                             label: <Link to='/admin/permission'>Quyền Hạn</Link>,
                             key: '/admin/permission',
                             icon: <LockOutlined />
                         }] : []),
-                        ...(viewRole || ACL_ENABLE === 'false' ? [{
+                        ...(viewRole || aclDisabled ? [{
                             label: <Link to='/admin/role'>Vai Trò</Link>,
                             key: '/admin/role',
                             icon: <SafetyCertificateOutlined />
                         }] : []),
                     ],
-                },
+                }] : []),
             ];
 
             setMenuItems(full);
         }
-    }, [permissions, collapsed])
+    }, [permissions, collapsed, aclDisabled, isHr])
+
+    useEffect(() => {
+        if (isHr && location.pathname === '/admin') {
+            navigate(defaultAdminPath, { replace: true });
+        }
+    }, [defaultAdminPath, isHr, location.pathname, navigate])
 
     useEffect(() => {
         setActiveMenu(location.pathname)
@@ -235,7 +245,8 @@ const LayoutAdmin = () => {
                 iconBg: '#fee2e2',
             },
         };
-        return configs[activeMenu] || configs['/admin'];
+        const pageKey = activeMenu.startsWith('/admin/job') ? '/admin/job' : activeMenu;
+        return configs[pageKey] || configs[defaultAdminPath] || configs['/admin'];
     };
 
     return (
@@ -256,13 +267,12 @@ const LayoutAdmin = () => {
                         trigger={null}
                     >
                         {/* Sidebar Logo */}
-                        <div className="sidebar-logo-dark" onClick={() => navigate('/admin')}>
+                        <div className="sidebar-logo-dark" onClick={() => navigate(defaultAdminPath)}>
                             <div className="logo-icon-wrapper">
-                                <ThunderboltFilled />
+                                <img src={logo} alt="JobFind Logo" style={{ width: '100%', height: 'auto', display: 'block' }} />
                             </div>
                             {!collapsed && (
                                 <span className="logo-text">
-                                    JOB<span className="logo-highlight">FIND</span>
                                     <span className="logo-badge">ADMIN</span>
                                 </span>
                             )}

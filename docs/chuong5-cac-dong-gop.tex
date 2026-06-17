@@ -1,0 +1,266 @@
+\documentclass[../DoAn.tex]{subfiles}
+\begin{document}
+
+% =====================================================================
+% CHƯƠNG 5 — CÁC ĐÓNG GÓP VÀ GIẢI PHÁP NỔI BẬT
+% Quy ước: Hình/Bảng đánh số theo chương, caption in nghiêng;
+% mỗi lựa chọn kỹ thuật trình bày theo: vấn đề -> phương án thay thế -> lý do chọn.
+% Mỗi đóng góp gồm ba mục con: (i) bài toán, (ii) giải pháp, (iii) kết quả.
+% =====================================================================
+
+Chương này tập hợp những giải pháp mà chúng tôi xem là phần lõi của quá trình thực hiện đồ án. Khác với Chương~3 và Chương~4 vốn mô tả công nghệ và kiến trúc tổng thể của hệ thống JobFind, chương này đi sâu vào các quyết định thiết kế đứng sau bốn tính năng trí tuệ nhân tạo (CV Doctor, Interview Coach, đối sánh CV--JD và chatbot tư vấn việc làm), tức là phần lý giải \emph{vì sao} hệ thống được làm như vậy.
+
+Điểm chung của các tính năng này là chúng đều phụ thuộc vào một mô hình ngôn ngữ lớn (Large Language Model -- LLM) chạy bên ngoài, cụ thể là LLaMA~3.3~70B phục vụ qua Groq. Một LLM cho lời văn tốt nhưng lại không tất định, có độ trễ cao, có hạn mức gọi và có thể bịa thông tin. Do đó, thay vì xem mỗi tính năng là một lần ``gọi LLM rồi hiển thị kết quả'', đồ án xây dựng một lớp nền chung để biến năng lực bất định của LLM thành dịch vụ ổn định, kiểm soát được và tiết kiệm. Năm mục tiếp theo trình bày năm đóng góp theo trình tự từ nguyên lý đến hạ tầng rồi đến tính năng cụ thể; mỗi đóng góp được viết theo ba phần: bài toán, giải pháp và kết quả đạt được.
+
+Bảng~\ref{tab:ch5-tongquan} tóm lược năm đóng góp và vai trò của chúng trong hệ thống.
+
+\begin{table}[ht]
+\centering
+\caption{\textit{Tổng quan năm đóng góp của đồ án và phạm vi áp dụng}}
+\label{tab:ch5-tongquan}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{|c|p{5.2cm}|p{6.0cm}|}
+\hline
+\textbf{Mục} & \textbf{Đóng góp} & \textbf{Tính năng được hưởng lợi} \\ \hline
+5.1 & Mô hình chấm điểm tất định: tách ``điểm số'' khỏi ``ngôn ngữ'' & CV Doctor, đối sánh CV--JD \\ \hline
+5.2 & Cổng AI thống nhất: bộ nhớ đệm theo nội dung, phòng vệ và suy biến mềm & Cả bốn tính năng AI \\ \hline
+5.3 & Pipeline tác vụ AI bất đồng bộ, phục hồi được và theo dõi tiến độ & Cả bốn tính năng AI \\ \hline
+5.4 & Nâng cấp biểu diễn CV: từ tín hiệu nhị phân đến dữ liệu có cấu trúc và vector ngữ nghĩa & CV Doctor, đối sánh CV--JD, chatbot \\ \hline
+5.5 & Cá nhân hóa hồ sơ xuyên tính năng và bảo toàn nhất quán phiên phỏng vấn & Interview Coach, chatbot \\ \hline
+\end{tabular}
+\end{table}
+
+% =====================================================================
+\section{Mô hình chấm điểm tất định: tách ``điểm số'' khỏi ``ngôn ngữ''}
+\label{sec:ch5-heuristic-first}
+
+\subsection{Bài toán}
+
+Ba trong bốn tính năng AI đều cần trả về một con số: điểm tổng của một CV, điểm phù hợp giữa CV và tin tuyển dụng, hay điểm cho một câu trả lời phỏng vấn. Cách làm trực tiếp là yêu cầu LLM vừa chấm điểm vừa viết nhận xét trong cùng một lần gọi. Cách này đơn giản nhưng có một nhược điểm khó chấp nhận trong một sản phẩm đánh giá hồ sơ: kết quả không tái lập được.
+
+Mô hình ngôn ngữ sinh văn bản theo xác suất, nên cùng một CV gửi hai lần có thể nhận hai số điểm chênh nhau hàng chục đơn vị. Người dùng nộp lại một hồ sơ không đổi mà thấy điểm nhảy từ 72 xuống 45 sẽ mất niềm tin vào hệ thống. Ngoài ra, điểm do LLM tự quyết không có ràng buộc nghiệp vụ: một CV không có kỹ năng công nghệ thông tin vẫn có thể nhận điểm cao nếu mô hình ``rộng tay''.
+
+Phương án thay thế là giao toàn bộ việc chấm điểm cho mã nguồn theo các quy tắc xác định, và chỉ dùng LLM cho phần mà nó thực sự vượt trội là diễn đạt ngôn ngữ. Đây cũng là hướng mà các hệ thống thương mại cùng lĩnh vực đã chuyển sang sau khi nhận ra điểm số do LLM sinh ra thiếu nhất quán. Đồ án chọn phương án này vì nó đánh đổi một phần ``sự thông minh cảm tính'' của LLM để lấy tính ổn định, khả năng kiểm thử và khả năng giải thích, vốn là những yêu cầu bắt buộc đối với một công cụ đánh giá.
+
+\subsection{Giải pháp}
+
+Nguyên lý xuyên suốt là \emph{điểm số do mã nguồn quyết định, ngôn ngữ do LLM sinh ra}. Với CV Doctor, hệ thống chấm CV trên bốn trục độc lập: bố cục (\textit{format}), nội dung (\textit{content}), độ phủ từ khóa kỹ năng (\textit{keyword}) và sức nặng thành tích (\textit{impact}). Mỗi trục được tính bằng một hàm khởi tạo, ví dụ trục bố cục bắt đầu từ 35 điểm rồi cộng thêm theo sự hiện diện của từng phần như tóm tắt, kỹ năng, kinh nghiệm hay học vấn. Điểm tổng luôn được tính lại bằng công thức trọng số cố định, không phụ thuộc vào con số mà LLM trả về:
+
+\[
+\textit{Overall} = 0{,}20\cdot \textit{Format} + 0{,}35\cdot \textit{Content} + 0{,}25\cdot \textit{Keyword} + 0{,}20\cdot \textit{Impact}.
+\]
+
+Trục nội dung được đặt trọng số cao nhất (0,35) vì chiều sâu kinh nghiệm phản ánh chất lượng ứng viên rõ hơn hình thức trình bày. Sau khi cộng dồn, mỗi điểm đều đi qua hàm chặn biên (\textit{clamp}) để giữ trong khoảng hợp lệ, kèm các quy tắc trần cứng theo nghiệp vụ: nếu CV không phát hiện được kỹ năng công nghệ thông tin nào thì trục từ khóa bị khống chế ở mức rất thấp, và một hồ sơ ngoài ngành bị giới hạn điểm trên toàn bộ các trục. Nhờ đó, điểm số bám sát thực chất hồ sơ thay vì cảm tính của mô hình.
+
+Với đối sánh CV--JD, mức độ tất định còn triệt để hơn. Hàm \texttt{computeMatch} tính điểm hoàn toàn bằng mã nguồn từ ba thành phần: tỷ lệ kỹ năng trùng khớp giữa CV và yêu cầu của tin tuyển dụng, độ chênh cấp bậc (\textit{level}) và độ gần về lĩnh vực (\textit{domain}). Khi có thêm tín hiệu ngữ nghĩa từ kho vector (trình bày ở mục~\ref{sec:ch5-structured}), điểm cuối được trộn theo tỷ lệ cố định, ưu tiên phần tất định:
+
+\[
+\textit{FinalMatch} = 0{,}80\cdot \textit{DeterministicScore} + 0{,}20\cdot \textit{SemanticScore}.
+\]
+
+Trong toàn bộ luồng này, LLM không hề được hỏi ``hãy cho điểm''. Vai trò duy nhất của nó là viết phần nhận xét và gợi ý cải thiện dựa trên điểm và bằng chứng mà mã nguồn đã tính sẵn. Khi LLM gặp lỗi hoặc quá tải, hệ thống vẫn còn nguyên bộ điểm tất định để hiển thị, nên tính năng không bao giờ rơi vào trạng thái trắng.
+
+\begin{figure}[ht]
+  \centering
+  % TODO: thay bằng hình thật, gợi ý lưu tại figures/ch5/scoring-before-after.png
+  \fbox{\parbox{0.92\textwidth}{\centering \footnotesize
+  [Sơ đồ đối chiếu hai mô hình chấm điểm]\\[2pt]
+  Bên trái -- ``LLM chấm điểm trực tiếp'': CV $\rightarrow$ LLM $\rightarrow$ (điểm + nhận xét) $\rightarrow$ kết quả không tái lập.\\[2pt]
+  Bên phải -- ``Heuristic chấm điểm, LLM diễn giải'': CV $\rightarrow$ bộ chấm điểm (4 trục + công thức trọng số + chặn biên/trần) $\rightarrow$ điểm tất định; song song LLM chỉ sinh nhận xét/gợi ý.}}
+  \caption{\textit{Tương phản giữa mô hình để LLM tự chấm điểm và mô hình tách điểm số khỏi sinh ngôn ngữ}}
+  \label{fig:ch5-scoring-model}
+\end{figure}
+
+\subsection{Kết quả đạt được}
+
+Bộ chấm điểm được kiểm thử trên một tập CV mẫu trải đều từ hồ sơ chất lượng cao đến hồ sơ kém và hồ sơ ngoài ngành. Bảng~\ref{tab:ch5-cvdoctor} trích một phần kết quả. Hệ thống phân tách rõ nhóm CV tốt (điểm 82--92) với nhóm CV yếu, và đặc biệt khống chế đúng hồ sơ ngoài ngành xuống mức rất thấp, đúng như quy tắc trần đã cài đặt.
+
+\begin{table}[ht]
+\centering
+\caption{\textit{Trích kết quả chấm điểm CV Doctor trên tập mẫu}}
+\label{tab:ch5-cvdoctor}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{|p{5.0cm}|c|c|c|c|c|}
+\hline
+\textbf{Hồ sơ} & \textbf{Tổng} & \textbf{Format} & \textbf{Content} & \textbf{Keyword} & \textbf{Impact} \\ \hline
+Senior Java Developer (5 năm) & 92 & 90 & 95 & 95 & 90 \\ \hline
+Mid React Frontend (3 năm) & 87 & 90 & 85 & 90 & 80 \\ \hline
+Junior Python Intern (1 năm) & 82 & 90 & 85 & 90 & 75 \\ \hline
+Fresher chưa có kinh nghiệm & 24 & 40 & 30 & 15 & 10 \\ \hline
+Hồ sơ không liệt kê kỹ năng & 44 & 40 & 30 & 15 & 10 \\ \hline
+Kế toán (ngoài ngành) & 6 & 15 & 5 & 0 & 5 \\ \hline
+\end{tabular}
+\end{table}
+
+Giá trị quan trọng nhất không nằm ở từng con số mà ở tính tái lập: với cùng một CV và cùng một tin tuyển dụng, điểm trả về luôn ổn định vì nó được tính bằng công thức, không bằng xác suất sinh văn bản. Đặc tính này cũng giúp khâu kiểm thử trở nên khả thi, bởi mỗi quy tắc chấm điểm có thể được kiểm chứng độc lập mà không cần gọi LLM. Có thể minh họa kết quả này bằng một biểu đồ cột phân bố điểm tổng của tập mẫu (gợi ý Hình~5.x), trong đó thấy rõ khoảng cách giữa nhóm hồ sơ đạt và nhóm bị khống chế.
+
+% =====================================================================
+\section{Cổng AI thống nhất: bộ nhớ đệm theo nội dung, phòng vệ và suy biến mềm}
+\label{sec:ch5-gateway}
+
+\subsection{Bài toán}
+
+Khi số tính năng dùng LLM tăng lên, việc mỗi tính năng tự gọi mô hình theo cách riêng sinh ra nhiều vấn đề lặp lại. Thứ nhất là chi phí: hạn mức gọi của dịch vụ LLM là hữu hạn, mà nhiều yêu cầu thực chất giống hệt nhau lại gọi lại từ đầu. Thứ hai là an toàn: nội dung do người dùng nhập (đoạn văn trong CV, câu trả lời phỏng vấn) được ghép thẳng vào lời nhắc (\textit{prompt}), tạo nguy cơ tấn công tiêm nhiễm lời nhắc (\textit{prompt injection}). Thứ ba là độ bền dữ liệu: LLM thường trả JSON kèm lời dẫn hoặc khối mã, khiến việc phân tích cú pháp dễ vỡ. Thứ tư là khả năng chịu lỗi: một lần gọi thất bại không nên làm sập cả tính năng.
+
+Để mỗi tính năng tự xử lý bốn vấn đề trên là phương án dễ nghĩ tới nhưng dẫn đến mã trùng lặp và không nhất quán. Đồ án chọn gom toàn bộ phần tương tác với LLM vào một thành phần trung gian duy nhất, vì như vậy các chính sách về chi phí, bảo mật và độ bền chỉ cần cài đặt một lần và được mọi tính năng kế thừa đồng nhất.
+
+\subsection{Giải pháp}
+
+Thành phần \texttt{AiGatewayService} đóng vai trò cổng vào duy nhất tới mô hình ngôn ngữ. Mọi lần gọi LLM trong hệ thống đều đi qua cổng này, nhờ đó bốn nhóm chính sách dưới đây được áp dụng tập trung.
+
+\paragraph{Bộ nhớ đệm theo nội dung và phiên bản lời nhắc.} Cổng tạo khóa đệm bằng cách băm SHA-256 các thành phần định danh của yêu cầu, trong đó luôn có một nhãn phiên bản lời nhắc, ví dụ \texttt{cv-doctor-v2} hay \texttt{job-chat-v2}. Hai yêu cầu có cùng nội dung sẽ cùng khóa và dùng lại kết quả đã lưu trong thời gian sống (\textit{time-to-live}) định trước. Việc gắn phiên bản vào khóa cho phép vô hiệu hóa toàn bộ vùng đệm cũ chỉ bằng cách tăng số phiên bản khi nâng cấp lời nhắc, mà không cần xóa thủ công.
+
+\paragraph{Phòng vệ trước nội dung không tin cậy.} Trước khi ghép vào lời nhắc, mọi đoạn do người dùng cung cấp đều đi qua hàm làm sạch: loại bỏ ký tự điều khiển, vô hiệu hóa dấu khối mã, chuẩn hóa xuống dòng và cắt theo ngân sách ký tự. Nội dung sau đó được bọc trong các thẻ phân vùng rõ ràng (chẳng hạn \texttt{<CV\_TEXT>}\dots\texttt{</CV\_TEXT>}) kèm chỉ dẫn coi phần này là dữ liệu chứ không phải mệnh lệnh. Cơ chế bao khối có ngân sách này vừa giảm bề mặt tấn công tiêm nhiễm, vừa kiểm soát số token gửi đi.
+
+\paragraph{Trích xuất JSON bền vững.} Để xử lý việc LLM hay bọc JSON trong khối mã hoặc kèm lời dẫn, cổng có một hàm bóc tách lần lượt thử các trường hợp: khối \texttt{```json}, khối \texttt{```} chung, rồi đến cặp ngoặc nhọn ngoài cùng. Nhờ đó tỷ lệ phân tích thành công cao hơn nhiều so với việc giả định mô hình luôn trả JSON thuần.
+
+\paragraph{Thử lại và tham số gọi.} Cổng tự động thử lại khi gặp lỗi tạm thời và cho phép từng tác vụ tinh chỉnh nhiệt độ (\textit{temperature}) cũng như số token tối đa qua một bộ tùy chọn gọi. Tác vụ cần ổn định có thể hạ nhiệt độ, tác vụ cần đa dạng có thể nâng lên.
+
+Bao quanh cổng là nguyên tắc \emph{suy biến mềm} (\textit{graceful degradation}): mỗi nơi gọi cổng đều chuẩn bị sẵn một kết quả dự phòng tính bằng mã nguồn. Khi LLM lỗi, chatbot trả về danh sách việc làm đã được xếp hạng tất định, CV Doctor trả về bộ điểm heuristic, còn đối sánh CV--JD trả về điểm \texttt{computeMatch}. Người dùng vẫn nhận được kết quả hữu ích thay vì một thông báo lỗi.
+
+\begin{figure}[ht]
+  \centering
+  % TODO: thay bằng hình thật, gợi ý lưu tại figures/ch5/ai-gateway.png
+  \fbox{\parbox{0.92\textwidth}{\centering \footnotesize
+  [Sơ đồ khối Cổng AI]\\[2pt]
+  Yêu cầu $\rightarrow$ [làm sạch \& bao khối] $\rightarrow$ [tra cứu đệm theo SHA-256 + phiên bản lời nhắc] $\rightarrow$ (trúng đệm: trả ngay) / (trượt đệm: gọi LLM có thử lại) $\rightarrow$ [bóc tách JSON] $\rightarrow$ ghi đệm $\rightarrow$ kết quả.\\[2pt]
+  Nhánh lỗi LLM $\rightarrow$ [suy biến mềm] $\rightarrow$ kết quả dự phòng tất định.}}
+  \caption{\textit{Kiến trúc Cổng AI tập trung hóa bộ nhớ đệm, phòng vệ lời nhắc, bóc tách JSON và suy biến mềm}}
+  \label{fig:ch5-gateway}
+\end{figure}
+
+\subsection{Kết quả đạt được}
+
+Cổng AI biến bốn chính sách rời rạc thành một điểm kiểm soát duy nhất cho cả bốn tính năng. Cơ chế đệm theo nội dung giúp các yêu cầu lặp lại không tiêu tốn thêm hạn mức gọi, trong khi nhãn phiên bản lời nhắc cho phép thay đổi prompt an toàn mà không để lại kết quả cũ gây nhiễu. Lớp làm sạch và bao khối đóng vai trò hàng phòng thủ đầu tiên trước tiêm nhiễm lời nhắc, được áp dụng đồng nhất cho mọi đầu vào người dùng. Quan trọng nhất, nhờ suy biến mềm, sự cố tạm thời của dịch vụ LLM bên ngoài không còn làm gián đoạn trải nghiệm, một yêu cầu thiết yếu khi hệ thống dựa vào một dịch vụ nằm ngoài tầm kiểm soát.
+
+% =====================================================================
+\section{Pipeline tác vụ AI bất đồng bộ, phục hồi được và theo dõi tiến độ}
+\label{sec:ch5-async}
+
+\subsection{Bài toán}
+
+Một lần gọi LLM cho các tác vụ phân tích CV, đối sánh hay sinh câu hỏi phỏng vấn thường mất từ vài giây đến hơn chục giây. Nếu xử lý đồng bộ ngay trong vòng đời của một yêu cầu HTTP, hệ thống sẽ gặp nhiều rủi ro: yêu cầu dễ vượt ngưỡng chờ, giao diện bị treo trong lúc chờ, người dùng không thể hủy một tác vụ đã lỡ khởi động, và mỗi yêu cầu giữ một luồng máy chủ quá lâu làm giảm khả năng phục vụ đồng thời. Thêm vào đó, dịch vụ LLM bên ngoài có thể lỗi tạm thời, nên cần một cơ chế thử lại mà không bắt người dùng thao tác lại từ đầu.
+
+Phương án đồng bộ tuy đơn giản nhưng không đáp ứng được các yêu cầu trên. Đồ án vì vậy chuyển toàn bộ tác vụ AI sang mô hình bất đồng bộ theo kiểu ``gửi yêu cầu rồi theo dõi kết quả'', vì mô hình này tách thời gian xử lý dài ra khỏi vòng đời yêu cầu HTTP và mở ra khả năng theo dõi tiến độ, hủy và thử lại.
+
+\subsection{Giải pháp}
+
+Thành phần \texttt{AiTaskExecutorService} điều phối vòng đời của một tác vụ AI. Khi người dùng gửi yêu cầu, hệ thống lưu một bản ghi tác vụ vào cơ sở dữ liệu ở trạng thái chờ, đẩy tác vụ vào một bể luồng (\textit{thread pool}) và trả ngay về đường dẫn để người dùng theo dõi. Tác vụ sau đó vận động qua một máy trạng thái rõ ràng gồm các trạng thái chờ, đang xử lý, hoàn tất, thất bại, đang thử lại, hết giờ và đã hủy.
+
+Tiến độ được công bố theo hai kênh để phù hợp với mọi điều kiện mạng: kênh hỏi vòng (\textit{polling}) theo chu kỳ, và kênh đẩy sự kiện máy chủ (\textit{Server-Sent Events -- SSE}) cập nhật tức thời mỗi khi trạng thái hay phần trăm hoàn thành thay đổi. Mỗi tác vụ cũng ghi nhịp tim (\textit{heartbeat}) để hệ thống biết nó còn sống.
+
+Khả năng phục hồi được bảo đảm bằng hai tiến trình nền chạy theo lịch. Một tiến trình quét các tác vụ vượt thời hạn cho phép và chuyển chúng sang trạng thái hết giờ kèm hủy luồng đang chạy. Một tiến trình khác đưa các tác vụ đang chờ thử lại trở vào hàng đợi theo thời gian giãn cách tăng dần (\textit{exponential backoff}), và chỉ đánh dấu thất bại sau khi vượt số lần thử tối đa. Người dùng có thể chủ động hủy; khi đó hệ thống vừa hủy luồng vừa kiểm tra trạng thái kết thúc một cách hợp tác tại các mốc trong quá trình xử lý để dừng sớm.
+
+Hai chi tiết kỹ thuật khiến pipeline này hoạt động đúng trong môi trường nhiều luồng. Thứ nhất, ngữ cảnh bảo mật của người dùng được truyền sang luồng nền xử lý tác vụ, nhờ đó tác vụ chạy bất đồng bộ vẫn giữ đúng danh tính và quyền của người gửi. Thứ hai, đầu vào của tác vụ được tuần tự hóa dưới dạng JSON thay vì truyền đối tượng, giúp luồng xử lý độc lập và an toàn. Khi hàng đợi đầy, hệ thống từ chối tường minh và báo cho người dùng thử lại sau, thay vì âm thầm tích lũy tác vụ quá tải.
+
+Lớp \texttt{AiRateLimitService} bổ sung giới hạn tần suất theo cửa sổ trượt cho từng người dùng, ví dụ giới hạn số lượt trò chuyện và số tác vụ trên mỗi phút, nhằm bảo vệ hạn mức gọi LLM trước cả thao tác bất cẩn lẫn lạm dụng.
+
+\begin{figure}[ht]
+  \centering
+  % TODO: thay bằng hình thật, gợi ý lưu tại figures/ch5/ai-task-statemachine.png
+  \fbox{\parbox{0.92\textwidth}{\centering \footnotesize
+  [Máy trạng thái vòng đời tác vụ AI]\\[2pt]
+  CHỜ $\rightarrow$ ĐANG XỬ LÝ $\rightarrow$ HOÀN TẤT.\\[2pt]
+  ĐANG XỬ LÝ $\rightarrow$ (lỗi) $\rightarrow$ ĐANG THỬ LẠI $\rightarrow$ CHỜ (giãn cách tăng dần) hoặc $\rightarrow$ THẤT BẠI (quá số lần).\\[2pt]
+  ĐANG XỬ LÝ $\rightarrow$ (quá hạn) $\rightarrow$ HẾT GIỜ;\quad mọi trạng thái không kết thúc $\rightarrow$ (người dùng) $\rightarrow$ ĐÃ HỦY.}}
+  \caption{\textit{Máy trạng thái vòng đời tác vụ AI với các nhánh thử lại, hết giờ và hủy}}
+  \label{fig:ch5-statemachine}
+\end{figure}
+
+\subsection{Kết quả đạt được}
+
+Pipeline bất đồng bộ trở thành xương sống dùng chung cho cả bốn tính năng AI, tương ứng với các loại tác vụ trò chuyện, phân tích CV, đối sánh CV--JD, bắt đầu phỏng vấn và chấm câu trả lời. Người dùng thấy được tiến độ theo thời gian thực và có thể hủy giữa chừng, trải nghiệm mà mô hình đồng bộ không thể cung cấp. Quan trọng hơn, các lỗi tạm thời của dịch vụ LLM được hấp thụ bởi cơ chế thử lại có giãn cách thay vì biến thành lỗi hiển thị cho người dùng. Việc lưu trạng thái tác vụ vào cơ sở dữ liệu còn cho phép truy vết và chẩn đoán sau sự cố. Một sơ đồ tuần tự mô tả luồng ``gửi yêu cầu $\rightarrow$ đưa vào hàng đợi $\rightarrow$ nhận sự kiện SSE $\rightarrow$ trả kết quả'' (gợi ý Hình~5.x) sẽ làm rõ hơn sự phối hợp giữa giao diện, bộ điều phối và mô hình ngôn ngữ.
+
+% =====================================================================
+\section{Nâng cấp biểu diễn CV: từ tín hiệu nhị phân đến dữ liệu có cấu trúc và vector ngữ nghĩa}
+\label{sec:ch5-structured}
+
+\subsection{Bài toán}
+
+Phiên bản đầu của CV Doctor chấm điểm dựa trên các tín hiệu nhị phân: hồ sơ \emph{có} hay \emph{không có} phần kinh nghiệm, \emph{có} hay \emph{không có} phần kỹ năng. Cách biểu diễn này đủ để phân loại thô nhưng đánh mất nhiều thông tin: số lượng vị trí công việc, độ sâu của từng gạch đầu dòng, công nghệ gắn với mỗi dự án hay tổng thời gian kinh nghiệm đều bị làm phẳng thành các giá trị đúng/sai. Song song, khâu đối sánh CV--JD ban đầu chỉ so khớp từ khóa chính xác, nên bỏ lỡ các tương đồng về ngữ nghĩa, chẳng hạn ``Machine Learning'' trong CV và ``ML/AI'' trong tin tuyển dụng vốn cùng một ý nhưng khác chuỗi ký tự.
+
+Đây là một hạn chế mà chúng tôi nhận ra qua quá trình tự đánh giá, và việc khắc phục nó là một đóng góp đáng kể vì nó nâng chất lượng phân tích lên một bậc mà không phải làm lại từ đầu. Phương án lý tưởng là dựng một dây chuyền xử lý ngôn ngữ tự nhiên riêng để nhận diện thực thể, nhưng cách này vượt quá phạm vi và nguồn lực của một đồ án. Phương án được chọn là dùng chính LLM để trích xuất CV thành dữ liệu có cấu trúc, kèm các ràng buộc chống bịa, vì nó tận dụng được năng lực hiểu văn bản của mô hình mà vẫn giữ kết quả ở dạng kiểm soát được.
+
+\subsection{Giải pháp}
+
+Giải pháp gồm ba phần phối hợp: trích xuất có cấu trúc, lập chỉ mục ngữ nghĩa và đối sánh lai.
+
+\paragraph{Trích xuất CV có cấu trúc.} Thành phần \texttt{CvStructuredParserService} gửi văn bản CV cho LLM kèm một lược đồ JSON cố định, yêu cầu trả về hồ sơ ứng viên dưới dạng bản ghi \texttt{ParsedCv} gồm thông tin liên hệ, danh sách kinh nghiệm, danh sách dự án, học vấn, danh sách kỹ năng kèm bằng chứng và các chỉ số tài liệu. Điểm mấu chốt là tập ràng buộc chống bịa: lời nhắc tuyên bố văn bản CV là dữ liệu không tin cậy chứ không phải mệnh lệnh, và chỉ cho phép trích những dữ kiện được hỗ trợ trực tiếp bởi nội dung CV. Sau khi nhận kết quả, hệ thống còn lọc lại một lần nữa bằng hàm kiểm chứng: một kỹ năng do LLM nêu ra chỉ được giữ nếu thực sự xuất hiện trong văn bản hoặc có đoạn bằng chứng tương ứng. Tên kỹ năng được chuẩn hóa qua một bộ phân loại (\textit{taxonomy}) để gộp các biến thể như ``React'', ``ReactJS'' và ``React.js'' về một dạng chuẩn. Khi LLM lỗi hoặc trả kết quả không hợp lệ, một bộ phân tích dự phòng bằng quy tắc sẽ tách phần, nhận diện email, số điện thoại và gạch đầu dòng để bảo đảm luôn có dữ liệu cấu trúc tối thiểu.
+
+\paragraph{Lập chỉ mục ngữ nghĩa.} Thành phần \texttt{CvVectorService} cắt CV đã cấu trúc thành các đoạn (\textit{chunk}) theo từng phần như hồ sơ, kỹ năng, kinh nghiệm, dự án và học vấn, rồi nhúng (\textit{embed}) và lưu lên kho vector Pinecone. Hai chi tiết đáng chú ý ở đây phản ánh ý thức về quyền riêng tư và chi phí. Thứ nhất, thông tin định danh cá nhân như email và số điện thoại được che (\textit{redact}) trước khi đưa lên kho vector. Thứ hai, mỗi lần lập chỉ mục đều gắn một mã băm nội dung; nếu nội dung không đổi, hệ thống bỏ qua việc nhúng lại, tránh tiêu tốn tài nguyên cho dữ liệu trùng. Việc nhúng được thực hiện bằng mô hình embedding cục bộ thay vì gọi dịch vụ trả phí, nên không phát sinh chi phí theo lượt.
+
+\paragraph{Đối sánh lai.} Khi đối sánh CV với một tin tuyển dụng, hệ thống kết hợp phần điểm tất định ở mục~\ref{sec:ch5-heuristic-first} với tín hiệu ngữ nghĩa lấy từ kho vector, gồm thứ hạng của tin tuyển dụng trong các vector gần nhất của hồ sơ và độ tương đồng của các đoạn CV liên quan. Điều cần nhấn mạnh là các đoạn vector chỉ đóng vai trò \emph{bằng chứng}; phần điểm số vẫn được tính tất định cho cùng một cặp CV và tin tuyển dụng, nên kết quả đối sánh vừa giàu thông tin ngữ nghĩa vừa giữ được tính tái lập.
+
+\begin{figure}[ht]
+  \centering
+  % TODO: thay bằng hình thật, gợi ý lưu tại figures/ch5/cv-structured-pipeline.png
+  \fbox{\parbox{0.92\textwidth}{\centering \footnotesize
+  [Pipeline trích xuất và đối sánh CV]\\[2pt]
+  PDF $\rightarrow$ trích văn bản $\rightarrow$ LLM phân tích theo lược đồ JSON $\rightarrow$ \texttt{ParsedCv}\\
+  $\rightarrow$ lọc bằng chứng + chuẩn hóa taxonomy $\rightarrow$ (a) chấm điểm có cấu trúc;\quad (b) cắt đoạn + che PII + nhúng $\rightarrow$ Pinecone.\\[2pt]
+  Đối sánh CV--JD = 0,80 $\times$ điểm tất định + 0,20 $\times$ điểm ngữ nghĩa; đoạn vector là bằng chứng.}}
+  \caption{\textit{Dây chuyền trích xuất CV có cấu trúc và đối sánh lai tất định--ngữ nghĩa}}
+  \label{fig:ch5-cv-pipeline}
+\end{figure}
+
+\subsection{Kết quả đạt được}
+
+Việc chuyển từ tín hiệu nhị phân sang dữ liệu có cấu trúc cho phép các hàm chấm điểm làm việc trên thông tin giàu hơn, đồng thời cung cấp đầu vào sạch cho cả khâu lập chỉ mục và đối sánh. Bổ sung tín hiệu ngữ nghĩa giúp đối sánh nhận ra các tương đồng mà so khớp từ khóa bỏ sót, trong khi cơ chế trộn 0,80/0,20 vẫn giữ điểm số ổn định. Cơ chế lập chỉ mục theo mã băm nội dung khiến quá trình nhúng trở nên bất biến theo lần gọi (\textit{idempotent}), tránh nhúng trùng và tiết kiệm tài nguyên. Một lợi ích gián tiếp đáng kể là hạ tầng vector được tái sử dụng cho cả chatbot lẫn đối sánh CV--JD, nên một khoản đầu tư kỹ thuật phục vụ nhiều tính năng. Bảng~\ref{tab:ch5-match} trích kết quả đối sánh cho thấy điểm phù hợp phản ánh đúng mức chênh về stack công nghệ và cấp bậc giữa hồ sơ và yêu cầu.
+
+\begin{table}[ht]
+\centering
+\caption{\textit{Trích kết quả đối sánh CV--JD}}
+\label{tab:ch5-match}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{|p{3.2cm}|p{3.6cm}|c|p{4.4cm}|}
+\hline
+\textbf{Hồ sơ} & \textbf{Tin tuyển dụng} & \textbf{Điểm} & \textbf{Nhận định} \\ \hline
+CV Java & Java Architect (Senior) & 40\% & Đúng stack nhưng thiếu mảng điện toán đám mây \\ \hline
+CV chung & .NET Core Engineer (Mid) & 40\% & Khác stack hoàn toàn \\ \hline
+CV chung & Python AI/ML (Senior) & 30\% & Khác stack và lệch cấp bậc \\ \hline
+\end{tabular}
+\end{table}
+
+% =====================================================================
+\section{Cá nhân hóa hồ sơ xuyên tính năng và bảo toàn nhất quán phiên phỏng vấn}
+\label{sec:ch5-personalization}
+
+\subsection{Bài toán}
+
+Phần lớn công cụ phỏng vấn thử bằng AI trên thị trường đặt câu hỏi theo một ngân hàng chung, không biết gì về ứng viên đang ngồi trước màn hình. Một câu hỏi không gắn với hồ sơ thực tế của người dùng vừa kém sát thực, vừa bỏ phí dữ liệu mà hệ thống vốn đã có. Bên cạnh đó, một phiên phỏng vấn là một quy trình có trạng thái kéo dài qua nhiều lượt hỏi--đáp, nên dễ phát sinh tranh chấp dữ liệu khi người dùng bấm gửi nhiều lần hoặc trình duyệt tự thử lại, dẫn tới chấm trùng hay hỏng trạng thái phiên.
+
+Đồ án giải quyết đồng thời hai khía cạnh: làm cho nội dung AI bám sát hồ sơ người dùng, và bảo đảm tính toàn vẹn của phiên phỏng vấn dưới các thao tác đồng thời.
+
+\subsection{Giải pháp}
+
+\paragraph{Cá nhân hóa từ một nguồn tín hiệu dùng chung.} Hệ thống dùng chung một bộ phân tích hồ sơ là \texttt{analyzeCv}, sinh ra một bản tóm tắt tín hiệu ứng viên (\textit{candidate signal profile}) gồm kỹ năng phát hiện được và cấp bậc ước lượng. Bản tóm tắt này được Interview Coach tiêm vào lời nhắc sinh câu hỏi, kết hợp với danh sách kỹ năng mà người dùng đã đăng ký quan tâm, để câu hỏi hướng vào đúng công nghệ trong hồ sơ. Cùng nguồn tín hiệu đó cũng được CV Doctor và chatbot sử dụng, nên hệ thống thể hiện một cách hiểu nhất quán về người dùng giữa các tính năng. Đây là điểm khác biệt so với các công cụ phỏng vấn thử thông thường vốn không đọc hồ sơ ứng viên.
+
+\paragraph{Bảo toàn nhất quán phiên phỏng vấn.} Để chống tranh chấp khi chấm câu trả lời, thao tác nộp đáp án nạp phiên bằng khóa bi quan ở mức cơ sở dữ liệu (\textit{pessimistic write lock}), kết hợp với khóa lạc quan qua trường phiên bản (\textit{optimistic locking}) trên thực thể phiên. Trên hai lớp khóa này, hệ thống còn kiểm tra tường minh để chặn nộp trùng khi câu hỏi hiện tại đã có đáp án, kiểm tra quyền sở hữu phiên và kiểm tra trạng thái phiên trước khi xử lý. Bốn lớp bảo vệ phối hợp khiến các trường hợp bấm gửi hai lần hay yêu cầu đồng thời đều được xử lý an toàn.
+
+\subsection{Kết quả đạt được}
+
+Nhờ cá nhân hóa, câu hỏi phỏng vấn bám theo kỹ năng và cấp bậc thực tế trong hồ sơ thay vì chung chung, làm tăng giá trị luyện tập cho người dùng. Việc dùng chung một bộ phân tích hồ sơ còn bảo đảm các tính năng nhìn nhận người dùng theo cùng một cách, tránh mâu thuẫn giữa điểm CV và độ khó câu hỏi. Về mặt dữ liệu, cơ chế khóa nhiều lớp giữ cho phiên phỏng vấn nhất quán ngay cả khi có thao tác đồng thời, một bảo đảm cần thiết cho một quy trình trải dài nhiều lượt tương tác. Có thể minh họa cơ chế này bằng một sơ đồ cho thấy nguồn tín hiệu hồ sơ dùng chung lan tỏa tới các tính năng, và một sơ đồ khác mô tả bốn lớp bảo vệ phiên (gợi ý Hình~5.x).
+
+% =====================================================================
+\section{Tổng hợp đóng góp}
+\label{sec:ch5-summary}
+
+Năm đóng góp trình bày ở trên không tách rời mà bổ trợ cho nhau theo một mạch thống nhất. Mục~\ref{sec:ch5-heuristic-first} đặt ra nguyên lý tách điểm số khỏi ngôn ngữ để bảo đảm tính tái lập. Mục~\ref{sec:ch5-gateway} và mục~\ref{sec:ch5-async} dựng hạ tầng để các lần gọi LLM trở nên tiết kiệm, an toàn, chịu lỗi và theo dõi được. Mục~\ref{sec:ch5-structured} nâng chất lượng đầu vào của phân tích từ tín hiệu nhị phân lên dữ liệu có cấu trúc và vector ngữ nghĩa. Mục~\ref{sec:ch5-personalization} đưa hiểu biết về người dùng vào nội dung AI và bảo vệ tính toàn vẹn của quy trình có trạng thái.
+
+Điểm chung của cả năm đóng góp là một quan điểm thiết kế: xem LLM như một thành phần mạnh nhưng không đáng tin tuyệt đối, và bao quanh nó bằng các lớp mã nguồn tất định để kiểm soát chi phí, bảo mật, độ bền và tính tái lập. Quan điểm này là điều chúng tôi tâm đắc nhất qua quá trình thực hiện đồ án, bởi nó cho thấy giá trị của việc tích hợp AI nằm không chỉ ở lời gọi mô hình mà chủ yếu ở phần kiến trúc bao quanh lời gọi đó.
+
+% =====================================================================
+\section*{Tài liệu tham khảo của chương}
+\addcontentsline{toc}{section}{Tài liệu tham khảo của chương}
+
+\begin{enumerate}
+\item[{[1]}] P. Lewis \textit{et al.}, ``Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks,'' in \textit{Advances in Neural Information Processing Systems (NeurIPS)}, 2020.
+\item[{[2]}] OWASP Foundation, ``OWASP Top 10 for Large Language Model Applications,'' 2023. [Trực tuyến]. Có tại: \texttt{https://owasp.org/www-project-top-10-for-large-language-model-applications/}.
+\item[{[3]}] J. Wei \textit{et al.}, ``Chain-of-Thought Prompting Elicits Reasoning in Large Language Models,'' in \textit{NeurIPS}, 2022.
+\item[{[4]}] Pinecone Systems, ``Pinecone Vector Database Documentation.'' [Trực tuyến]. Có tại: \texttt{https://docs.pinecone.io/}.
+\item[{[5]}] VMware Tanzu, ``Spring AI Reference Documentation.'' [Trực tuyến]. Có tại: \texttt{https://docs.spring.io/spring-ai/reference/}.
+\item[{[6]}] Meta AI, ``The Llama 3 Herd of Models,'' \textit{arXiv preprint arXiv:2407.21783}, 2024.
+\item[{[7]}] N. Reimers and I. Gurevych, ``Sentence-BERT: Sentence Embeddings using Siamese BERT-Networks,'' in \textit{Proc. EMNLP-IJCNLP}, 2019.
+\end{enumerate}
+
+\end{document}

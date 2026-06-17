@@ -1,0 +1,67 @@
+@startuml ThietKeChiTiet_XacThucPhanQuyen
+title Thiết kế chi tiết gói Xác thực & Phân quyền
+
+' Quy ước quan hệ (UML):
+'   ..>   Dependency   (phụ thuộc)
+'   --    Association  (kết hợp)
+'   o--   Aggregation  (kết tập)
+'   *--   Composition  (hợp thành)
+'   --|>  Inheritance  (kế thừa)
+'   ..|>  Implementation (thực thi)
+
+skinparam classBackgroundColor #FFFFCC
+skinparam classBorderColor black
+skinparam backgroundColor #FEFECE
+skinparam ArrowColor black
+skinparam shadowing false
+
+' ===== BOUNDARY (Giao diện) =====
+class "LoginPage" <<boundary>> {}
+class "RegisterPage" <<boundary>> {}
+class "ProtectedRoute" <<boundary>> {}
+class "ManageAccount" <<boundary>> {}
+
+' ===== CONTROL (Xử lý logic) =====
+class "accountSlide (Redux)" as AccountSlice <<control>> {}
+class "config/api.ts" as ApiAuth <<control>> {}
+class "AuthController" <<control>> {}
+class "UserService" <<control>> {}
+class "GoogleTokenService" <<control>> {}
+class "SecurityUtil" <<control>> {}
+class "UserDetailsCustom" <<control>> {}
+class "UserDetailsService" <<control>> {}
+class "UserRepository" <<control>> {}
+
+' ===== ENTITY (Dữ liệu) =====
+class "User" <<entity>> {}
+class "Role" <<entity>> {}
+class "Permission" <<entity>> {}
+
+' ===== Phụ thuộc: Front-end =====
+"LoginPage" ..> ApiAuth : callLogin / callLoginGoogle
+"RegisterPage" ..> ApiAuth : callRegister
+"LoginPage" ..> AccountSlice : dispatch(fetchAccount)
+"ProtectedRoute" ..> AccountSlice : kiểm tra isAuthenticated
+"ManageAccount" ..> ApiAuth : callUpdateUser / callChangePassword
+AccountSlice ..> ApiAuth : callFetchAccount
+
+' ===== Phụ thuộc: FE -> BE =====
+ApiAuth ..> "AuthController" : <<HTTP REST / JSON>>
+
+' ===== Phụ thuộc: Back-end =====
+"AuthController" ..> "UserService" : uses
+"AuthController" ..> "GoogleTokenService" : xác thực Google
+"AuthController" ..> "SecurityUtil" : tạo JWT (access/refresh)
+"UserService" ..> "UserRepository" : uses
+"UserDetailsCustom" ..> "UserService" : loadUserByUsername
+"UserService" ..> "User" : ánh xạ DTO
+"UserRepository" ..> "User" : truy vấn (JPA)
+
+' ===== Thực thi interface =====
+"UserDetailsCustom" ..|> "UserDetailsService" : implements
+
+' ===== Quan hệ giữa các thực thể (JPA) =====
+"User" "*" -- "1" "Role" : được gán vai trò
+"Role" "*" o-- "*" "Permission" : tập hợp quyền
+
+@enduml

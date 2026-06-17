@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
     Button, Input, Select, InputNumber, Progress, Tag, Card,
     Spin, Typography, Divider, message, List
@@ -10,9 +10,13 @@ import {
 import styles from '@/styles/interview-coach.module.scss';
 import dayjs from 'dayjs';
 import {
+    callCancelAiTask,
     callStartInterview, callSubmitAnswer,
     callGetInterviewSummary, callGetInterviewHistory,
-    callGetCurrentQuestion
+    callGetCurrentQuestion,
+    IAiTaskStatus,
+    isAiTaskSubmitted,
+    waitForAiTaskResult
 } from '@/config/api';
 
 
@@ -53,10 +57,14 @@ const InterviewCoachPage = () => {
     // === STATE ===
     const [phase, setPhase] = useState<Phase>('setup');
     const [loading, setLoading] = useState(false);
+    const [loadingText, setLoadingText] = useState('');
+    const [currentTaskId, setCurrentTaskId] = useState<number | null>(null);
+    const [taskProgress, setTaskProgress] = useState(0);
+    const taskAbortRef = useRef<AbortController | null>(null);
 
     // Setup
     const [jobPosition, setJobPosition] = useState('');
-    const [level, setLevel] = useState('Junior');
+    const [level, setLevel] = useState('JUNIOR');
     const [totalQuestions, setTotalQuestions] = useState(5);
 
     // Interview
@@ -81,19 +89,41 @@ const InterviewCoachPage = () => {
             return;
         }
         setLoading(true);
+        setTaskProgress(0);
+        setLoadingText('Đang đưa yêu cầu vào hàng đợi AI...');
+        taskAbortRef.current?.abort();
+        const abortController = new AbortController();
+        taskAbortRef.current = abortController;
         try {
             const res = await callStartInterview({ jobPosition, level, totalQuestions });
-            if (res?.data) {
-                const data = res.data as any;
+            const submitted = (res as any)?.data;
+            if (isAiTaskSubmitted(submitted)) {
+                setCurrentTaskId(submitted.taskId);
+                const data = await waitForAiTaskResult<any>(submitted.taskId, {
+                    signal: abortController.signal,
+                    pollIntervalMs: submitted.pollIntervalMillis || 1500,
+                    onStatus: updateTaskLoadingText,
+                });
+                setSessionId(data.sessionId);
+                setQuestion(data);
+                setPhase('interview');
+                message.success('Phiên phỏng vấn bắt đầu!');
+            } else if (submitted) {
+                const data = submitted as any;
                 setSessionId(data.sessionId);
                 setQuestion(data);
                 setPhase('interview');
                 message.success('Phiên phỏng vấn bắt đầu!');
             }
-        } catch (error) {
-            message.error('Không thể bắt đầu phỏng vấn');
+        } catch (error: any) {
+            if (error?.name === 'AbortError') return;
+            message.error(error?.message || 'Không thể bắt đầu phỏng vấn');
         } finally {
             setLoading(false);
+            setLoadingText('');
+            setCurrentTaskId(null);
+            setTaskProgress(0);
+            taskAbortRef.current = null;
         }
     };
 
@@ -104,18 +134,66 @@ const InterviewCoachPage = () => {
             return;
         }
         setLoading(true);
+        setTaskProgress(0);
+        setLoadingText('AI đang đánh giá câu trả lời...');
+        taskAbortRef.current?.abort();
+        const abortController = new AbortController();
+        taskAbortRef.current = abortController;
         try {
             const res = await callSubmitAnswer({ sessionId, answer });
-            if (res?.data) {
-                const data = res.data as any;
+            const submitted = (res as any)?.data;
+            if (isAiTaskSubmitted(submitted)) {
+                setCurrentTaskId(submitted.taskId);
+                const data = await waitForAiTaskResult<any>(submitted.taskId, {
+                    signal: abortController.signal,
+                    pollIntervalMs: submitted.pollIntervalMillis || 1500,
+                    onStatus: updateTaskLoadingText,
+                });
+                setFeedback(data);
+                setPhase('feedback');
+                setAnswer('');
+            } else if (submitted) {
+                const data = submitted as any;
                 setFeedback(data);
                 setPhase('feedback');
                 setAnswer('');
             }
-        } catch (error) {
-            message.error('Không thể gửi câu trả lời');
+        } catch (error: any) {
+            if (error?.name === 'AbortError') return;
+            message.error(error?.message || 'Không thể gửi câu trả lời');
         } finally {
             setLoading(false);
+            setLoadingText('');
+            setCurrentTaskId(null);
+            setTaskProgress(0);
+            taskAbortRef.current = null;
+        }
+    };
+
+    const updateTaskLoadingText = (task: IAiTaskStatus) => {
+        setTaskProgress(task.progress || 0);
+        if (task.status === 'PENDING') {
+            setLoadingText(`Task #${task.taskId} đang chờ trong hàng đợi...`);
+        } else if (task.status === 'PROCESSING') {
+            setLoadingText(`AI đang xử lý... ${task.progress}%`);
+        } else if (task.status === 'RETRYING') {
+            setLoadingText(`AI lỗi tạm thời, đang retry ${task.retryCount}/${task.maxRetries}...`);
+        }
+    };
+
+    const handleCancelTask = async () => {
+        if (!currentTaskId) return;
+        try {
+            await callCancelAiTask(currentTaskId);
+            taskAbortRef.current?.abort();
+            message.info('Đã hủy task AI.');
+        } catch {
+            message.error('Không thể hủy task AI.');
+        } finally {
+            setLoading(false);
+            setLoadingText('');
+            setCurrentTaskId(null);
+            setTaskProgress(0);
         }
     };
 
@@ -231,10 +309,11 @@ const InterviewCoachPage = () => {
                                 size="large"
                                 style={{ width: '100%', marginTop: 8 }}
                                 options={[
-                                    { value: 'Fresher', label: '🌱 Fresher' },
-                                    { value: 'Junior', label: '👶 Junior' },
-                                    { value: 'Mid', label: '👨‍💻 Mid-level' },
-                                    { value: 'Senior', label: '🧙‍♂️ Senior' },
+                                    { value: 'INTERN', label: 'Intern' },
+                                    { value: 'FRESHER', label: 'Fresher' },
+                                    { value: 'JUNIOR', label: 'Junior' },
+                                    { value: 'MIDDLE', label: 'Mid-level' },
+                                    { value: 'SENIOR', label: 'Senior' },
                                 ]}
                             />
                         </div>
@@ -261,6 +340,16 @@ const InterviewCoachPage = () => {
                         >
                             Bắt đầu phỏng vấn
                         </Button>
+
+                        {loading && currentTaskId && (
+                            <div style={{ marginTop: 16 }}>
+                                <Progress percent={taskProgress} status={taskProgress >= 100 ? 'success' : 'active'} />
+                                <Text type="secondary">{loadingText}</Text>
+                                <Button danger block style={{ marginTop: 12 }} onClick={handleCancelTask}>
+                                    Hủy task #{currentTaskId}
+                                </Button>
+                            </div>
+                        )}
                     </div>
 
                     {/* LỊCH SỬ */}
@@ -353,8 +442,14 @@ const InterviewCoachPage = () => {
                         <div style={{ textAlign: 'center', marginTop: 16 }}>
                             <Spin />
                             <Text type="secondary" style={{ display: 'block', marginTop: 8 }}>
-                                Quá trình này có thể mất 5-10 giây...
+                                {loadingText || 'Quá trình này có thể mất 5-10 giây...'}
                             </Text>
+                            <Progress percent={taskProgress} style={{ marginTop: 12 }} />
+                            {currentTaskId && (
+                                <Button danger style={{ marginTop: 12 }} onClick={handleCancelTask}>
+                                    Hủy task #{currentTaskId}
+                                </Button>
+                            )}
                         </div>
                     )}
                 </div>
@@ -454,7 +549,13 @@ const InterviewCoachPage = () => {
             {loading && phase === 'setup' && (
                 <div style={{ textAlign: 'center', padding: 40 }}>
                     <Spin size="large" />
-                    <p style={{ marginTop: 12, color: '#666' }}>AI đang chuẩn bị câu hỏi...</p>
+                    <Progress percent={taskProgress} style={{ maxWidth: 360, margin: '16px auto 0' }} />
+                    <p style={{ marginTop: 12, color: '#666' }}>{loadingText || 'AI đang chuẩn bị câu hỏi...'}</p>
+                    {currentTaskId && (
+                        <Button danger onClick={handleCancelTask}>
+                            Hủy task #{currentTaskId}
+                        </Button>
+                    )}
                 </div>
             )}
         </div>

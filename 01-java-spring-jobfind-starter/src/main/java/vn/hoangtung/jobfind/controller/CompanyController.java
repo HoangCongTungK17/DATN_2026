@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import jakarta.validation.Valid;
 import vn.hoangtung.jobfind.domain.Company;
@@ -46,8 +47,12 @@ public class CompanyController {
     // @ApiMessage("Fetch companies")
     public ResponseEntity<ResultPaginationDTO> getCompany(
             @Filter Specification<Company> spec,
+            @RequestParam(name = "scope", required = false) String scope,
             Pageable pageable) {
 
+        if (isAdminScope(scope)) {
+            return ResponseEntity.ok(this.companyService.handleGetCompanyForAdminScope(spec, pageable));
+        }
         return ResponseEntity.ok(this.companyService.handleGetCompany(spec, pageable));
     }
 
@@ -65,12 +70,20 @@ public class CompanyController {
 
     @GetMapping("/companies/{id}")
     @ApiMessage("fetch company by id")
-    public ResponseEntity<Company> fetchCompanyById(@PathVariable("id") long id) throws IdInvalidException {
-        Optional<Company> cOptional = this.companyService.findById(id);
+    public ResponseEntity<Company> fetchCompanyById(
+            @PathVariable("id") long id,
+            @RequestParam(name = "scope", required = false) String scope) throws IdInvalidException {
+        Optional<Company> cOptional = isAdminScope(scope)
+                ? this.companyService.findByIdForAdminScope(id)
+                : this.companyService.findById(id);
         if (cOptional.isEmpty()) {
             throw new IdInvalidException("Company với id = " + id + " không tồn tại");
         }
         return ResponseEntity.ok().body(cOptional.get());
+    }
+
+    private boolean isAdminScope(String scope) {
+        return "admin".equalsIgnoreCase(scope);
     }
 
 }

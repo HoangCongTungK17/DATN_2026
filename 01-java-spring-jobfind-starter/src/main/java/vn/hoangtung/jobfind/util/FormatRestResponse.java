@@ -1,13 +1,14 @@
 package vn.hoangtung.jobfind.util;
 
 import org.springframework.core.MethodParameter;
+import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.http.server.ServletServerHttpResponse;
-import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import jakarta.servlet.http.HttpServletResponse;
 import vn.hoangtung.jobfind.domain.response.RestResponse;
@@ -24,7 +25,8 @@ public class FormatRestResponse implements ResponseBodyAdvice {
 
     @Override
     public boolean supports(MethodParameter returnType, Class converterType) {
-        return !returnType.getParameterType().equals(RestResponse.class);
+        return !returnType.getParameterType().equals(RestResponse.class)
+                && !SseEmitter.class.isAssignableFrom(returnType.getParameterType());
     }
 
     @Override
@@ -38,12 +40,17 @@ public class FormatRestResponse implements ResponseBodyAdvice {
         HttpServletResponse servletResponse = ((ServletServerHttpResponse) response).getServletResponse();
         int status = servletResponse.getStatus();
 
+        if (selectedContentType != null && MediaType.TEXT_EVENT_STREAM.isCompatibleWith(selectedContentType)) {
+            return body;
+        }
+        if (body instanceof Resource
+                || (selectedContentType != null && MediaType.APPLICATION_OCTET_STREAM.isCompatibleWith(selectedContentType))) {
+            return body;
+        }
+
         RestResponse<Object> res = new RestResponse<Object>();
         res.setStatusCode(status);
 
-        // if(body instanceof String){
-        // return body;
-        // }
         if (status >= 400) {
             // case error
             return body;

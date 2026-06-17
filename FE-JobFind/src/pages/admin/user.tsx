@@ -8,8 +8,6 @@ import {
     PlusOutlined,
     MailOutlined,
     UserOutlined,
-    SafetyCertificateOutlined,
-    BankOutlined,
 } from "@ant-design/icons";
 import { ActionType, ProColumns } from '@ant-design/pro-components';
 import { Button, Popconfirm, Space, Tag, Tooltip, Avatar, message, notification } from "antd";
@@ -152,8 +150,7 @@ const UserPage = () => {
             dataIndex: ["company", "name"],
             sorter: true,
             render: (text) => text ? (
-                <span style={{ color: '#475569', display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <BankOutlined style={{ color: '#94a3b8', fontSize: 13 }} />
+                <span style={{ color: '#475569' }}>
                     {text as string}
                 </span>
             ) : <span style={{ color: '#cbd5e1' }}>—</span>,

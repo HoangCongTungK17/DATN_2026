@@ -13,6 +13,7 @@ import {
 } from "@ant-design/icons";
 import styles from "@/styles/client.module.scss";
 import { useNavigate } from "react-router-dom";
+import logo from '@/assets/logo-optimized.png';
 
 const Footer = () => {
   const navigate = useNavigate();
@@ -27,14 +28,12 @@ const Footer = () => {
               <div
                 className={styles["footer-brand"]}
                 onClick={() => navigate("/")}
+                style={{ height: '80px', width: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
               >
-                <ThunderboltFilled className={styles["brand-icon"]} />
-                <span className={styles["brand-text"]}>
-                  JOBFIND
-                </span>
+                <img src={logo} alt="JobFind Logo" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
               </div>
               <p className={styles["footer-desc"]}>
-                Nền tảng tuyển dụng IT hàng đầu Việt Nam — kết nối ứng viên 
+                Nền tảng tuyển dụng IT hàng đầu Việt Nam — kết nối ứng viên
                 tài năng với doanh nghiệp công nghệ uy tín.
               </p>
               <div className={styles["social-icons"]}>

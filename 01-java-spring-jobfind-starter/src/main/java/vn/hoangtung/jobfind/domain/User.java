@@ -15,6 +15,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
@@ -27,7 +28,9 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
-@Table(name = "users")
+@Table(name = "users", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_users_email", columnNames = "email")
+})
 @Getter
 @Setter
 public class User {
@@ -43,6 +46,10 @@ public class User {
 
     @NotBlank(message = "password không được để trống")
     private String password;
+
+    private String provider;
+
+    private String providerId;
 
     private int age;
 

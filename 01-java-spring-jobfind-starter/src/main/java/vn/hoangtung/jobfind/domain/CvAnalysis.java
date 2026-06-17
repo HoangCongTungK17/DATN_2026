@@ -6,18 +6,22 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
 import jakarta.persistence.PrePersist;
-import jakarta.persistence.Id;
 import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 import vn.hoangtung.jobfind.util.SecurityUtil;
 
 @Entity
-@Table(name = "cv_analyses")
+@Table(name = "cv_analyses", indexes = {
+        @Index(name = "idx_cv_analysis_user_created_at", columnList = "user_id, created_at"),
+        @Index(name = "idx_cv_analysis_cache", columnList = "user_id, content_hash, prompt_version")
+})
 @Getter
 @Setter
 public class CvAnalysis {
@@ -25,28 +29,36 @@ public class CvAnalysis {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Thông tin file CV
-    private String fileName; // Tên file: "NguyenVanA_CV.pdf"
-    private String fileUrl; // Đường dẫn file đã upload
+    private String fileName;
+    private String fileUrl;
 
-    // Điểm số (0 - 100)
-    private int overallScore; // Điểm tổng
-    private int formatScore; // Điểm định dạng/bố cục
-    private int contentScore; // Điểm nội dung
-    private int keywordScore; // Điểm từ khóa
-    private int impactScore; // Điểm tác động/thành tựu
+    private int overallScore;
+    private int formatScore;
+    private int contentScore;
+    private int keywordScore;
+    private int impactScore;
 
-    // Kết quả chi tiết từ AI
     @Column(columnDefinition = "MEDIUMTEXT")
-    private String summary; // Nhận xét tổng quan
-    @Column(columnDefinition = "JSON")
-    private String strengths; // Điểm mạnh (JSON array)
-    @Column(columnDefinition = "JSON")
-    private String suggestions; // Gợi ý cải thiện (JSON array)
-    @Column(columnDefinition = "MEDIUMTEXT")
-    private String rawAiResponse; // Lưu nguyên response từ AI (debug)
+    private String summary;
 
-    // Quan hệ: CV này thuộc user nào
+    @Column(columnDefinition = "JSON")
+    private String strengths;
+
+    @Column(columnDefinition = "JSON")
+    private String suggestions;
+
+    @Column(columnDefinition = "JSON")
+    private String detectedSkills;
+
+    @Column(columnDefinition = "JSON")
+    private String parsedCv;
+
+    @Column(columnDefinition = "MEDIUMTEXT")
+    private String rawAiResponse;
+
+    private String contentHash;
+    private String promptVersion;
+
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
@@ -58,17 +70,13 @@ public class CvAnalysis {
 
     @PrePersist
     public void handleBeforeCreate() {
-        this.createdBy = SecurityUtil.getCurrentUserLogin().isPresent() == true
-                ? SecurityUtil.getCurrentUserLogin().get()
-                : "";
+        this.createdBy = SecurityUtil.getCurrentUserLogin().orElse("");
         this.createdAt = Instant.now();
     }
 
     @PreUpdate
     public void handleBeforeUpdate() {
-        this.updatedBy = SecurityUtil.getCurrentUserLogin().isPresent() == true
-                ? SecurityUtil.getCurrentUserLogin().get()
-                : "";
+        this.updatedBy = SecurityUtil.getCurrentUserLogin().orElse("");
         this.updatedAt = Instant.now();
     }
 }

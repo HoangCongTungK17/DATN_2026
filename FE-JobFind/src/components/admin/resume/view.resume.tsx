@@ -150,6 +150,7 @@ const ViewDetailResume = (props: IProps) => {
         resumeId={dataInit?.id}
         resumeEmail={dataInit?.email || ""}
         jobName={dataInit?.job?.name || ""}
+        reloadTable={reloadTable}
       />
     </>
   );

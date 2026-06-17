@@ -9,7 +9,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,9 +17,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
 import vn.hoangtung.jobfind.domain.User;
+import vn.hoangtung.jobfind.domain.request.ReqGoogleLoginDTO;
 import vn.hoangtung.jobfind.domain.request.ReqLoginDTO;
+import vn.hoangtung.jobfind.domain.request.ReqRegisterDTO;
 import vn.hoangtung.jobfind.domain.response.ResCreateUserDTO;
 import vn.hoangtung.jobfind.domain.response.ResLoginDTO;
+import vn.hoangtung.jobfind.service.GoogleTokenService;
 import vn.hoangtung.jobfind.service.UserService;
 import vn.hoangtung.jobfind.util.SecurityUtil;
 import vn.hoangtung.jobfind.util.annotation.ApiMessage;
@@ -36,7 +38,7 @@ public class AuthController {
         private final AuthenticationManagerBuilder authenticationManagerBuilder;
         private final SecurityUtil securityUtil;
         private final UserService userService;
-        private final PasswordEncoder passwordEncoder;
+        private final GoogleTokenService googleTokenService;
 
         @Value("${hoangtung.jwt.refresh-token-validity-in-seconds}")
         private long refreshTokenExpiration;
@@ -45,11 +47,11 @@ public class AuthController {
                         AuthenticationManagerBuilder authenticationManagerBuilder,
                         SecurityUtil securityUtil,
                         UserService userService,
-                        PasswordEncoder passwordEncoder) {
+                        GoogleTokenService googleTokenService) {
                 this.authenticationManagerBuilder = authenticationManagerBuilder;
                 this.securityUtil = securityUtil;
                 this.userService = userService;
-                this.passwordEncoder = passwordEncoder;
+                this.googleTokenService = googleTokenService;
         }
 
         // how do i customize default error message from spring valid validation
@@ -97,6 +99,39 @@ public class AuthController {
                                 .path("/")
                                 .maxAge(refreshTokenExpiration)
                                 .build();
+                return ResponseEntity.ok()
+                                .header(HttpHeaders.SET_COOKIE, resCookies.toString())
+                                .body(res);
+        }
+
+        @PostMapping("/auth/google")
+        @ApiMessage("Login with Google")
+        public ResponseEntity<ResLoginDTO> loginWithGoogle(@Valid @RequestBody ReqGoogleLoginDTO req) {
+                var googleUserInfo = this.googleTokenService.verify(req.getCredential());
+                User currentUserDB = this.userService.findOrCreateGoogleUser(googleUserInfo);
+
+                ResLoginDTO res = new ResLoginDTO();
+                ResLoginDTO.UserLogin userLogin = new ResLoginDTO.UserLogin(
+                                currentUserDB.getId(),
+                                currentUserDB.getEmail(),
+                                currentUserDB.getName(),
+                                currentUserDB.getRole());
+                res.setUser(userLogin);
+
+                String accessToken = this.securityUtil.createAccessToken(currentUserDB.getEmail(), res);
+                res.setAccessToken(accessToken);
+
+                String refreshToken = this.securityUtil.createRefreshToken(currentUserDB.getEmail(), res);
+                this.userService.updateUserToken(refreshToken, currentUserDB.getEmail());
+
+                ResponseCookie resCookies = ResponseCookie
+                                .from("refresh_token", refreshToken)
+                                .httpOnly(true)
+                                .secure(true)
+                                .path("/")
+                                .maxAge(refreshTokenExpiration)
+                                .build();
+
                 return ResponseEntity.ok()
                                 .header(HttpHeaders.SET_COOKIE, resCookies.toString())
                                 .body(res);
@@ -207,7 +242,7 @@ public class AuthController {
 
         @PostMapping("/auth/register")
         @ApiMessage("Register a new user")
-        public ResponseEntity<ResCreateUserDTO> register(@Valid @RequestBody User postManUser)
+        public ResponseEntity<ResCreateUserDTO> register(@Valid @RequestBody ReqRegisterDTO postManUser)
                         throws IdInvalidException {
                 boolean isEmailExist = this.userService.isEmailExist(postManUser.getEmail());
                 if (isEmailExist) {
@@ -215,9 +250,7 @@ public class AuthController {
                                         "Email " + postManUser.getEmail() + " đã tồn tại, vui lòng sử dụng email khác.");
                 }
 
-                String hashPassword = this.passwordEncoder.encode(postManUser.getPassword());
-                postManUser.setPassword(hashPassword);
-                User ericUser = this.userService.handleCreateUser(postManUser);
+                User ericUser = this.userService.registerUser(postManUser);
                 return ResponseEntity.status(HttpStatus.CREATED)
                                 .body(this.userService.convertToResCreateUserDTO(ericUser));
         }

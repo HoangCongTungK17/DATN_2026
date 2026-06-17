@@ -1,5 +1,6 @@
 package vn.hoangtung.jobfind.service;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -27,6 +28,7 @@ import vn.hoangtung.jobfind.repository.JobRepository;
 import vn.hoangtung.jobfind.repository.ResumeRepository;
 import vn.hoangtung.jobfind.repository.UserRepository;
 import vn.hoangtung.jobfind.util.SecurityUtil;
+import vn.hoangtung.jobfind.util.constant.ResumeStateEnum;
 
 @Service
 public class ResumeService {
@@ -43,14 +45,17 @@ public class ResumeService {
     private final ResumeRepository resumeRepository;
     private final UserRepository userRepository;
     private final JobRepository jobRepository;
+    private final CvVectorService cvVectorService;
 
     public ResumeService(
             ResumeRepository resumeRepository,
             UserRepository userRepository,
-            JobRepository jobRepository) {
+            JobRepository jobRepository,
+            CvVectorService cvVectorService) {
         this.resumeRepository = resumeRepository;
         this.userRepository = userRepository;
         this.jobRepository = jobRepository;
+        this.cvVectorService = cvVectorService;
     }
 
     public Optional<Resume> fetchById(long id) {
@@ -76,12 +81,68 @@ public class ResumeService {
     }
 
     public ResCreateResumeDTO create(Resume resume) {
+        User currentUser = getCurrentUserOrThrow();
+        Job job = resolveJobOrThrow(resume);
+        if (isHr(currentUser) && !isAdmin(currentUser) && !isJobOwnedByCurrentCompany(job, currentUser)) {
+            throw new IllegalArgumentException("Ban khong co quyen tao CV cho job ngoai cong ty cua minh");
+        }
+
+        // chặn ứng tuyển vào job đã đóng hoặc hết hạn (admin được bỏ qua để thao tác dữ liệu)
+        ensureJobOpenForApplication(job, currentUser);
+
+        if (!isAdmin(currentUser) && !isHr(currentUser)) {
+            resume.setUser(currentUser);
+            resume.setEmail(currentUser.getEmail());
+        } else if (resume.getUser() != null) {
+            User resumeUser = userRepository.findById(resume.getUser().getId())
+                    .orElseThrow(() -> new IllegalArgumentException("User cua CV khong ton tai"));
+            resume.setUser(resumeUser);
+            if (resume.getEmail() == null || resume.getEmail().isBlank()) {
+                resume.setEmail(resumeUser.getEmail());
+            }
+        }
+        resume.setJob(job);
+
+        // chặn ứng tuyển trùng: mỗi user chỉ nộp 1 lần cho 1 job
+        if (resume.getUser() != null
+                && this.resumeRepository.existsByUserIdAndJobId(resume.getUser().getId(), job.getId())) {
+            throw new IllegalArgumentException("Bạn đã ứng tuyển vị trí này rồi");
+        }
+
         resume = this.resumeRepository.save(resume);
         ResCreateResumeDTO res = new ResCreateResumeDTO();
         res.setId(resume.getId());
         res.setCreatedBy(resume.getCreatedBy());
         res.setCreatedAt(resume.getCreatedAt());
         return res;
+    }
+
+    public ResUpdateResumeDTO updateStatusForCurrentUser(long resumeId, ResumeStateEnum status) {
+        Resume resume = this.resumeRepository.findById(resumeId)
+                .orElseThrow(() -> new IllegalArgumentException("Resume not found"));
+        User currentUser = getCurrentUserOrThrow();
+        // Đổi trạng thái hồ sơ ứng tuyển là đặc quyền của nhà tuyển dụng (ADMIN/HR
+        // phụ trách job), ứng viên không được tự duyệt hồ sơ của mình.
+        ensureCanReviewResume(resume, currentUser);
+        resume.setStatus(status);
+        return update(resume);
+    }
+
+    public void deleteForCurrentUser(long id) {
+        Resume resume = this.resumeRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Resume not found"));
+        User currentUser = getCurrentUserOrThrow();
+        ensureCanManageResume(resume, currentUser);
+        cvVectorService.deleteResumeVectorsSafely(id);
+        this.resumeRepository.deleteById(id);
+    }
+
+    public ResFetchResumeDTO getResumeForCurrentUser(long id) {
+        Resume resume = this.resumeRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Resume not found"));
+        User currentUser = getCurrentUserOrThrow();
+        ensureCanReadResume(resume, currentUser);
+        return getResume(resume);
     }
 
     public ResUpdateResumeDTO update(Resume resume) {
@@ -93,6 +154,7 @@ public class ResumeService {
     }
 
     public void delete(long id) {
+        cvVectorService.deleteResumeVectorsSafely(id);
         this.resumeRepository.deleteById(id);
     }
 
@@ -106,6 +168,7 @@ public class ResumeService {
         res.setCreatedBy(resume.getCreatedBy());
         res.setUpdatedAt(resume.getUpdatedAt());
         res.setUpdatedBy(resume.getUpdatedBy());
+        res.setAiMatchScore(resume.getAiMatchScore());
 
         if (resume.getJob() != null) {
             if (resume.getJob().getCompany() != null) {
@@ -144,34 +207,133 @@ public class ResumeService {
         return rs;
     }
 
+    public ResultPaginationDTO fetchVisibleResumes(Specification<Resume> spec, Pageable pageable) {
+        User currentUser = getCurrentUserOrThrow();
+        Specification<Resume> visibilitySpec = visibleToUserSpec(currentUser);
+        Specification<Resume> finalSpec = spec == null ? visibilitySpec : visibilitySpec.and(spec);
+        return fetchAllResume(finalSpec, pageable);
+    }
+
     public ResultPaginationDTO fetchResumeByUser(Pageable pageable) {
-        // query builder
-        String email = SecurityUtil.getCurrentUserLogin().isPresent() == true
-                ? SecurityUtil.getCurrentUserLogin().get()
+        return fetchAllResume(ownedByCurrentUserSpec(getCurrentUserOrThrow()), pageable);
+    }
+
+    private User getCurrentUserOrThrow() {
+        String email = SecurityUtil.getCurrentUserLogin().orElse("");
+        User currentUser = this.userRepository.findByEmail(email);
+        if (currentUser == null) {
+            throw new IllegalArgumentException("Vui long dang nhap");
+        }
+        return currentUser;
+    }
+
+    private Job resolveJobOrThrow(Resume resume) {
+        if (resume.getJob() == null || resume.getJob().getId() <= 0) {
+            throw new IllegalArgumentException("Job id khong hop le");
+        }
+        return this.jobRepository.findById(resume.getJob().getId())
+                .orElseThrow(() -> new IllegalArgumentException("Job khong ton tai"));
+    }
+
+    private void ensureJobOpenForApplication(Job job, User currentUser) {
+        if (isAdmin(currentUser)) {
+            return;
+        }
+        if (!job.isActive()) {
+            throw new IllegalArgumentException("Job nay da dong, khong the ung tuyen");
+        }
+        if (job.getEndDate() != null && job.getEndDate().isBefore(Instant.now())) {
+            throw new IllegalArgumentException("Job nay da het han ung tuyen");
+        }
+    }
+
+    private void ensureCanReadResume(Resume resume, User currentUser) {
+        if (!canReadResume(resume, currentUser)) {
+            throw new IllegalArgumentException("Ban khong co quyen truy cap CV nay");
+        }
+    }
+
+    private void ensureCanManageResume(Resume resume, User currentUser) {
+        if (isAdmin(currentUser)) {
+            return;
+        }
+        if (isHr(currentUser) && isResumeInCurrentCompany(resume, currentUser)) {
+            return;
+        }
+        if (isResumeOwnedByUser(resume, currentUser)) {
+            return;
+        }
+        throw new IllegalArgumentException("Ban khong co quyen thay doi CV nay");
+    }
+
+    /**
+     * Chỉ ADMIN hoặc HR phụ trách job mới được đổi trạng thái hồ sơ ứng tuyển.
+     * Ứng viên (chủ hồ sơ) không được tự duyệt/loại hồ sơ của chính mình; nếu muốn
+     * rút hồ sơ thì dùng chức năng xóa (deleteForCurrentUser).
+     */
+    private void ensureCanReviewResume(Resume resume, User currentUser) {
+        if (isAdmin(currentUser)) {
+            return;
+        }
+        if (isHr(currentUser) && isResumeInCurrentCompany(resume, currentUser)) {
+            return;
+        }
+        throw new IllegalArgumentException(
+                "Chi nha tuyen dung phu trach job moi duoc doi trang thai ho so ung tuyen");
+    }
+
+    private boolean canReadResume(Resume resume, User currentUser) {
+        return isAdmin(currentUser)
+                || isResumeOwnedByUser(resume, currentUser)
+                || (isHr(currentUser) && isResumeInCurrentCompany(resume, currentUser));
+    }
+
+    private boolean isResumeOwnedByUser(Resume resume, User currentUser) {
+        boolean sameUser = resume.getUser() != null && resume.getUser().getId() == currentUser.getId();
+        boolean sameEmail = resume.getEmail() != null && resume.getEmail().equalsIgnoreCase(currentUser.getEmail());
+        return sameUser || sameEmail;
+    }
+
+    private boolean isResumeInCurrentCompany(Resume resume, User currentUser) {
+        return resume.getJob() != null && isJobOwnedByCurrentCompany(resume.getJob(), currentUser);
+    }
+
+    private boolean isJobOwnedByCurrentCompany(Job job, User currentUser) {
+        return currentUser.getCompany() != null
+                && job.getCompany() != null
+                && job.getCompany().getId() == currentUser.getCompany().getId();
+    }
+
+    private boolean isAdmin(User user) {
+        return roleName(user).contains("ADMIN");
+    }
+
+    private boolean isHr(User user) {
+        String roleName = roleName(user);
+        return roleName.contains("HR") || roleName.contains("RECRUITER");
+    }
+
+    private String roleName(User user) {
+        return user != null && user.getRole() != null && user.getRole().getName() != null
+                ? user.getRole().getName().toUpperCase()
                 : "";
-        FilterNode node = filterParser.parse("email='" + email + "'");
-        FilterSpecification<Resume> spec = filterSpecificationConverter.convert(node);
-        Page<Resume> pageResume = this.resumeRepository.findAll(spec, pageable);
+    }
 
-        ResultPaginationDTO rs = new ResultPaginationDTO();
-        ResultPaginationDTO.Meta mt = new ResultPaginationDTO.Meta();
+    private Specification<Resume> visibleToUserSpec(User currentUser) {
+        if (isAdmin(currentUser)) {
+            return Specification.where(null);
+        }
+        if (isHr(currentUser) && currentUser.getCompany() != null) {
+            long companyId = currentUser.getCompany().getId();
+            return (root, query, cb) -> cb.equal(root.get("job").get("company").get("id"), companyId);
+        }
+        return ownedByCurrentUserSpec(currentUser);
+    }
 
-        mt.setPage(pageable.getPageNumber() + 1);
-        mt.setPageSize(pageable.getPageSize());
-
-        mt.setPages(pageResume.getTotalPages());
-        mt.setTotal(pageResume.getTotalElements());
-
-        rs.setMeta(mt);
-
-        // remove sensitive data
-        List<ResFetchResumeDTO> listResume = pageResume.getContent()
-                .stream().map(item -> this.getResume(item))
-                .collect(Collectors.toList());
-
-        rs.setResult(listResume);
-
-        return rs;
+    private Specification<Resume> ownedByCurrentUserSpec(User currentUser) {
+        return (root, query, cb) -> cb.or(
+                cb.equal(root.get("user").get("id"), currentUser.getId()),
+                cb.equal(cb.lower(root.get("email")), currentUser.getEmail().toLowerCase()));
     }
 
 }

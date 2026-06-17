@@ -2,24 +2,30 @@ package vn.hoangtung.jobfind.service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.stream.Collectors;
 
 import vn.hoangtung.jobfind.domain.Company;
 import vn.hoangtung.jobfind.domain.Role;
 import vn.hoangtung.jobfind.domain.User;
+import vn.hoangtung.jobfind.domain.request.ReqRegisterDTO;
 import vn.hoangtung.jobfind.domain.response.ResCreateUserDTO;
 import vn.hoangtung.jobfind.domain.response.ResUpdateUserDTO;
 import vn.hoangtung.jobfind.domain.response.ResUserDTO;
 import vn.hoangtung.jobfind.domain.response.ResultPaginationDTO;
 import vn.hoangtung.jobfind.repository.UserRepository;
+import vn.hoangtung.jobfind.service.GoogleTokenService.GoogleUserInfo;
 
 @Service
 public class UserService {
+    private static final String PROVIDER_GOOGLE = "GOOGLE";
+
     private final UserRepository userRepository;
     private final CompanyService companyService;
     private final RoleService roleService;
@@ -54,6 +60,62 @@ public class UserService {
         }
 
         return this.userRepository.save(user);
+    }
+
+    public User registerUser(ReqRegisterDTO dto) {
+        User user = new User();
+        user.setEmail(dto.getEmail().trim().toLowerCase());
+        user.setPassword(this.passwordEncoder.encode(dto.getPassword()));
+        user.setName(dto.getName());
+        user.setAge(dto.getAge());
+        user.setGender(dto.getGender());
+        user.setAddress(dto.getAddress());
+        user.setRole(resolveDefaultUserRole());
+        return this.userRepository.save(user);
+    }
+
+    @Transactional
+    public User findOrCreateGoogleUser(GoogleUserInfo googleUserInfo) {
+        User user = this.userRepository.findByProviderAndProviderId(
+                PROVIDER_GOOGLE,
+                googleUserInfo.subject());
+        if (user != null) {
+            return user;
+        }
+
+        String email = googleUserInfo.email().trim().toLowerCase();
+        user = this.userRepository.findByEmail(email);
+        if (user != null) {
+            user.setProvider(PROVIDER_GOOGLE);
+            user.setProviderId(googleUserInfo.subject());
+            if (user.getName() == null || user.getName().isBlank()) {
+                user.setName(googleUserInfo.name());
+            }
+            return this.userRepository.save(user);
+        }
+
+        User newUser = new User();
+        newUser.setEmail(email);
+        newUser.setName(googleUserInfo.name());
+        newUser.setPassword(this.passwordEncoder.encode(UUID.randomUUID().toString()));
+        newUser.setProvider(PROVIDER_GOOGLE);
+        newUser.setProviderId(googleUserInfo.subject());
+        newUser.setRole(resolveDefaultUserRole());
+        return this.userRepository.save(newUser);
+    }
+
+    private Role resolveDefaultUserRole() {
+        Role role = this.roleService.fetchByName("USER");
+        if (role == null) {
+            role = this.roleService.fetchByName("CANDIDATE");
+        }
+        if (role == null) {
+            role = this.roleService.fetchById(2);
+        }
+        if (role == null) {
+            throw new IllegalStateException("Default USER role is not configured");
+        }
+        return role;
     }
 
     public void handleDeleteUser(long id) {

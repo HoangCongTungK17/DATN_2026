@@ -252,7 +252,7 @@ $backdrop-blur-lg: blur(24px);
   top: 0;
   z-index: 1000;
   width: 100%;
-  height: 72px;
+  height: 84px;
   padding: 0 !important;
   transition: $transition-base;
   background: $bg-glass !important;
@@ -303,6 +303,7 @@ $backdrop-blur-lg: blur(24px);
 
       &:hover {
         transform: scale(1.02);
+
         .brand-icon {
           filter: drop-shadow(0 3px 8px rgba(37, 99, 235, 0.45));
         }
@@ -592,6 +593,7 @@ $backdrop-blur-lg: blur(24px);
     opacity: 0;
     transform: translateY(-8px) scale(0.96);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -714,6 +716,7 @@ $backdrop-blur-lg: blur(24px);
     opacity: 0;
     transform: translateY(24px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -721,10 +724,23 @@ $backdrop-blur-lg: blur(24px);
 }
 
 @keyframes floatOrb {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  25% { transform: translate(20px, -20px) scale(1.05); }
-  50% { transform: translate(-10px, 15px) scale(0.95); }
-  75% { transform: translate(15px, 10px) scale(1.02); }
+
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  25% {
+    transform: translate(20px, -20px) scale(1.05);
+  }
+
+  50% {
+    transform: translate(-10px, 15px) scale(0.95);
+  }
+
+  75% {
+    transform: translate(15px, 10px) scale(1.02);
+  }
 }
 
 // ============================================
@@ -1153,7 +1169,7 @@ $backdrop-blur-lg: blur(24px);
       transition: $transition-all;
 
       span:first-child,
-      > span.anticon {
+      >span.anticon {
         color: $primary-color;
         font-size: 16px;
       }

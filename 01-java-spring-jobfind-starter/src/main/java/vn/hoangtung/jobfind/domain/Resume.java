@@ -8,11 +8,13 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
@@ -21,7 +23,13 @@ import vn.hoangtung.jobfind.util.SecurityUtil;
 import vn.hoangtung.jobfind.util.constant.ResumeStateEnum;
 
 @Entity
-@Table(name = "resumes")
+@Table(name = "resumes", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_resume_user_job", columnNames = { "user_id", "job_id" })
+}, indexes = {
+        @Index(name = "idx_resume_user_created_at", columnList = "user_id, created_at"),
+        @Index(name = "idx_resume_job", columnList = "job_id"),
+        @Index(name = "idx_resume_email", columnList = "email")
+})
 @Getter
 @Setter
 public class Resume {
@@ -52,6 +60,14 @@ public class Resume {
 
     @Column(columnDefinition = "TEXT")
     private String aiMatchDetails;
+
+    private boolean vectorized;
+    private Instant vectorizedAt;
+    private String cvVectorContentHash;
+    private Integer cvChunkCount;
+
+    @Column(columnDefinition = "TEXT")
+    private String cvVectorError;
 
     @ManyToOne
     @JoinColumn(name = "user_id")

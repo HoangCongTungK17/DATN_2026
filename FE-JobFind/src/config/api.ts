@@ -1,6 +1,11 @@
 import { IBackendRes, ICompany, IAccount, IUser, IModelPaginate, IGetAccount, IJob, IResume, IPermission, IRole, ISkill, ISubscribers } from '@/types/backend';
 import axios from 'config/axios-customize';
 
+const withAdminScope = (query: string) => {
+    const normalizedQuery = query?.trim() ?? '';
+    return normalizedQuery ? `${normalizedQuery}&scope=admin` : 'scope=admin';
+}
+
 /**
  * 
 Module Auth
@@ -13,12 +18,20 @@ export const callLogin = (username: string, password: string) => {
     return axios.post<IBackendRes<IAccount>>('/api/v1/auth/login', { username, password })
 }
 
+export const callLoginGoogle = (credential: string) => {
+    return axios.post<IBackendRes<IAccount>>('/api/v1/auth/google', { credential })
+}
+
 export const callFetchAccount = () => {
     return axios.get<IBackendRes<IGetAccount>>('/api/v1/auth/account')
 }
 
 export const callFetchChat = (message: string) => {
     return axios.post<IBackendRes<string>>('/api/v1/ai/chat', { message });
+}
+
+export const callFetchChatAsync = (message: string) => {
+    return axios.post<IBackendRes<IAiTaskSubmitted>>('/api/v1/ai/chat/async', { message });
 }
 
 /**
@@ -71,6 +84,208 @@ export const callGetInterviewHistory = (query: string) => {
     return axios.get<IBackendRes<any>>(`/api/v1/ai/interview/history?${query}`);
 }
 
+/**
+ * Module AI — Task Polling & Cancel
+ */
+export const callGetAiTaskStatus = (taskId: number) => {
+    return axios.get<IBackendRes<any>>(`/api/v1/ai/tasks/${taskId}`);
+}
+
+export const callCancelAiTask = (taskId: number) => {
+    return axios.post<IBackendRes<any>>(`/api/v1/ai/tasks/${taskId}/cancel`);
+}
+
+export interface IAiTaskSubmitted {
+    taskId: number;
+    taskType: string;
+    status: string;
+    message: string;
+    statusUrl: string;
+    streamUrl: string;
+    pollIntervalMillis: number;
+}
+
+export interface IAiTaskStatus {
+    taskId: number;
+    taskType: string;
+    status: 'PENDING' | 'PROCESSING' | 'RETRYING' | 'COMPLETED' | 'FAILED' | 'CANCELLED' | 'TIMEOUT';
+    progress: number;
+    retryCount: number;
+    maxRetries: number;
+    timeoutSeconds: number;
+    retryable: boolean;
+    terminal: boolean;
+    result?: any;
+    errorMessage?: string;
+    createdAt?: string;
+    startedAt?: string;
+    completedAt?: string;
+    nextRetryAt?: string;
+    updatedAt?: string;
+}
+
+export const isAiTaskSubmitted = (payload: any): payload is IAiTaskSubmitted => {
+    return payload && typeof payload.taskId === 'number' && typeof payload.status === 'string';
+}
+
+export const isAiTaskTerminal = (status: string) => {
+    return ['COMPLETED', 'FAILED', 'CANCELLED', 'TIMEOUT'].includes(status);
+}
+
+interface IWaitAiTaskOptions {
+    onStatus?: (task: IAiTaskStatus) => void;
+    signal?: AbortSignal;
+    timeoutMs?: number;
+    pollIntervalMs?: number;
+    preferSse?: boolean;
+}
+
+const TOKEN_REFRESH_SKEW_MS = 30000;
+
+const getJwtExpiresAt = (token: string) => {
+    try {
+        const payload = token.split('.')[1];
+        if (!payload) return null;
+
+        const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+        const padded = base64.padEnd(base64.length + (4 - base64.length % 4) % 4, '=');
+        const decoded = JSON.parse(window.atob(padded));
+        return typeof decoded.exp === 'number' ? decoded.exp * 1000 : null;
+    } catch {
+        return null;
+    }
+};
+
+const shouldRefreshAccessToken = (token: string) => {
+    const expiresAt = getJwtExpiresAt(token);
+    return expiresAt !== null && expiresAt <= Date.now() + TOKEN_REFRESH_SKEW_MS;
+};
+
+const resolveAccessTokenForSse = async () => {
+    let token = window.localStorage.getItem('access_token') || '';
+    if (!token || !shouldRefreshAccessToken(token)) return token;
+
+    const res = await axios.get<IBackendRes<IAccount>>('/api/v1/auth/refresh');
+    const newToken = (res as any)?.data?.access_token;
+    if (newToken) {
+        window.localStorage.setItem('access_token', newToken);
+        token = newToken;
+    }
+    return token;
+};
+
+const buildAiTaskStreamUrl = (taskId: number, accessToken: string) => {
+    const baseUrl = (import.meta.env.VITE_BACKEND_URL || '').replace(/\/$/, '');
+    return `${baseUrl}/api/v1/ai/tasks/${taskId}/stream?access_token=${encodeURIComponent(accessToken)}`;
+}
+
+export const waitForAiTaskResult = <T = any>(taskId: number, options: IWaitAiTaskOptions = {}) => {
+    const timeoutMs = options.timeoutMs ?? 180000;
+    const pollIntervalMs = options.pollIntervalMs ?? 1500;
+    const preferSse = options.preferSse ?? true;
+
+    return new Promise<T>((resolve, reject) => {
+        let settled = false;
+        let eventSource: EventSource | null = null;
+        let pollTimer: number | undefined;
+        let timeoutTimer: number | undefined;
+
+        const cleanup = () => {
+            if (eventSource) {
+                eventSource.close();
+                eventSource = null;
+            }
+            if (pollTimer) window.clearTimeout(pollTimer);
+            if (timeoutTimer) window.clearTimeout(timeoutTimer);
+            options.signal?.removeEventListener('abort', abortHandler);
+        };
+
+        const finish = (callback: () => void) => {
+            if (settled) return;
+            settled = true;
+            cleanup();
+            callback();
+        };
+
+        const handleStatus = (task: IAiTaskStatus) => {
+            options.onStatus?.(task);
+            if (task.status === 'COMPLETED') {
+                finish(() => resolve(task.result as T));
+                return;
+            }
+            if (isAiTaskTerminal(task.status)) {
+                finish(() => reject(new Error(task.errorMessage || `AI task ${task.status}`)));
+            }
+        };
+
+        const poll = async () => {
+            if (settled) return;
+            try {
+                const res = await callGetAiTaskStatus(taskId);
+                const task = (res as any)?.data as IAiTaskStatus;
+                handleStatus(task);
+            } catch (error: any) {
+                finish(() => reject(new Error(error?.message || 'Không thể lấy trạng thái AI task')));
+                return;
+            }
+            if (!settled) {
+                pollTimer = window.setTimeout(poll, pollIntervalMs);
+            }
+        };
+
+        const startSse = async () => {
+            if (!preferSse || typeof EventSource === 'undefined') {
+                poll();
+                return;
+            }
+
+            try {
+                const token = await resolveAccessTokenForSse();
+                if (settled) return;
+                if (!token) {
+                    poll();
+                    return;
+                }
+
+                eventSource = new EventSource(buildAiTaskStreamUrl(taskId, token), { withCredentials: true });
+                const onStatus = (event: MessageEvent) => {
+                    try {
+                        handleStatus(JSON.parse(event.data) as IAiTaskStatus);
+                    } catch {
+                        poll();
+                    }
+                };
+                eventSource.addEventListener('status', onStatus as EventListener);
+                eventSource.onmessage = onStatus;
+                eventSource.onerror = () => {
+                    if (!settled) {
+                        eventSource?.close();
+                        eventSource = null;
+                        poll();
+                    }
+                };
+            } catch {
+                poll();
+            }
+        };
+
+        const abortHandler = () => {
+            finish(() => reject(new DOMException('AI task wait aborted', 'AbortError')));
+        };
+
+        if (options.signal?.aborted) {
+            abortHandler();
+            return;
+        }
+
+        options.signal?.addEventListener('abort', abortHandler);
+        timeoutTimer = window.setTimeout(() => {
+            finish(() => reject(new Error('AI task quá thời gian chờ ở frontend')));
+        }, timeoutMs);
+        startSse();
+    });
+}
+
 export const callRefreshToken = () => {
     return axios.get<IBackendRes<IAccount>>('/api/v1/auth/refresh')
 }
@@ -118,6 +333,10 @@ export const callDeleteCompany = (id: string) => {
 
 export const callFetchCompany = (query: string) => {
     return axios.get<IBackendRes<IModelPaginate<ICompany>>>(`/api/v1/companies?${query}`);
+}
+
+export const callFetchAdminCompany = (query: string) => {
+    return callFetchCompany(withAdminScope(query));
 }
 
 export const callFetchCompanyById = (id: string) => {
@@ -197,8 +416,16 @@ export const callFetchJob = (query: string) => {
     return axios.get<IBackendRes<IModelPaginate<IJob>>>(`/api/v1/jobs?${query}`);
 }
 
+export const callFetchAdminJob = (query: string) => {
+    return callFetchJob(withAdminScope(query));
+}
+
 export const callFetchJobById = (id: string) => {
     return axios.get<IBackendRes<IJob>>(`/api/v1/jobs/${id}`);
+}
+
+export const callFetchAdminJobById = (id: string) => {
+    return axios.get<IBackendRes<IJob>>(`/api/v1/jobs/${id}?scope=admin`);
 }
 
 /**

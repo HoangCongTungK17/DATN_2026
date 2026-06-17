@@ -17,11 +17,13 @@ import vn.hoangtung.jobfind.util.SecurityUtil;
 import java.util.List;
 import java.time.Instant;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
+import org.hibernate.annotations.BatchSize;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Table(name = "companies")
 @Entity
+@BatchSize(size = 30)
 @Getter
 @Setter
 public class Company {
@@ -37,8 +39,6 @@ public class Company {
     private String address;
 
     private String logo;
-
-    // @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss a", timezone = "GMT+7")
 
     private Instant createdAt;
 

@@ -1,14 +1,11 @@
 package vn.hoangtung.jobfind.controller;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import vn.hoangtung.jobfind.domain.response.RestResponse;
-import vn.hoangtung.jobfind.domain.response.email.ResEmailJob;
 import vn.hoangtung.jobfind.service.EmailService;
 import vn.hoangtung.jobfind.service.SubscriberService;
 import vn.hoangtung.jobfind.util.annotation.ApiMessage;
@@ -25,18 +22,16 @@ public class EmailController {
         this.subscriberService = subscriberService;
     }
 
-//
-@GetMapping("/email")
-@ApiMessage("Send simple email")
-public String sendSimpleEmail() {
-    //this.emailService.sendSimpleEmail();
+    @GetMapping("/email")
+    @ApiMessage("Send simple email")
+    public String sendSimpleEmail() {
 
-    String username = "HoangTung";
-    Object value = List.of("Job1", "Job2", "Job3"); // Example data for jobs
+        String username = "HoangTung";
+        Object value = List.of("Job1", "Job2", "Job3");
 
-    this.emailService.sendEmailFromTemplateSync("tungthcstt@gmail.com", "testsend email", "job", username, value);
+        this.emailService.sendEmailFromTemplateSync("tungthcstt@gmail.com", "testsend email", "job", username, value);
 
-    this.subscriberService.sendSubscribersEmailJobs();
-    return "ok";
-}
+        this.subscriberService.sendSubscribersEmailJobs();
+        return "ok";
+    }
 }

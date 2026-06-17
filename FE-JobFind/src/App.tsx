@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   createBrowserRouter,
+  Navigate,
   Outlet,
   RouterProvider,
   useLocation,
@@ -34,6 +35,7 @@ import CvDoctorPage from "./pages/cv-doctor";
 import InterviewCoachPage from "./pages/interview-coach";
 import JobTabs from "./pages/admin/job/job.tabs";
 import { ConfigProvider, App as AntdApp } from "antd";
+import { getFirstAllowedAdminPath, isHrRoleName } from "@/config/admin-navigation";
 const THEME_CONFIG = {
   token: {
     // === COLOR SYSTEM ===
@@ -178,6 +180,25 @@ const LayoutClient = () => {
   );
 };
 
+const AdminIndexRoute = () => {
+  const roleName = useAppSelector((state) => state.account.user.role?.name);
+  const permissions = useAppSelector(
+    (state) => state.account.user.role?.permissions,
+  );
+  const aclDisabled = import.meta.env.VITE_ACL_ENABLE === "false";
+
+  if (isHrRoleName(roleName)) {
+    return (
+      <Navigate
+        to={getFirstAllowedAdminPath(permissions, aclDisabled)}
+        replace
+      />
+    );
+  }
+
+  return <DashboardPage />;
+};
+
 export default function App() {
   const dispatch = useAppDispatch();
   const isLoading = useAppSelector((state) => state.account.isLoading);
@@ -225,7 +246,7 @@ export default function App() {
           index: true,
           element: (
             <ProtectedRoute>
-              <DashboardPage />
+              <AdminIndexRoute />
             </ProtectedRoute>
           ),
         },

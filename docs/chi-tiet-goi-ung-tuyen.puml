@@ -1,0 +1,60 @@
+@startuml ThietKeChiTiet_UngTuyen
+title Thiết kế chi tiết gói Ứng tuyển (Apply)
+
+' Quy ước quan hệ (UML):
+'   ..>   Dependency   (phụ thuộc)
+'   --    Association  (kết hợp)
+'   o--   Aggregation  (kết tập)
+'   *--   Composition  (hợp thành)
+'   --|>  Inheritance  (kế thừa)
+'   ..|>  Implementation (thực thi)
+
+skinparam classBackgroundColor #FFFFCC
+skinparam classBorderColor black
+skinparam backgroundColor #FEFECE
+skinparam ArrowColor black
+skinparam shadowing false
+
+' ===== BOUNDARY (Giao diện) =====
+class "ClientJobDetailPage" <<boundary>> {}
+class "ApplyModal" <<boundary>> {}
+
+' ===== CONTROL (Xử lý logic) =====
+class "config/api.ts" as ApiA <<control>> {}
+class "FileController" <<control>> {}
+class "FileService" <<control>> {}
+class "ResumeController" <<control>> {}
+class "ResumeService" <<control>> {}
+class "ResumeRepository" <<control>> {}
+class "JobRepository" <<control>> {}
+class "UserRepository" <<control>> {}
+class "Lưu trữ tệp (D:/Upload)" as FileStorage {}
+
+' ===== ENTITY (Dữ liệu) =====
+class "Resume" <<entity>> {}
+class "Job" <<entity>> {}
+class "User" <<entity>> {}
+
+' ===== Phụ thuộc: Front-end =====
+"ClientJobDetailPage" ..> "ApplyModal" : mở form ứng tuyển
+"ApplyModal" ..> ApiA : callUploadSingleFile
+"ApplyModal" ..> ApiA : callCreateResume
+
+' ===== Phụ thuộc: FE -> BE =====
+ApiA ..> "FileController" : <<HTTP multipart>>
+ApiA ..> "ResumeController" : <<HTTP REST / JSON>>
+
+' ===== Phụ thuộc: Back-end =====
+"FileController" ..> "FileService" : lưu file CV
+"FileService" ..> "FileStorage" : ghi đĩa (resume/)
+"ResumeController" ..> "ResumeService" : create
+"ResumeService" ..> "JobRepository" : nạp Job ứng tuyển
+"ResumeService" ..> "UserRepository" : nạp User hiện tại
+"ResumeService" ..> "ResumeRepository" : save
+"ResumeRepository" ..> "Resume" : lưu (JPA)
+
+' ===== Quan hệ giữa các thực thể (JPA) =====
+"Resume" "*" -- "1" "Job" : ứng tuyển vào
+"Resume" "*" -- "1" "User" : của ứng viên
+
+@enduml

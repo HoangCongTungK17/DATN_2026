@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   Modal,
   Button,
@@ -16,7 +16,13 @@ import {
   CloseCircleOutlined,
   BulbOutlined,
 } from "@ant-design/icons";
-import { callMatchCvWithJob } from "@/config/api";
+import {
+  callCancelAiTask,
+  callMatchCvWithJob,
+  IAiTaskStatus,
+  isAiTaskSubmitted,
+  waitForAiTaskResult,
+} from "@/config/api";
 
 const { Text, Paragraph, Title } = Typography;
 
@@ -26,6 +32,7 @@ interface IProps {
   resumeId: number | string | undefined;
   resumeEmail: string;
   jobName: string;
+  reloadTable?: () => void;
 }
 
 interface IMatchResult {
@@ -40,9 +47,13 @@ interface IMatchResult {
 }
 
 const SmartMatchModal = (props: IProps) => {
-  const { open, onClose, resumeId, resumeEmail, jobName } = props;
+  const { open, onClose, resumeId, resumeEmail, jobName, reloadTable } = props;
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<IMatchResult | null>(null);
+  const [loadingText, setLoadingText] = useState("");
+  const [currentTaskId, setCurrentTaskId] = useState<number | null>(null);
+  const [taskProgress, setTaskProgress] = useState(0);
+  const taskAbortRef = useRef<AbortController | null>(null);
 
   const handleAnalyze = async () => {
     if (!resumeId) {
@@ -50,20 +61,69 @@ const SmartMatchModal = (props: IProps) => {
       return;
     }
     setLoading(true);
+    setTaskProgress(0);
+    setLoadingText("AI đang phân tích CV với Job Description...");
+    taskAbortRef.current?.abort();
+    const abortController = new AbortController();
+    taskAbortRef.current = abortController;
     try {
       const res = await callMatchCvWithJob(Number(resumeId));
-      if (res?.data) {
-        setResult(res.data as any);
+      const submitted = (res as any)?.data;
+      if (isAiTaskSubmitted(submitted)) {
+        setCurrentTaskId(submitted.taskId);
+        const matchResult = await waitForAiTaskResult<IMatchResult>(submitted.taskId, {
+          signal: abortController.signal,
+          pollIntervalMs: submitted.pollIntervalMillis || 1500,
+          onStatus: updateTaskLoadingText,
+        });
+        setResult(matchResult);
         message.success("Phân tích hoàn tất!");
+        reloadTable?.();
+      } else if (submitted) {
+        setResult(submitted as any);
+        message.success("Phân tích hoàn tất!");
+        reloadTable?.();
       } else {
         message.error("Không thể phân tích. Vui lòng thử lại.");
       }
     } catch (error: any) {
+      if (error?.name === "AbortError") return;
       const errorMsg =
-        error?.response?.data?.message || "Có lỗi xảy ra khi phân tích.";
+        error?.response?.data?.message || error?.message || "Có lỗi xảy ra khi phân tích.";
       message.error(errorMsg);
     } finally {
       setLoading(false);
+      setLoadingText("");
+      setCurrentTaskId(null);
+      setTaskProgress(0);
+      taskAbortRef.current = null;
+    }
+  };
+
+  const updateTaskLoadingText = (task: IAiTaskStatus) => {
+    setTaskProgress(task.progress || 0);
+    if (task.status === "PENDING") {
+      setLoadingText(`Task #${task.taskId} đang chờ trong hàng đợi...`);
+    } else if (task.status === "PROCESSING") {
+      setLoadingText(`AI đang xử lý... ${task.progress}%`);
+    } else if (task.status === "RETRYING") {
+      setLoadingText(`AI lỗi tạm thời, đang retry ${task.retryCount}/${task.maxRetries}...`);
+    }
+  };
+
+  const handleCancelTask = async () => {
+    if (!currentTaskId) return;
+    try {
+      await callCancelAiTask(currentTaskId);
+      taskAbortRef.current?.abort();
+      message.info("Đã hủy task AI.");
+    } catch {
+      message.error("Không thể hủy task AI.");
+    } finally {
+      setLoading(false);
+      setLoadingText("");
+      setCurrentTaskId(null);
+      setTaskProgress(0);
     }
   };
 
@@ -87,10 +147,13 @@ const SmartMatchModal = (props: IProps) => {
       open={open}
       onCancel={() => {
         onClose(false);
+        taskAbortRef.current?.abort();
         setResult(null);
+        setCurrentTaskId(null);
+        setTaskProgress(0);
       }}
       footer={null}
-      width={680}
+      width={860}
       destroyOnClose
     >
       {/* INFO */}
@@ -112,29 +175,36 @@ const SmartMatchModal = (props: IProps) => {
 
       {/* BUTTON START */}
       {!result && !loading && (
-        <Button
-          type="primary"
-          size="large"
-          block
-          icon={<ThunderboltOutlined />}
-          onClick={handleAnalyze}
-          style={{
-            height: 52,
-            borderRadius: 12,
-            fontWeight: 700,
-            fontSize: 16,
-            background: "linear-gradient(135deg, #f97316, #ea580c)",
-            border: "none",
-          }}
-        >
-          🤖 AI Phân Tích Mức Độ Phù Hợp
-        </Button>
+        <div>
+          <Button
+            type="primary"
+            size="large"
+            block
+            icon={<ThunderboltOutlined />}
+            onClick={handleAnalyze}
+            style={{
+              height: 52,
+              borderRadius: 12,
+              fontWeight: 700,
+              fontSize: 16,
+              background: "linear-gradient(135deg, #f97316, #ea580c)",
+              border: "none",
+            }}
+          >
+            AI Phân Tích Mức Độ Phù Hợp Với Job Hiện Tại
+          </Button>
+        </div>
       )}
 
       {/* LOADING */}
       {loading && (
         <div style={{ textAlign: "center", padding: "48px 0" }}>
           <Spin size="large" />
+          <Progress
+            percent={taskProgress}
+            style={{ maxWidth: 360, margin: "20px auto 0" }}
+            status={taskProgress >= 100 ? "success" : "active"}
+          />
           <div
             style={{
               fontSize: 16,
@@ -143,11 +213,16 @@ const SmartMatchModal = (props: IProps) => {
               marginTop: 16,
             }}
           >
-            🤖 AI đang phân tích CV với Job Description...
+            {loadingText || "AI đang xử lý..."}
           </div>
           <div style={{ color: "#94a3b8", marginTop: 8 }}>
-            Quá trình này mất khoảng 10-20 giây
+            Frontend đang theo dõi task bằng SSE/polling.
           </div>
+          {currentTaskId && (
+            <Button danger onClick={handleCancelTask} style={{ marginTop: 16 }}>
+              Hủy task #{currentTaskId}
+            </Button>
+          )}
         </div>
       )}
 
@@ -271,7 +346,7 @@ const SmartMatchModal = (props: IProps) => {
             onClick={() => setResult(null)}
             style={{ marginTop: 20, borderRadius: 12, fontWeight: 600 }}
           >
-            🔄 Phân Tích Lại
+            Phân Tích Lại
           </Button>
         </>
       )}

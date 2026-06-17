@@ -9,7 +9,7 @@ import {
     TrophyOutlined,
 } from "@ant-design/icons";
 import { useEffect, useState } from "react";
-import { callFetchJob, callFetchCompany, callFetchUser, callFetchResume } from "@/config/api";
+import { callFetchAdminJob, callFetchCompany, callFetchUser, callFetchResume } from "@/config/api";
 import {
     BarChart,
     Bar,
@@ -56,7 +56,7 @@ const DashboardPage = () => {
         setLoading(true);
         try {
             const [jobsRes, companiesRes, usersRes, resumesRes] = await Promise.all([
-                callFetchJob("page=1&size=100"),
+                callFetchAdminJob("page=1&size=100"),
                 callFetchCompany("page=1&size=100"),
                 callFetchUser("page=1&size=100"),
                 callFetchResume("page=1&size=100"),

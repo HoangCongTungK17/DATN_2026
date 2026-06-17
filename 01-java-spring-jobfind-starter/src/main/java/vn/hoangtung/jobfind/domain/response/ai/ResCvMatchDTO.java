@@ -1,6 +1,7 @@
 package vn.hoangtung.jobfind.domain.response.ai;
 
 import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,9 +15,18 @@ public class ResCvMatchDTO {
     private long resumeId;
     private long jobId;
     private String jobName;
-    private int matchScore; // 0-100
-    private String summary; // Nhận xét tổng quan
-    private List<String> matchedSkills; // Skills CV có mà JD yêu cầu
-    private List<String> missingSkills; // Skills JD yêu cầu mà CV thiếu
-    private List<String> recommendations; // Gợi ý cho ứng viên
+    private int matchScore;
+    private int skillMatchScore;
+    private int experienceMatchScore;
+    private int domainMatchScore;
+    private int softSkillMatchScore;
+    private int semanticMatchScore;
+    private boolean semanticAvailable;
+    private Integer semanticRank;
+    private String summary;
+    private List<String> matchedSkills;
+    private List<String> missingSkills;
+    private List<String> recommendations;
+    private List<String> evidence;
+    private String detectedCandidateLevel;
 }

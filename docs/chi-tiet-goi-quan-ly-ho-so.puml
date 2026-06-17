@@ -1,0 +1,59 @@
+@startuml ThietKeChiTiet_QuanLyHoSo
+title Thiết kế chi tiết gói Quản lý Hồ sơ Ứng viên
+
+' Quy ước quan hệ (UML):
+'   ..>   Dependency   (phụ thuộc)
+'   --    Association  (kết hợp)
+'   o--   Aggregation  (kết tập)
+'   *--   Composition  (hợp thành)
+'   --|>  Inheritance  (kế thừa)
+'   ..|>  Implementation (thực thi)
+
+skinparam classBackgroundColor #FFFFCC
+skinparam classBorderColor black
+skinparam backgroundColor #FEFECE
+skinparam ArrowColor black
+skinparam shadowing false
+
+' ===== BOUNDARY (Giao diện) =====
+class "ResumePage" <<boundary>> {}
+class "ViewDetailResume" <<boundary>> {}
+class "SmartMatchModal" <<boundary>> {}
+
+' ===== CONTROL (Xử lý logic) =====
+class "resumeSlide (Redux)" as RSlice <<control>> {}
+class "config/api.ts" as ApiR <<control>> {}
+class "ResumeController" <<control>> {}
+class "ResumeService" <<control>> {}
+class "ResumeRepository" <<control>> {}
+class "CvVectorService" <<control>> {}
+class "CvDoctorController" <<control>> {}
+
+' ===== ENTITY (Dữ liệu) =====
+class "Resume" <<entity>> {}
+class "User" <<entity>> {}
+class "Job" <<entity>> {}
+
+' ===== Phụ thuộc: Front-end =====
+"ResumePage" ..> RSlice : dispatch(fetchResume)
+"ResumePage" ..> ApiR : callUpdateResumeStatus / callDeleteResume
+"ViewDetailResume" ..> ApiR : callFetchResumeById
+"SmartMatchModal" ..> ApiR : callMatchCvWithJob
+RSlice ..> ApiR : callFetchResume
+
+' ===== Phụ thuộc: FE -> BE =====
+ApiR ..> "ResumeController" : <<HTTP REST / JSON>>
+ApiR ..> "CvDoctorController" : callMatchCvWithJob (gói CV Doctor)
+
+' ===== Phụ thuộc: Back-end =====
+"ResumeController" ..> "ResumeService" : uses
+"ResumeService" ..> "ResumeRepository" : uses
+"ResumeService" ..> "CvVectorService" : xóa vector khi xóa hồ sơ
+"ResumeRepository" ..> "Resume" : truy vấn (JPA)
+"ResumeService" ..> "Resume" : cập nhật trạng thái / DTO
+
+' ===== Quan hệ giữa các thực thể (JPA) =====
+"Resume" "*" -- "1" "User" : của ứng viên
+"Resume" "*" -- "1" "Job" : ứng tuyển vào
+
+@enduml

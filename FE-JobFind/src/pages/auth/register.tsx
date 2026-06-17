@@ -14,6 +14,7 @@ import { callRegister } from "@/config/api";
 import styles from "@/styles/auth.module.scss";
 import { IUser } from "@/types/backend";
 import { ArrowLeftOutlined } from "@ant-design/icons";
+import loginBg from "@/assets/login.png";
 
 const { Option } = Select;
 
@@ -50,15 +51,9 @@ const RegisterPage = () => {
 
   return (
     <div className={styles["auth-container"]}>
-      {/* 1. Sidebar bên trái */}
+      {/* 1. Sidebar bên trái (Hình ảnh) */}
       <div className={styles["auth-sidebar"]}>
-        <div className={styles["sidebar-content"]}>
-          <h2>Bắt đầu sự nghiệp của bạn</h2>
-          <p style={{ marginTop: 20, lineHeight: 1.6 }}>
-            Tạo tài khoản miễn phí để tiếp cận hàng ngàn công việc IT <br />
-            chất lượng cao và phát triển sự nghiệp.
-          </p>
-        </div>
+        <img src={loginBg} alt="JobFind Platform" className={styles["sidebar-image"]} />
       </div>
 
       {/* 2. Form bên phải */}
@@ -69,7 +64,7 @@ const RegisterPage = () => {
               <ArrowLeftOutlined style={{ marginRight: 5 }} />
               Trang chủ
             </Link>
-            <h2 style={{ marginTop: 30 }}>Đăng Ký Tài Khoản</h2>
+            <h2>Đăng Ký Tài Khoản</h2>
             <p>
               Đã có tài khoản? <Link to="/login">Đăng nhập</Link>
             </p>

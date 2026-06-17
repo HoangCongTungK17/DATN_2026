@@ -20,6 +20,7 @@ import queryString from 'query-string';
 import Access from "@/components/share/access";
 import { ALL_PERMISSIONS } from "@/config/permissions";
 import { sfLike } from "spring-filter-query-builder";
+import { isHrRoleName } from "@/config/admin-navigation";
 
 const CompanyPage = () => {
     const [openModal, setOpenModal] = useState<boolean>(false);
@@ -30,6 +31,8 @@ const CompanyPage = () => {
     const isFetching = useAppSelector(state => state.company.isFetching);
     const meta = useAppSelector(state => state.company.meta);
     const companies = useAppSelector(state => state.company.result);
+    const roleName = useAppSelector(state => state.account.user.role?.name);
+    const isHr = isHrRoleName(roleName);
     const dispatch = useAppDispatch();
 
     const handleDeleteCompany = async (id: string | undefined) => {
@@ -150,7 +153,7 @@ const CompanyPage = () => {
                             />
                         </Tooltip>
                     </Access>
-                    <Access permission={ALL_PERMISSIONS.COMPANIES.DELETE} hideChildren>
+                    {!isHr ? <Access permission={ALL_PERMISSIONS.COMPANIES.DELETE} hideChildren>
                         <Popconfirm
                             placement="leftTop"
                             title="Xác nhận xóa"
@@ -169,7 +172,7 @@ const CompanyPage = () => {
                                 />
                             </Tooltip>
                         </Popconfirm>
-                    </Access>
+                    </Access> : null}
                 </Space>
             ),
         },
@@ -245,7 +248,7 @@ const CompanyPage = () => {
                     }}
                     rowSelection={false}
                     toolBarRender={(_action, _rows): any => {
-                        return (
+                        return !isHr ? (
                             <Access permission={ALL_PERMISSIONS.COMPANIES.CREATE} hideChildren>
                                 <Button
                                     icon={<PlusOutlined />}
@@ -260,7 +263,7 @@ const CompanyPage = () => {
                                     Thêm Công Ty
                                 </Button>
                             </Access>
-                        );
+                        ) : null;
                     }}
                 />
             </Access>

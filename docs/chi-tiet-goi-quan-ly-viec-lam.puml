@@ -1,0 +1,61 @@
+@startuml ThietKeChiTiet_QuanLyViecLam
+title Thiết kế chi tiết gói Quản lý Việc làm
+
+' Quy ước quan hệ (UML):
+'   ..>   Dependency   (phụ thuộc)
+'   --    Association  (kết hợp)
+'   o--   Aggregation  (kết tập)
+'   *--   Composition  (hợp thành)
+'   --|>  Inheritance  (kế thừa)
+'   ..|>  Implementation (thực thi)
+
+skinparam classBackgroundColor #FFFFCC
+skinparam classBorderColor black
+skinparam backgroundColor #FEFECE
+skinparam ArrowColor black
+skinparam shadowing false
+
+' ===== BOUNDARY (Giao diện - Front-end) =====
+class "JobPage" <<boundary>> {}
+class "ViewUpsertJob" <<boundary>> {}
+class "ClientJobDetailPage" <<boundary>> {}
+class "JobCard" <<boundary>> {}
+
+' ===== CONTROL (Xử lý logic) =====
+class "jobSlide (Redux)" as JobSlice <<control>> {}
+class "config/api.ts" as ApiJob <<control>> {}
+class "JobController" <<control>> {}
+class "JobService" <<control>> {}
+class "JobRepository" <<control>> {}
+
+' ===== ENTITY (Dữ liệu) =====
+class "IJob" <<entity>> {}
+class "Job" <<entity>> {}
+class "Company" <<entity>> {}
+class "Skill" <<entity>> {}
+class "Resume" <<entity>> {}
+
+' ===== Phụ thuộc: Front-end =====
+"JobPage" ..> JobSlice : dispatch(fetchJob)
+"JobPage" ..> ApiJob : callDeleteJob
+"ViewUpsertJob" ..> ApiJob : callCreateJob / callUpdateJob
+"ClientJobDetailPage" ..> ApiJob : callFetchJobById
+"JobCard" ..> ApiJob : callFetchAllJob
+JobSlice ..> ApiJob : callFetchAdminJob
+JobSlice ..> "IJob" : lưu trạng thái
+
+' ===== Phụ thuộc: FE -> BE =====
+ApiJob ..> "JobController" : <<HTTP REST / JSON>>
+
+' ===== Phụ thuộc: Back-end =====
+"JobController" ..> "JobService" : uses
+"JobService" ..> "JobRepository" : uses
+"JobRepository" ..> "Job" : truy vấn (Spring Data JPA)
+"JobService" ..> "Job" : ánh xạ DTO
+
+' ===== Quan hệ giữa các thực thể (JPA) =====
+"Job" "*" -- "1" "Company" : thuộc về
+"Job" "*" -- "*" "Skill" : yêu cầu kỹ năng
+"Job" "1" o-- "*" "Resume" : nhận hồ sơ ứng tuyển
+
+@enduml

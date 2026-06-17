@@ -17,6 +17,8 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
     // Chúng ta có thể thêm các phương thức truy vấn tùy chỉnh nếu cần.
     User findByEmail(String email);
 
+    User findByProviderAndProviderId(String provider, String providerId);
+
     boolean existsByEmail(String email);
 
     User findByRefreshTokenAndEmail(String token, String email);
