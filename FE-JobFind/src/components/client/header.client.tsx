@@ -24,7 +24,7 @@ import {
   Layout,
 } from "antd";
 import styles from "@/styles/client.module.scss";
-import { isMobile } from "react-device-detect";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { callLogout } from "@/config/api";
@@ -38,6 +38,7 @@ const { Header: AntHeader } = Layout;
 const Header = (props: any) => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const isMobile = useIsMobile();
 
   const isAuthenticated = useAppSelector(
     (state) => state.account.isAuthenticated
@@ -216,7 +217,7 @@ const Header = (props: any) => {
           {!isMobile ? (
             <div className={styles["header-desktop"]}>
               {/* Logo Area */}
-              <div className={styles["brand"]} onClick={() => navigate("/")} style={{ height: '84px', width: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+              <div className={styles["brand"]} onClick={() => navigate("/")} style={{ height: '84px', width: '200px', display: 'flex', alignItems: 'center', justifyContent: 'flex-start', cursor: 'pointer' }}>
                 <img src={logo} alt="JobFind Logo" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
               </div>
 
@@ -275,7 +276,7 @@ const Header = (props: any) => {
               <div
                 className={styles["brand-mobile"]}
                 onClick={() => navigate("/")}
-                style={{ height: '72px', width: '150px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                style={{ height: '72px', width: '150px', display: 'flex', alignItems: 'center', justifyContent: 'flex-start', cursor: 'pointer' }}
               >
                 <img src={logo} alt="JobFind Logo" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
               </div>

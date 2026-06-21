@@ -1,0 +1,20 @@
+@startuml Lop_ResumeController
+skinparam classBackgroundColor #FFFFCC
+skinparam classBorderColor black
+skinparam backgroundColor #FEFECE
+skinparam ArrowColor black
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+hide circle
+
+class ResumeController <<control>> {
+  - resumeService : ResumeService
+  --
+  + create(resume : Resume) : ResponseEntity<ResCreateResumeDTO>
+  + update(resume : Resume) : ResponseEntity<ResUpdateResumeDTO>
+  + delete(id : long) : ResponseEntity<Void>
+  + fetchById(id : long) : ResponseEntity<ResFetchResumeDTO>
+  + fetchAll(spec : Specification<Resume>, pageable : Pageable) : ResponseEntity<ResultPaginationDTO>
+  + fetchResumeByUser(pageable : Pageable) : ResponseEntity<ResultPaginationDTO>
+}
+@enduml

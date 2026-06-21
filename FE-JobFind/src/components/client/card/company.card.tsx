@@ -1,6 +1,5 @@
 import { Card, Col, Empty, Pagination, Row, Spin } from "antd";
 import { useState, useEffect } from "react";
-import { isMobile } from "react-device-detect";
 import { Link, useNavigate } from "react-router-dom";
 import styles from "@/styles/client.module.scss";
 import { callFetchCompany } from "@/config/api";

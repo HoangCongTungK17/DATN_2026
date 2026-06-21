@@ -1,0 +1,128 @@
+@startuml SeqCvDoctor
+title Biểu đồ trình tự: Phân tích CV bằng AI (CV Doctor)
+
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam maxMessageSize 200
+hide footbox
+
+skinparam actorBackgroundColor #FEFECE
+skinparam actorBorderColor black
+skinparam boundaryBackgroundColor #FEFECE
+skinparam boundaryBorderColor black
+skinparam controlBackgroundColor #FEFECE
+skinparam controlBorderColor black
+skinparam entityBackgroundColor #FEFECE
+skinparam entityBorderColor black
+skinparam participantBackgroundColor #FEFECE
+skinparam participantBorderColor black
+skinparam sequenceGroupHeaderFontColor black
+skinparam sequenceGroupHeaderFontStyle plain
+skinparam sequenceGroupFontColor black
+skinparam sequenceReferenceFontColor black
+skinparam sequenceReferenceFontStyle plain
+
+<style>
+sequenceDiagram {
+  group {
+    FontColor black
+    FontStyle plain
+  }
+  reference {
+    FontColor black
+    FontStyle plain
+  }
+}
+</style>
+
+actor User
+boundary "CvDoctorPage" as Page
+control "CvDoctorController" as Ctrl
+control "AiTaskController" as ATCtrl
+control "AiRateLimitService" as Rate
+control "AiTaskExecutorService" as Exec
+control "CvDoctorService" as Svc
+control "AiGatewayService" as Gw
+entity "AiTask" as Task
+entity "CvAnalysis" as Analysis
+
+User -> Page : 1: uploadCV(file)
+activate Page
+Page -> Ctrl : 1.1: analyzeCV(file)
+activate Ctrl
+Ctrl -> Rate : 1.1.1: checkTaskLimit(key, CV_ANALYZE)
+activate Rate
+Rate --> Ctrl : ok
+deactivate Rate
+Ctrl -> Svc : 1.1.2: extractTextFromPdf(file)
+activate Svc
+Svc --> Ctrl : text
+deactivate Svc
+Ctrl -> Exec : 1.1.3: submitTask(CV_ANALYZE, input, user)
+activate Exec
+Exec -> Task : 1.1.3.1: <<create>>
+activate Task
+Task --> Exec
+deactivate Task
+Exec --> Ctrl : taskId
+deactivate Exec
+Ctrl --> Page : 202 Accepted (taskId)
+deactivate Ctrl
+Page --> User : hiển thị tiến trình
+deactivate Page
+
+note over Exec : Xử lý nền (bất đồng bộ)
+activate Exec
+Exec -> Svc : 2: analyzeCVFromPath(path)
+activate Svc
+Svc -> Gw : 2.1: callText(prompt)
+activate Gw
+Gw --> Svc : kết quả LLM
+deactivate Gw
+alt thành công
+  Svc -> Analysis : 2.2: <<create>>
+  activate Analysis
+  Analysis --> Svc
+  deactivate Analysis
+  Svc --> Exec : ResCvAnalysisDTO
+  deactivate Svc
+  Exec -> Task : 2.3: update(status = COMPLETED, result)
+  activate Task
+  Task --> Exec
+  deactivate Task
+else lỗi / timeout
+  Svc --> Exec : throw Exception
+  deactivate Svc
+  Exec -> Task : 2.4: update(status = FAILED, error)
+  activate Task
+  Task --> Exec
+  deactivate Task
+  note over Exec : thử lại tối đa 2 lần trước khi FAILED
+end
+deactivate Exec
+
+note over Page : Tự động poll trạng thái định kỳ
+loop đến khi status thuộc {COMPLETED, FAILED}
+  Page -> ATCtrl : 3: getTaskStatus(taskId)
+  activate Page
+  activate ATCtrl
+  ATCtrl -> Exec : 3.1: getTaskStatus(taskId, user)
+  activate Exec
+  Exec -> Task : 3.1.1: find(taskId)
+  activate Task
+  Task --> Exec : task
+  deactivate Task
+  Exec --> ATCtrl : ResAiTaskDTO
+  deactivate Exec
+  ATCtrl --> Page : ResAiTaskDTO (status, result)
+  deactivate ATCtrl
+  deactivate Page
+end
+
+alt COMPLETED
+  Page --> User : 4: displayResult()
+else FAILED
+  Page --> User : 4': displayError()
+end
+
+@enduml

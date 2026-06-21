@@ -1,0 +1,28 @@
+@startuml Lop_AiTaskExecutorService
+skinparam classBackgroundColor #FFFFCC
+skinparam classBorderColor black
+skinparam backgroundColor #FEFECE
+skinparam ArrowColor black
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+hide circle
+
+class AiTaskExecutorService <<control>> {
+  - aiTaskRepository : AiTaskRepository
+  - cvDoctorService : CvDoctorService
+  - interviewCoachService : InterviewCoachService
+  - aiService : AIService
+  - aiTaskExecutor : ThreadPoolTaskExecutor
+  - runningTasks : ConcurrentMap<Long, Future<?>>
+  - taskEmitters : ConcurrentMap<Long, List<SseEmitter>>
+  --
+  + submitTask(taskType : AiTaskTypeEnum, inputDataJson : String, user : User) : ResAiTaskSubmittedDTO
+  + getTaskStatus(taskId : long, user : User) : ResAiTaskDTO
+  + cancelTask(taskId : long, user : User) : void
+  + streamTaskStatus(taskId : long, user : User) : SseEmitter
+  + resolveUserFromAccessToken(accessToken : String) : User
+  + getCurrentUserOrThrow() : User
+  + checkTimeouts() : void
+  + enqueueRetryingTasks() : void
+}
+@enduml

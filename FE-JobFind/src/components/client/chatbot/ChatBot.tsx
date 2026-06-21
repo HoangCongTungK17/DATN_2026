@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import "./chatbot.scss";
 import {
   callFetchChat,
@@ -176,7 +177,7 @@ const ChatBot = () => {
     "Tư vấn chuyển ngành",
   ];
 
-  return (
+  return createPortal(
     <div className="chatbot-container">
       {!isOpen && (
         <button
@@ -290,7 +291,8 @@ const ChatBot = () => {
           </div>
         </div>
       )}
-    </div>
+    </div>,
+    document.body
   );
 };
 

@@ -6,7 +6,7 @@ import {
   ProFormText,
 } from "@ant-design/pro-components";
 import { Col, Form, Row, message, notification } from "antd";
-import { isMobile } from "react-device-detect";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { useState, useEffect } from "react";
 import {
   callCreateUser,
@@ -32,6 +32,7 @@ export interface ICompanySelect {
 }
 
 const ModalUser = (props: IProps) => {
+  const isMobile = useIsMobile();
   const { openModal, setOpenModal, reloadTable, dataInit, setDataInit } = props;
   const [companies, setCompanies] = useState<ICompanySelect[]>([]);
   const [roles, setRoles] = useState<ICompanySelect[]>([]);

@@ -21,7 +21,7 @@ import {
   notification,
 } from "antd";
 import "styles/reset.scss";
-import { isMobile } from "react-device-detect";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { useEffect, useState } from "react";
@@ -53,6 +53,7 @@ interface ICompanyLogo {
 }
 
 const ModalCompany = (props: IProps) => {
+  const isMobile = useIsMobile();
   const { openModal, setOpenModal, reloadTable, dataInit, setDataInit } = props;
 
   //modal animation

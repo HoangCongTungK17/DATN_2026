@@ -1,0 +1,23 @@
+@startuml Lop_AiGatewayService
+skinparam classBackgroundColor #FFFFCC
+skinparam classBorderColor black
+skinparam backgroundColor #FEFECE
+skinparam ArrowColor black
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+hide circle
+
+class AiGatewayService <<control>> {
+  - chatModel : ChatModel
+  - objectMapper : ObjectMapper
+  - promptCache : ConcurrentMap<String, CacheEntry>
+  --
+  + callText(promptText : String, context : String) : String
+  + callText(promptText : String, context : String, cacheKey : String, ttl : Duration, options : AiCallOptions) : String
+  + readJsonTreeFromResponse(rawResponse : String) : JsonNode
+  + extractJsonFromResponse(response : String) : String
+  + sanitizeForPrompt(rawContent : String, maxChars : int) : String
+  + fingerprint(values : String[]) : String
+  + clearCache() : void
+}
+@enduml

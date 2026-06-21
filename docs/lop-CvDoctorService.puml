@@ -1,0 +1,26 @@
+@startuml Lop_CvDoctorService
+skinparam classBackgroundColor #FFFFCC
+skinparam classBorderColor black
+skinparam backgroundColor #FEFECE
+skinparam ArrowColor black
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+hide circle
+
+class CvDoctorService <<control>> {
+  - cvAnalysisRepository : CvAnalysisRepository
+  - resumeRepository : ResumeRepository
+  - skillRepository : SkillRepository
+  - aiGatewayService : AiGatewayService
+  - cvStructuredParserService : CvStructuredParserService
+  - cvVectorService : CvVectorService
+  - vectorStore : VectorStore
+  --
+  + extractTextFromPdf(file : MultipartFile) : String
+  + analyzeCV(file : MultipartFile) : ResCvAnalysisDTO
+  + analyzeCVFromPath(tempFilePath : String) : ResCvAnalysisDTO
+  + matchCvWithJob(resumeId : long) : ResCvMatchDTO
+  + getCvAnalysisHistory(pageable : Pageable) : ResultPaginationDTO
+  + getCvAnalysisById(id : Long) : ResCvAnalysisDTO
+}
+@enduml

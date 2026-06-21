@@ -1,0 +1,21 @@
+@startuml Lop_CvDoctorController
+skinparam classBackgroundColor #FFFFCC
+skinparam classBorderColor black
+skinparam backgroundColor #FEFECE
+skinparam ArrowColor black
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+hide circle
+
+class CvDoctorController <<control>> {
+  - cvDoctorService : CvDoctorService
+  - aiTaskExecutorService : AiTaskExecutorService
+  - aiRateLimitService : AiRateLimitService
+  - objectMapper : ObjectMapper
+  --
+  + analyzeCV(file : MultipartFile, request : HttpServletRequest) : ResponseEntity<ResAiTaskSubmittedDTO>
+  + getCvHistory(pageable : Pageable) : ResponseEntity<ResultPaginationDTO>
+  + getCvAnalysisDetail(id : Long) : ResponseEntity<ResCvAnalysisDTO>
+  + matchCvWithJob(resumeId : long, request : HttpServletRequest) : ResponseEntity<ResAiTaskSubmittedDTO>
+}
+@enduml

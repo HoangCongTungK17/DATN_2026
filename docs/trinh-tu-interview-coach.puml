@@ -1,0 +1,127 @@
+@startuml SeqInterviewCoach
+title Biểu đồ trình tự: Luyện phỏng vấn AI (Interview Coach)
+
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam maxMessageSize 200
+hide footbox
+
+skinparam actorBackgroundColor #FEFECE
+skinparam actorBorderColor black
+skinparam boundaryBackgroundColor #FEFECE
+skinparam boundaryBorderColor black
+skinparam controlBackgroundColor #FEFECE
+skinparam controlBorderColor black
+skinparam entityBackgroundColor #FEFECE
+skinparam entityBorderColor black
+skinparam participantBackgroundColor #FEFECE
+skinparam participantBorderColor black
+skinparam sequenceGroupHeaderFontColor black
+skinparam sequenceGroupHeaderFontStyle plain
+skinparam sequenceGroupFontColor black
+skinparam sequenceReferenceFontColor black
+skinparam sequenceReferenceFontStyle plain
+
+<style>
+sequenceDiagram {
+  group {
+    FontColor black
+    FontStyle plain
+  }
+  reference {
+    FontColor black
+    FontStyle plain
+  }
+}
+</style>
+
+actor User
+boundary "InterviewCoachPage" as Page
+control "InterviewCoachController" as Ctrl
+control "AiTaskExecutorService" as Exec
+control "InterviewCoachService" as Svc
+control "AiGatewayService" as Gw
+entity "AiTask" as Task
+entity "InterviewSession" as Session
+
+User -> Page : 1: startInterview(jobPosition, level, totalQuestions)
+activate Page
+Page -> Ctrl : 1.1: startInterview(req)
+activate Ctrl
+ref over Ctrl, Exec, Task : checkTaskLimit + submitTask(INTERVIEW_START)\n<<create>> AiTask -> trả 202 (taskId)  [chi tiết: Hình CV Doctor]
+Ctrl --> Page : taskId
+deactivate Ctrl
+
+note over Exec : Xử lý nền: sinh câu hỏi đầu
+activate Exec
+Exec -> Svc : 1.2: startInterview(req)
+activate Svc
+Svc -> Session : 1.2.1: <<create>> (IN_PROGRESS)
+note over Svc : đọc CV mới nhất làm ngữ cảnh
+Svc -> Gw : 1.2.2: callText(sinh câu hỏi)
+activate Gw
+Gw --> Svc : câu hỏi 1
+deactivate Gw
+Svc -> Session : 1.2.3: save(questionsData)
+Svc --> Exec : ResInterviewQuestionDTO
+deactivate Svc
+Exec -> Task : 1.2.4: update(COMPLETED, result)
+deactivate Exec
+
+ref over Page, Exec, Task : Polling getTaskStatus(taskId) đến khi COMPLETED
+Page --> User : hiển thị câu hỏi 1
+
+loop mỗi câu trả lời (đến câu cuối)
+  User -> Page : 2: submitAnswer(answer)
+  Page -> Ctrl : 2.1: submitAnswer(req)
+  activate Ctrl
+  ref over Ctrl, Exec, Task : checkTaskLimit + submitTask(INTERVIEW_ANSWER)\n<<create>> AiTask -> trả 202 (taskId)
+  Ctrl --> Page : taskId
+  deactivate Ctrl
+
+  note over Exec : Xử lý nền: chấm điểm & sinh câu hỏi
+  activate Exec
+  Exec -> Svc : 2.2: submitAnswer(req)
+  activate Svc
+  Svc -> Session : 2.2.1: findByIdForUpdate(sessionId)
+  Svc -> Gw : 2.2.2: callText(chấm điểm câu trả lời)
+  activate Gw
+  Gw --> Svc : điểm + nhận xét
+  deactivate Gw
+  alt còn câu hỏi
+    Svc -> Gw : 2.2.3: callText(sinh câu hỏi tiếp theo)
+    activate Gw
+    Gw --> Svc : câu hỏi kế
+    deactivate Gw
+    Svc -> Session : 2.2.4: update(currentQuestion + 1, Q&A)
+  else câu cuối
+    Svc -> Gw : 2.2.5: callText(sinh tổng kết)
+    activate Gw
+    Gw --> Svc : finalSummary
+    deactivate Gw
+    Svc -> Session : 2.2.6: update(COMPLETED, overallScore, finalSummary)
+  end
+  Svc --> Exec : ResAnswerFeedbackDTO
+  deactivate Svc
+  Exec -> Task : 2.3: update(COMPLETED, result)
+  deactivate Exec
+
+  ref over Page, Exec, Task : Polling getTaskStatus(taskId) đến khi COMPLETED
+  Page --> User : hiển thị nhận xét + câu hỏi kế (nếu còn)
+end
+
+User -> Page : 3: viewSummary(sessionId)
+Page -> Ctrl : 3.1: getSessionSummary(sessionId)
+activate Ctrl
+Ctrl -> Svc : 3.1.1: getSessionSummary(sessionId)
+activate Svc
+Svc -> Session : 3.1.1.1: findById(sessionId)
+Session --> Svc : session
+Svc --> Ctrl : ResInterviewSummaryDTO
+deactivate Svc
+Ctrl --> Page : ResInterviewSummaryDTO
+deactivate Ctrl
+Page --> User : hiển thị tổng kết (điểm + nhận xét)
+deactivate Page
+
+@enduml

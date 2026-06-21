@@ -1,0 +1,17 @@
+@startuml Lop_AiTaskController
+skinparam classBackgroundColor #FFFFCC
+skinparam classBorderColor black
+skinparam backgroundColor #FEFECE
+skinparam ArrowColor black
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+hide circle
+
+class AiTaskController <<control>> {
+  - aiTaskExecutorService : AiTaskExecutorService
+  --
+  + getTaskStatus(taskId : long) : ResponseEntity<ResAiTaskDTO>
+  + streamTaskStatus(taskId : long, accessToken : String) : SseEmitter
+  + cancelTask(taskId : long) : ResponseEntity<Void>
+}
+@enduml

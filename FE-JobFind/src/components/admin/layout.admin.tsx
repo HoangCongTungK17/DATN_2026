@@ -19,12 +19,12 @@ import {
     SolutionOutlined,
     LockOutlined,
 } from '@ant-design/icons';
-import { Layout, Menu, Dropdown, Space, message, Avatar, Button, Badge, Tooltip } from 'antd';
+import { Layout, Menu, Dropdown, Space, message, Avatar, Button, Badge, Tooltip, Drawer } from 'antd';
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Link } from 'react-router-dom';
 import { callLogout } from 'config/api';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
-import { isMobile } from 'react-device-detect';
+import { useIsMobile } from "@/hooks/useIsMobile";
 import type { MenuProps } from 'antd';
 import { setLogoutAction } from '@/redux/slice/accountSlide';
 import { ALL_PERMISSIONS } from '@/config/permissions';
@@ -36,6 +36,8 @@ const { Content, Sider } = Layout;
 
 const LayoutAdmin = () => {
     const location = useLocation();
+    const isMobile = useIsMobile();
+    const [openMobileMenu, setOpenMobileMenu] = useState(false);
 
     const [collapsed, setCollapsed] = useState(false);
     const [activeMenu, setActiveMenu] = useState('');
@@ -329,12 +331,18 @@ const LayoutAdmin = () => {
                         </div>
                     </Sider>
                     :
-                    <Menu
-                        selectedKeys={[activeMenu]}
-                        items={menuItems}
-                        onClick={(e) => setActiveMenu(e.key)}
-                        mode="horizontal"
-                    />
+                    <div className="admin-mobile-topbar">
+                        <div className="admin-mobile-brand" onClick={() => navigate(defaultAdminPath)}>
+                            <img src={logo} alt="JobFind" />
+                            <span className="admin-mobile-badge">ADMIN</span>
+                        </div>
+                        <Button
+                            type="text"
+                            icon={<MenuFoldOutlined />}
+                            className="admin-mobile-trigger"
+                            onClick={() => setOpenMobileMenu(true)}
+                        />
+                    </div>
                 }
 
                 <Layout>
@@ -402,6 +410,47 @@ const LayoutAdmin = () => {
                     </Content>
                 </Layout>
             </Layout>
+
+            <Drawer
+                title="Menu Quản trị"
+                placement="left"
+                open={openMobileMenu}
+                onClose={() => setOpenMobileMenu(false)}
+                width={260}
+                styles={{ body: { padding: 0 } }}
+            >
+                <Menu
+                    selectedKeys={[activeMenu]}
+                    mode="inline"
+                    items={menuItems}
+                    onClick={(e) => {
+                        setActiveMenu(e.key);
+                        setOpenMobileMenu(false);
+                    }}
+                    style={{ border: "none" }}
+                />
+                <div style={{ padding: 12, borderTop: "1px solid #f1f5f9" }}>
+                    <Button
+                        type="text"
+                        icon={<HomeOutlined />}
+                        block
+                        style={{ justifyContent: "flex-start" }}
+                        onClick={() => { navigate("/"); setOpenMobileMenu(false); }}
+                    >
+                        Về trang chủ
+                    </Button>
+                    <Button
+                        type="text"
+                        danger
+                        icon={<LogoutOutlined />}
+                        block
+                        style={{ justifyContent: "flex-start" }}
+                        onClick={() => { handleLogout(); setOpenMobileMenu(false); }}
+                    >
+                        Đăng xuất
+                    </Button>
+                </div>
+            </Drawer>
 
         </>
     );

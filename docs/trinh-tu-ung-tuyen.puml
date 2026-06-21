@@ -1,0 +1,76 @@
+@startuml SeqUngTuyen
+title Biểu đồ trình tự: Ứng tuyển việc làm (Apply)
+
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam maxMessageSize 200
+hide footbox
+
+skinparam actorBackgroundColor #FEFECE
+skinparam actorBorderColor black
+skinparam boundaryBackgroundColor #FEFECE
+skinparam boundaryBorderColor black
+skinparam controlBackgroundColor #FEFECE
+skinparam controlBorderColor black
+skinparam entityBackgroundColor #FEFECE
+skinparam entityBorderColor black
+skinparam participantBackgroundColor #FEFECE
+skinparam participantBorderColor black
+skinparam sequenceGroupHeaderFontColor black
+skinparam sequenceGroupHeaderFontStyle plain
+skinparam sequenceGroupFontColor black
+
+<style>
+sequenceDiagram {
+  group {
+    FontColor black
+    FontStyle plain
+  }
+}
+</style>
+
+actor User
+boundary "ApplyModal" as Page
+control "FileController" as FileCtrl
+control "FileService" as FileSvc
+control "ResumeController" as Ctrl
+control "ResumeService" as Svc
+entity "Resume" as Resume
+
+User -> Page : 1: chọn & upload CV (PDF)
+activate Page
+Page -> FileCtrl : 1.1: callUploadSingleFile(file, "resume")
+activate FileCtrl
+FileCtrl -> FileCtrl : 1.1.1: validate(định dạng, dung lượng, chữ ký)
+FileCtrl -> FileSvc : 1.1.2: store(file, folder)
+activate FileSvc
+note right of FileSvc : ghi đĩa (D:/Upload/resume)
+FileSvc --> FileCtrl : fileName
+deactivate FileSvc
+FileCtrl --> Page : ResUploadFileDTO (fileName)
+deactivate FileCtrl
+Page --> User : báo upload thành công
+deactivate Page
+
+User -> Page : 2: bấm "Rải CV"
+activate Page
+alt chưa đăng nhập
+  Page --> User : chuyển tới trang đăng nhập
+else đã đăng nhập
+  Page -> Ctrl : 2.1: callCreateResume(url, jobId, email, userId)
+  activate Ctrl
+  Ctrl -> Svc : 2.1.1: create(resume)
+  activate Svc
+  Svc -> Resume : 2.1.1.1: <<create>> (gắn Job + User)
+  activate Resume
+  Resume --> Svc
+  deactivate Resume
+  Svc --> Ctrl : ResCreateResumeDTO
+  deactivate Svc
+  Ctrl --> Page : 201 Created
+  deactivate Ctrl
+  Page --> User : báo "Rải CV thành công"
+end
+deactivate Page
+
+@enduml

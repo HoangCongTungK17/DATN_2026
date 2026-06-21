@@ -1,0 +1,8 @@
+# Những thứ KHÔNG cần đưa vào Docker để build nhanh và nhẹ hơn
+build/
+bin/
+.gradle/
+.idea/
+*.iml
+Upload/
+*.log

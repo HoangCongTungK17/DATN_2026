@@ -14,7 +14,7 @@ import {
   message,
   notification,
 } from "antd";
-import { isMobile } from "react-device-detect";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import type { TabsProps } from "antd";
 import { IResume, ISubscribers } from "@/types/backend";
 import { useState, useEffect } from "react";
@@ -810,6 +810,7 @@ const ChangePasswordUser = (props: any) => {
 // MAIN COMPONENT: ManageAccount
 // =============================================
 const ManageAccount = (props: IProps) => {
+  const isMobile = useIsMobile();
   const { open, onClose } = props;
 
   const onChange = (key: string) => {

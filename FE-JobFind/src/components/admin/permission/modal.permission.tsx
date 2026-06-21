@@ -1,6 +1,6 @@
 import { ModalForm, ProFormSelect, ProFormText } from "@ant-design/pro-components";
 import { Col, Form, Row, message, notification } from "antd";
-import { isMobile } from 'react-device-detect';
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { callCreatePermission, callUpdatePermission } from "@/config/api";
 import { IPermission } from "@/types/backend";
 import { ALL_MODULES } from "@/config/permissions";
@@ -16,6 +16,7 @@ interface IProps {
 
 
 const ModalPermission = (props: IProps) => {
+    const isMobile = useIsMobile();
     const { openModal, setOpenModal, reloadTable, dataInit, setDataInit } = props;
     const [form] = Form.useForm();
 

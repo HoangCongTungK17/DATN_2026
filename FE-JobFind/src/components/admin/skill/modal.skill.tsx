@@ -1,6 +1,6 @@
 import { ModalForm, ProFormDigit, ProFormSelect, ProFormText } from "@ant-design/pro-components";
 import { Col, Form, Row, message, notification } from "antd";
-import { isMobile } from 'react-device-detect';
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { callCreateSkill, callUpdateSkill } from "@/config/api";
 import { ISkill } from "@/types/backend";
 
@@ -15,6 +15,7 @@ interface IProps {
 
 
 const ModalSkill = (props: IProps) => {
+    const isMobile = useIsMobile();
     const { openModal, setOpenModal, reloadTable, dataInit, setDataInit } = props;
     const [form] = Form.useForm();
 

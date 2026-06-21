@@ -4,6 +4,27 @@ $primary-color: #0a65cc; // Màu chủ đạo
 $text-color: #18191c;
 $gray-text: #5e6670;
 
+// Global box-sizing — chống tràn ngang (width 100% + padding) gây "cắt" trên mobile
+:global {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  // Sticky footer: đẩy footer xuống đáy khi nội dung trang ngắn / khi zoom-out
+  .layout-app {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+}
+
+// Vùng nội dung giữa Header và Footer co giãn để lấp đầy chiều cao còn lại
+.content-app {
+  flex: 1 0 auto;
+}
+
 .auth-container {
   display: flex;
   min-height: 100vh;

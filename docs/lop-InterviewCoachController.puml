@@ -1,0 +1,22 @@
+@startuml Lop_InterviewCoachController
+skinparam classBackgroundColor #FFFFCC
+skinparam classBorderColor black
+skinparam backgroundColor #FEFECE
+skinparam ArrowColor black
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+hide circle
+
+class InterviewCoachController <<control>> {
+  - interviewCoachService : InterviewCoachService
+  - aiTaskExecutorService : AiTaskExecutorService
+  - aiRateLimitService : AiRateLimitService
+  - objectMapper : ObjectMapper
+  --
+  + startInterview(req : ReqStartInterviewDTO, request : HttpServletRequest) : ResponseEntity<ResAiTaskSubmittedDTO>
+  + submitAnswer(req : ReqAnswerDTO, request : HttpServletRequest) : ResponseEntity<ResAiTaskSubmittedDTO>
+  + getCurrentQuestion(sessionId : long) : ResponseEntity<ResInterviewQuestionDTO>
+  + getSessionSummary(sessionId : long) : ResponseEntity<ResInterviewSummaryDTO>
+  + getHistory(pageable : Pageable) : ResponseEntity<ResultPaginationDTO>
+}
+@enduml

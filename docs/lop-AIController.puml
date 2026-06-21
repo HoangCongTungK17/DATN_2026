@@ -1,0 +1,20 @@
+@startuml Lop_AIController
+skinparam classBackgroundColor #FFFFCC
+skinparam classBorderColor black
+skinparam backgroundColor #FEFECE
+skinparam ArrowColor black
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+hide circle
+
+class AIController <<control>> {
+  - aiService : AIService
+  - aiTaskExecutorService : AiTaskExecutorService
+  - aiRateLimitService : AiRateLimitService
+  - objectMapper : ObjectMapper
+  --
+  + syncData() : ResponseEntity<String>
+  + chat(body : Map<String, String>, request : HttpServletRequest) : ResponseEntity<String>
+  + chatAsync(body : Map<String, String>, request : HttpServletRequest) : ResponseEntity<ResAiTaskSubmittedDTO>
+}
+@enduml

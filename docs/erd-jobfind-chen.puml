@@ -1,0 +1,104 @@
+@startdot
+digraph ERD_JobFind {
+  graph [rankdir=TB, splines=true, nodesep=0.45, ranksep=0.75, fontname="Arial", labelloc="t", label="Biểu đồ thực thể liên kết (ERD) - Hệ thống JobFind"];
+  node  [fontname="Arial", fontsize=11];
+  edge  [fontname="Arial", fontsize=10, dir=none, color="#555555"];
+
+  /* ===================== THỰC THỂ (hình chữ nhật) ===================== */
+  node [shape=box, style=filled, fillcolor="#cfe2f3", color="#6fa8dc"];
+  User; Role; Permission; Company; Job; Skill; Subscriber; Resume;
+  CvAnalysis; CvChunk; AiTask;
+  InterviewSession [label="InterviewSession"];
+
+  /* ===================== QUAN HỆ (hình thoi) ===================== */
+  node [shape=diamond, style=filled, fillcolor="#9fc5e8", color="#6fa8dc"];
+  rUserRole    [label="có vai trò"];
+  rRolePerm    [label="gồm quyền"];
+  rUserCompany [label="thuộc"];
+  rCompanyJob  [label="đăng tuyển"];
+  rJobSkill    [label="yêu cầu"];
+  rSubSkill    [label="quan tâm"];
+  rUserResume  [label="nộp"];
+  rJobResume   [label="nhận"];
+  rUserCva     [label="phân tích"];
+  rUserTask    [label="tạo"];
+  rUserItv     [label="luyện PV"];
+  rCvaChunk    [label="gồm"];
+  rResumeChunk [label="tách đoạn"];
+  rUserChunk   [label="sở hữu"];
+
+  /* ===================== THUỘC TÍNH (bầu dục) ===================== */
+  node [shape=ellipse, style=filled, fillcolor="#fff2cc", color="#b6a86a"];
+  aUserName  [label="name"];   aUserEmail [label="email"];
+  aCompName  [label="name"];
+  aJobName   [label="name"];   aJobSalary [label="salary"];
+  aSkillName [label="name"];
+  aResumeStatus [label="status"];
+  aCvaScore  [label="overallScore"];
+  aItvScore  [label="overallScore"];
+
+  /* ===================== LỰC LƯỢNG QUAN HỆ (tee = 1, crow = N) =====================
+     Ký hiệu lực lượng luôn CHẠM vào thực thể:
+       - cạnh thực thể -> hình thoi : dùng dir=back, arrowtail=... (ký hiệu ở phía thực thể)
+       - cạnh hình thoi -> thực thể : dùng dir=forward, arrowhead=... (ký hiệu ở phía thực thể) */
+  User       -> rUserRole    [dir=back, arrowtail=crow];
+  rUserRole  -> Role         [dir=forward, arrowhead=tee];
+
+  Role       -> rRolePerm    [dir=back, arrowtail=crow];
+  rRolePerm  -> Permission   [dir=forward, arrowhead=crow];
+
+  User        -> rUserCompany [dir=back, arrowtail=crow];
+  rUserCompany-> Company      [dir=forward, arrowhead=teeodot];
+
+  Company     -> rCompanyJob  [dir=back, arrowtail=tee];
+  rCompanyJob -> Job          [dir=forward, arrowhead=crow];
+
+  Job        -> rJobSkill     [dir=back, arrowtail=crow];
+  rJobSkill  -> Skill         [dir=forward, arrowhead=crow];
+
+  Subscriber -> rSubSkill     [dir=back, arrowtail=crow];
+  rSubSkill  -> Skill         [dir=forward, arrowhead=crow];
+
+  User        -> rUserResume  [dir=back, arrowtail=tee];
+  rUserResume -> Resume       [dir=forward, arrowhead=crow];
+
+  Job        -> rJobResume    [dir=back, arrowtail=tee];
+  rJobResume -> Resume        [dir=forward, arrowhead=crow];
+
+  User     -> rUserCva        [dir=back, arrowtail=tee];
+  rUserCva -> CvAnalysis      [dir=forward, arrowhead=crow];
+
+  User      -> rUserTask      [dir=back, arrowtail=tee];
+  rUserTask -> AiTask         [dir=forward, arrowhead=crow];
+
+  User     -> rUserItv        [dir=back, arrowtail=tee];
+  rUserItv -> InterviewSession[dir=forward, arrowhead=crow];
+
+  CvAnalysis -> rCvaChunk     [dir=back, arrowtail=tee];
+  rCvaChunk  -> CvChunk       [dir=forward, arrowhead=crow];
+
+  Resume      -> rResumeChunk [dir=back, arrowtail=tee];
+  rResumeChunk-> CvChunk      [dir=forward, arrowhead=crow];
+
+  User       -> rUserChunk    [dir=back, arrowtail=tee];
+  rUserChunk -> CvChunk       [dir=forward, arrowhead=crow];
+
+  /* ===================== LIÊN KẾT THUỘC TÍNH (đường thẳng) ===================== */
+  User -> aUserName;  User -> aUserEmail;
+  Company -> aCompName;
+  Job -> aJobName;    Job -> aJobSalary;
+  Skill -> aSkillName;
+  Resume -> aResumeStatus;
+  CvAnalysis -> aCvaScore;
+  InterviewSession -> aItvScore;
+
+  /* ===================== CHÚ THÍCH ===================== */
+  subgraph cluster_legend {
+    label="Chú thích"; fontsize=11; style=dashed; color="#aaaaaa";
+    legEntity [shape=box,     style=filled, fillcolor="#cfe2f3", color="#6fa8dc", label="Thực thể"];
+    legRel    [shape=diamond, style=filled, fillcolor="#9fc5e8", color="#6fa8dc", label="Quan hệ"];
+    legAttr   [shape=ellipse, style=filled, fillcolor="#fff2cc", color="#b6a86a", label="Thuộc tính"];
+    legEntity -> legRel -> legAttr [style=invis];
+  }
+}
+@enddot

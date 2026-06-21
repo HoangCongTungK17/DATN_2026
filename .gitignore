@@ -28,6 +28,8 @@ gradle-app.setting
 # Biến môi trường & secrets — KHÔNG commit
 .env
 .env.*
+# nhưng vẫn giữ file mẫu (không chứa bí mật)
+!.env.example
 **/application-local.properties
 **/application-secret.properties
 # Cấu hình MCP cục bộ (chứa ANTHROPIC_API_KEY) — KHÔNG commit

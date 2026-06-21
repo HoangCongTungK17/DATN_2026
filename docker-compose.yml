@@ -1,0 +1,57 @@
+# ============================================================
+# File điều phối: bật cùng lúc MySQL + Backend Spring Boot
+# Dữ liệu MySQL và file upload đều được gắn "ổ đĩa bền" (volume)
+# => deploy lại / restart KHÔNG mất dữ liệu
+# ============================================================
+services:
+
+  # --------- Cơ sở dữ liệu MySQL ---------
+  mysql:
+    image: mysql:8.0
+    container_name: jobfind-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: jobfind
+    volumes:
+      - mysql_data:/var/lib/mysql        # <-- ổ đĩa bền giữ dữ liệu DB
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${DB_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+
+  # --------- Backend Spring Boot ---------
+  backend:
+    build: ./01-java-spring-jobfind-starter
+    container_name: jobfind-backend
+    restart: always
+    depends_on:
+      mysql:
+        condition: service_healthy        # đợi MySQL sẵn sàng mới khởi động
+    ports:
+      - "8080:8080"
+    environment:
+      # Kết nối tới MySQL container (tên 'mysql' chính là địa chỉ trong mạng Docker)
+      DB_URL: jdbc:mysql://mysql:3306/jobfind?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      DB_USERNAME: root
+      DB_PASSWORD: ${DB_PASSWORD}
+      # Bí mật & key (lấy từ file .env)
+      JWT_BASE64_SECRET: ${JWT_BASE64_SECRET}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      PINECONE_API_KEY: ${PINECONE_API_KEY}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      # Đường dẫn lưu file trên Linux (KHÁC với D:/Upload trên Windows)
+      UPLOAD_BASE_URI: file:/app/uploads/
+      # Tài khoản admin đầu tiên (tạo tự động khi DB rỗng)
+      HOANGTUNG_BOOTSTRAP_ADMIN_EMAIL: ${ADMIN_EMAIL}
+      HOANGTUNG_BOOTSTRAP_ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+    volumes:
+      - upload_data:/app/uploads          # <-- ổ đĩa bền giữ file CV/ảnh
+
+# Khai báo các ổ đĩa bền
+volumes:
+  mysql_data:
+  upload_data:

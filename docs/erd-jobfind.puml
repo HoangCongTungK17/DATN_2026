@@ -1,0 +1,174 @@
+@startuml ERD_JobFind
+title Biểu đồ thực thể liên kết (ERD) - Hệ thống JobFind
+
+hide circle
+skinparam linetype ortho
+skinparam shadowing false
+skinparam roundcorner 6
+skinparam classBackgroundColor #FEFECE
+skinparam classBorderColor #888888
+skinparam classArrowColor #555555
+
+' ============ PHÂN HỆ NGƯỜI DÙNG & PHÂN QUYỀN ============
+entity "User" as user {
+  * id : long <<PK>>
+  --
+  name : string
+  email : string
+  password : string
+  age : int
+  gender : enum
+  address : string
+  provider : string
+  refreshToken : text
+  --
+  role_id : long <<FK>>
+  company_id : long <<FK>>
+}
+
+entity "Role" as role {
+  * id : long <<PK>>
+  --
+  name : string
+  description : string
+  active : boolean
+}
+
+entity "Permission" as perm {
+  * id : long <<PK>>
+  --
+  name : string
+  apiPath : string
+  method : string
+  module : string
+}
+
+' ============ PHÂN HỆ TUYỂN DỤNG ============
+entity "Company" as company {
+  * id : long <<PK>>
+  --
+  name : string
+  description : text
+  address : string
+  logo : string
+}
+
+entity "Job" as job {
+  * id : long <<PK>>
+  --
+  name : string
+  location : string
+  salary : double
+  quantity : int
+  level : enum
+  description : text
+  startDate : datetime
+  endDate : datetime
+  active : boolean
+  --
+  company_id : long <<FK>>
+}
+
+entity "Skill" as skill {
+  * id : long <<PK>>
+  --
+  name : string
+}
+
+entity "Subscriber" as sub {
+  * id : long <<PK>>
+  --
+  name : string
+  email : string
+}
+
+entity "Resume" as resume {
+  * id : long <<PK>>
+  --
+  email : string
+  url : string
+  status : enum
+  aiMatchScore : int
+  --
+  user_id : long <<FK>>
+  job_id : long <<FK>>
+}
+
+' ============ PHÂN HỆ AI ============
+entity "CvAnalysis" as cva {
+  * id : long <<PK>>
+  --
+  fileName : string
+  overallScore : int
+  formatScore : int
+  contentScore : int
+  keywordScore : int
+  impactScore : int
+  summary : text
+  contentHash : string
+  --
+  user_id : long <<FK>>
+}
+
+entity "CvChunk" as cvc {
+  * id : long <<PK>>
+  --
+  vectorId : string
+  contentHash : string
+  chunkType : string
+  chunkIndex : int
+  text : text
+  --
+  resume_id : long <<FK>>
+  cv_analysis_id : long <<FK>>
+  user_id : long <<FK>>
+}
+
+entity "AiTask" as task {
+  * id : long <<PK>>
+  --
+  taskType : enum
+  status : enum
+  progress : int
+  result : text
+  --
+  user_id : long <<FK>>
+}
+
+entity "InterviewSession" as itv {
+  * id : long <<PK>>
+  --
+  jobPosition : string
+  level : string
+  totalQuestions : int
+  currentQuestion : int
+  overallScore : int
+  status : enum
+  questionsData : json
+  finalSummary : text
+  --
+  user_id : long <<FK>>
+}
+
+' ============ QUAN HỆ ============
+' Người dùng & phân quyền
+role     ||--o{ user : được gán
+role     }o--o{ perm : permission_role
+company  ||--o{ user : thuộc về (HR)
+
+' Tuyển dụng & ứng tuyển
+company  ||--o{ job    : đăng tuyển
+job      }o--o{ skill  : job_skill
+sub      }o--o{ skill  : subscriber_skill
+user     ||--o{ resume : nộp
+job      ||--o{ resume : nhận
+
+' AI
+user     ||--o{ cva    : sở hữu
+user     ||--o{ task   : tạo
+user     ||--o{ itv    : thực hiện
+cva      ||--o{ cvc    : gồm
+resume   ||--o{ cvc    : tách đoạn
+user     ||--o{ cvc    : sở hữu
+
+@enduml

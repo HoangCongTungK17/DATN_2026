@@ -1,0 +1,25 @@
+@startuml Lop_InterviewCoachService
+skinparam classBackgroundColor #FFFFCC
+skinparam classBorderColor black
+skinparam backgroundColor #FEFECE
+skinparam ArrowColor black
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+hide circle
+
+class InterviewCoachService <<control>> {
+  - sessionRepository : InterviewSessionRepository
+  - resumeRepository : ResumeRepository
+  - subscriberRepository : SubscriberRepository
+  - skillRepository : SkillRepository
+  - aiGatewayService : AiGatewayService
+  - cvStructuredParserService : CvStructuredParserService
+  - cvVectorService : CvVectorService
+  --
+  + startInterview(req : ReqStartInterviewDTO) : ResInterviewQuestionDTO
+  + submitAnswer(req : ReqAnswerDTO) : ResAnswerFeedbackDTO
+  + getCurrentQuestion(sessionId : long) : ResInterviewQuestionDTO
+  + getSessionSummary(sessionId : long) : ResInterviewSummaryDTO
+  + getInterviewHistory(pageable : Pageable) : ResultPaginationDTO
+}
+@enduml
