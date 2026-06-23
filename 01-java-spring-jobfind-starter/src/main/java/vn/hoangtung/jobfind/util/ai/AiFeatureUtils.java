@@ -57,6 +57,15 @@ public final class AiFeatureUtils {
             "product", Set.of("business analyst", "product", "project manager", "scrum", "agile"),
             "design", Set.of("ui/ux", "figma", "design"));
 
+    // Các domain cùng nhóm "lập trình phần mềm ứng dụng" — dùng để cho điểm domain liền kề.
+    private static final Set<String> ENGINEERING_DOMAINS = Set.of("backend", "frontend", "mobile", "devops");
+
+    // Ngưỡng liên quan tối thiểu: dưới mức này coi như CV không liên quan tới JD.
+    private static final double RELEVANCE_FLOOR = 0.15;
+
+    // Trần điểm cho CV gần như không liên quan tới JD (vd: tài liệu sai chủ đề).
+    private static final int IRRELEVANT_SCORE_CAP = 15;
+
     private AiFeatureUtils() {
     }
 
@@ -447,7 +456,8 @@ public final class AiFeatureUtils {
         }
 
         int skillRequirementCount = normalizedToOriginal.size();
-        double skillMatch = skillRequirementCount == 0 ? 0.5 : (double) matchedSkills.size() / skillRequirementCount;
+        boolean jobDeclaresSkills = skillRequirementCount > 0;
+        double skillMatch = jobDeclaresSkills ? (double) matchedSkills.size() / skillRequirementCount : 0.5;
 
         String candidateLevel = profile.inferredLevel();
         LevelEnum jobLevel = job.getLevel();
@@ -462,16 +472,34 @@ public final class AiFeatureUtils {
 
         double softSkillMatch = computeSoftSkillMatch(profile.hasDegreeSignal(), profile.softSkillSignals());
 
+        // Mức độ liên quan chủ đề giữa CV và đúng JD này: chỉ tính khi có khớp kỹ năng
+        // thực sự, trùng domain, hoặc trùng ngữ nghĩa. Đây là "cổng" chặn các tài liệu
+        // không liên quan (vd: nội quy trường học) đạt điểm cao nhờ tín hiệu chung chung.
+        double skillRelevance = jobDeclaresSkills
+                ? (double) matchedSkills.size() / skillRequirementCount
+                : 0d;
+        double domainOverlap = domainOverlapRatio(profile.domains(), jobDomains);
+        double semanticRelevance = safeSemanticSignal.available()
+                ? safeSemanticSignal.score() / 100d
+                : 0d;
+        double topicalRelevance = Math.max(skillRelevance, Math.max(domainOverlap, semanticRelevance));
+
+        // Level kinh nghiệm và soft-skill là tín hiệu chung chung, không phản ánh mức phù hợp
+        // với JD cụ thể, nên chỉ được cộng tương ứng với độ liên quan chủ đề. Nhờ vậy một tài
+        // liệu sai chủ đề không thể tích lũy điểm chỉ nhờ có bằng cấp hay level mặc định.
+        double genericFit = (experienceMatch * 25d + softSkillMatch * 15d) * topicalRelevance;
         int deterministicScore = clampScore((int) Math.round(
-                skillMatch * 40d + experienceMatch * 25d + domainMatch * 20d + softSkillMatch * 15d));
+                skillMatch * 40d + domainMatch * 20d + genericFit));
         int finalScore = deterministicScore;
         if (safeSemanticSignal.available()) {
             finalScore = clampScore((int) Math.round(deterministicScore * 0.80d
                     + safeSemanticSignal.score() * 0.20d));
         }
 
-        if (profile.detectedSkills().isEmpty() && profile.domains().isEmpty()) {
-            finalScore = Math.min(finalScore, 10);
+        // Cổng liên quan cứng: CV gần như không liên quan tới JD thì không thể đạt điểm cao,
+        // bất kể các tín hiệu chung chung (bằng cấp, level mặc định, base ngữ nghĩa...).
+        if (topicalRelevance < RELEVANCE_FLOOR) {
+            finalScore = Math.min(finalScore, IRRELEVANT_SCORE_CAP);
         }
 
         List<String> evidence = new ArrayList<>();
@@ -753,8 +781,11 @@ public final class AiFeatureUtils {
     }
 
     private static double computeDomainMatch(Set<String> candidateDomains, Set<String> jobDomains) {
-        if (candidateDomains.isEmpty() || jobDomains.isEmpty()) {
-            return 0.5;
+        if (jobDomains.isEmpty()) {
+            return 0.5; // JD không nêu rõ domain → trung tính.
+        }
+        if (candidateDomains.isEmpty()) {
+            return 0.0; // CV không thể hiện domain kỹ thuật nào → không liên quan.
         }
         Set<String> intersection = new HashSet<>(candidateDomains);
         intersection.retainAll(jobDomains);
@@ -762,14 +793,22 @@ public final class AiFeatureUtils {
             return 1.0;
         }
 
-        boolean bothEngineering = intersects(candidateDomains, Set.of("backend", "frontend", "mobile", "devops"))
-                && intersects(jobDomains, Set.of("backend", "frontend", "mobile", "devops"));
-        boolean bothData = candidateDomains.contains("data") && jobDomains.contains("backend")
-                || candidateDomains.contains("backend") && jobDomains.contains("data");
-        if (bothEngineering || bothData) {
-            return 0.7;
+        boolean bothEngineering = intersects(candidateDomains, ENGINEERING_DOMAINS)
+                && intersects(jobDomains, ENGINEERING_DOMAINS);
+        if (bothEngineering) {
+            return 0.4; // Cùng nhóm lập trình ứng dụng nhưng khác mảng.
         }
-        return 0.2;
+        return 0.1; // Domain hoàn toàn khác nhau.
+    }
+
+    private static double domainOverlapRatio(Set<String> candidateDomains, Set<String> jobDomains) {
+        if (candidateDomains == null || jobDomains == null
+                || candidateDomains.isEmpty() || jobDomains.isEmpty()) {
+            return 0d;
+        }
+        Set<String> intersection = new HashSet<>(candidateDomains);
+        intersection.retainAll(jobDomains);
+        return (double) intersection.size() / jobDomains.size();
     }
 
     private static double computeSoftSkillMatch(boolean hasDegreeSignal, int softSkillSignals) {

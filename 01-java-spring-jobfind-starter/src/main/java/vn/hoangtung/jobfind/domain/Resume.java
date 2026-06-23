@@ -61,6 +61,10 @@ public class Resume {
     @Column(columnDefinition = "TEXT")
     private String aiMatchDetails;
 
+    // Dùng để tái sử dụng kết quả matching: chỉ tính lại khi CV (hash) hoặc thuật toán (version) đổi.
+    private String aiMatchVersion;
+    private String aiMatchContentHash;
+
     private boolean vectorized;
     private Instant vectorizedAt;
     private String cvVectorContentHash;

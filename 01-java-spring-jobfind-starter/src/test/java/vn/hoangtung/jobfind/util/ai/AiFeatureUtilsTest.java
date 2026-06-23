@@ -154,6 +154,36 @@ class AiFeatureUtilsTest {
     }
 
     @Test
+    void computeMatch_shouldCollapseScoreForUnrelatedDocument() {
+        Job job = new Job();
+        job.setName("Java Backend Developer");
+        job.setDescription("Build microservices, Spring Boot APIs, Docker deployment");
+        job.setLevel(LevelEnum.JUNIOR);
+        job.setSalary(20_000_000);
+        job.setLocation("Hà Nội");
+        job.setActive(true);
+        job.setSkills(List.of(skill("Java"), skill("Spring Boot"), skill("Docker"), skill("Kafka")));
+
+        // Tài liệu hoàn toàn không liên quan tới IT (nội quy trường học, có cả từ "ai"
+        // và tín hiệu bằng cấp "đại học" để bẫy các điểm sàn cũ).
+        String unrelatedText = """
+                QUY DINH CUA NHA TRUONG
+                Sinh vien phai tuan thu noi quy ky tuc xa va gio giac len lop.
+                Moi truong hop vi pham se bi xu ly theo quy che dai hoc hien hanh.
+                Khong ai duoc tu y roi khoi truong trong gio hoc.
+                """;
+
+        MatchBreakdown breakdown = AiFeatureUtils.computeMatch(
+                job,
+                unrelatedText,
+                Set.of("Java", "Spring Boot", "Docker", "Kafka"));
+
+        assertTrue(breakdown.finalScore() <= 20,
+                "Tài liệu không liên quan phải đạt điểm rất thấp, nhưng nhận được " + breakdown.finalScore());
+        assertTrue(breakdown.matchedSkills().isEmpty());
+    }
+
+    @Test
     void computeMatch_shouldMatchCanonicalSkillAliases() {
         Job job = new Job();
         job.setName("Platform Frontend Engineer");

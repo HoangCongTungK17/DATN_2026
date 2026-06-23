@@ -10,6 +10,7 @@ import {
 } from "@ant-design/icons";
 import { useEffect, useState } from "react";
 import { callFetchAdminJob, callFetchCompany, callFetchUser, callFetchResume } from "@/config/api";
+import { getLocationName } from "@/config/utils";
 import {
     BarChart,
     Bar,
@@ -72,10 +73,9 @@ const DashboardPage = () => {
             if (jobsRes?.data?.result) {
                 const locationCount: Record<string, number> = {};
                 jobsRes.data.result.forEach((job: any) => {
-                    const location = job.location || "Others";
-                    const key = location.includes("Hà Nội") ? "Hà Nội" :
-                        location.includes("Hồ Chí Minh") ? "TP. HCM" :
-                            location.includes("Đà Nẵng") ? "Đà Nẵng" : "Khác";
+                    // job.location lưu dưới dạng mã (HANOI, HOCHIMINH...) nên phải đổi sang nhãn
+                    // hiển thị; getLocationName cũng xử lý được dữ liệu cũ lưu thẳng nhãn tiếng Việt.
+                    const key = job.location ? getLocationName(job.location) : "Khác";
                     locationCount[key] = (locationCount[key] || 0) + 1;
                 });
                 setLocationData(Object.entries(locationCount).map(([name, value]) => ({ name, value })));

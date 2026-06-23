@@ -29,4 +29,5 @@ public class ResCvMatchDTO {
     private List<String> recommendations;
     private List<String> evidence;
     private String detectedCandidateLevel;
+    private boolean cached;
 }

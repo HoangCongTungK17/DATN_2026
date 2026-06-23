@@ -55,7 +55,7 @@ public class CvDoctorService {
     private static final long MAX_FILE_SIZE = 5 * 1024 * 1024;
     private static final int MAX_CV_CHARS = 8000;
     private static final String CV_ANALYSIS_PROMPT_VERSION = "cv-doctor-v3-structured";
-    private static final String CV_MATCHING_PROMPT_VERSION = "cv-jd-match-v3-structured";
+    private static final String CV_MATCHING_PROMPT_VERSION = "cv-jd-match-v4-relevance-gated";
     private static final int CV_MATCH_SEMANTIC_TOP_K = 30;
     private static final Set<String> SEMANTIC_STOP_WORDS = Set.of(
             "candidate", "cv", "profile", "target", "job", "position", "description", "company",
@@ -311,9 +311,17 @@ public class CvDoctorService {
 
         ExtractedCvText extractedCvText = extractTextFromStoredResume(resume);
         String cvText = extractedCvText.text();
+        String contentHash = aiGatewayService.fingerprint(cvText);
+
+        // Tái sử dụng kết quả đã lưu nếu CV (hash) và thuật toán matching (version) không đổi —
+        // tránh gọi lại LLM (parse CV + matching) và vector search ở mỗi lần bấm match.
+        ResCvMatchDTO cachedResult = loadCachedMatch(resume, job, contentHash);
+        if (cachedResult != null) {
+            return cachedResult;
+        }
+
         Set<String> knownSkills = loadKnownSkills();
         ParsedCv parsedCv = cvStructuredParserService.parse(cvText, knownSkills, extractedCvText.pageCount());
-        String contentHash = aiGatewayService.fingerprint(cvText);
         cvVectorService.indexResumeSafely(resume, parsedCv, cvText, currentUser, contentHash);
         SemanticMatchSignal semanticMatchSignal = computeSemanticMatch(job, resume, parsedCv, cvText);
         MatchBreakdown breakdown = AiFeatureUtils.computeMatch(
@@ -346,18 +354,51 @@ public class CvDoctorService {
         result.setResumeId(resumeId);
         result.setJobId(job.getId());
         result.setJobName(job.getName());
+        result.setCached(false);
 
+        persistMatchResult(resume, result, contentHash);
+        return result;
+    }
+
+    /**
+     * Trả về kết quả matching đã lưu nếu còn hợp lệ (cùng CV, cùng job, cùng version thuật toán),
+     * ngược lại trả null để buộc tính lại.
+     */
+    private ResCvMatchDTO loadCachedMatch(Resume resume, Job job, String contentHash) {
+        if (resume.getAiMatchDetails() == null || resume.getAiMatchDetails().isBlank()) {
+            return null;
+        }
+        if (!CV_MATCHING_PROMPT_VERSION.equals(resume.getAiMatchVersion())) {
+            return null;
+        }
+        if (!contentHash.equals(resume.getAiMatchContentHash())) {
+            return null;
+        }
+        try {
+            ResCvMatchDTO cached = objectMapper.readValue(resume.getAiMatchDetails(), ResCvMatchDTO.class);
+            if (cached.getJobId() != job.getId()) {
+                return null;
+            }
+            cached.setCached(true);
+            return cached;
+        } catch (Exception e) {
+            System.out.println(">>> [CV Matching] ⚠️ Không đọc được cache matching, sẽ tính lại: " + e.getMessage());
+            return null;
+        }
+    }
+
+    private void persistMatchResult(Resume resume, ResCvMatchDTO result, String contentHash) {
         try {
             String detailsJson = objectMapper.writeValueAsString(result);
             resume.setAiMatchScore(result.getMatchScore());
             resume.setAiMatchSummary(result.getSummary());
             resume.setAiMatchDetails(detailsJson);
+            resume.setAiMatchVersion(CV_MATCHING_PROMPT_VERSION);
+            resume.setAiMatchContentHash(contentHash);
             resumeRepository.save(resume);
         } catch (Exception e) {
             throw new RuntimeException("Không thể lưu kết quả matching: " + e.getMessage(), e);
         }
-
-        return result;
     }
 
     public ResultPaginationDTO getCvAnalysisHistory(Pageable pageable) {
@@ -565,7 +606,9 @@ public class CvDoctorService {
                 .toList();
         double jobCoverage = (double) sharedTerms.size() / jobTerms.size();
         double diceOverlap = (2d * sharedTerms.size()) / (jobTerms.size() + cvTerms.size());
-        int score = AiFeatureUtils.clampScore((int) Math.round(40d + jobCoverage * 45d + diceOverlap * 15d));
+        // Không cộng base cứng: 0 từ trùng -> 0 điểm. Điểm tỉ lệ thuận với mức phủ JD và độ
+        // trùng hai chiều, tránh việc tài liệu sai chủ đề vẫn nhận điểm ngữ nghĩa nền ~40.
+        int score = AiFeatureUtils.clampScore((int) Math.round(jobCoverage * 100d + diceOverlap * 40d));
 
         List<String> evidence = new ArrayList<>();
         evidence.add("Deterministic semantic score uses only the current CV and JD text, not vector corpus rank.");

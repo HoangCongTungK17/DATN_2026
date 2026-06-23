@@ -45,6 +45,8 @@ services:
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       # Đường dẫn lưu file trên Linux (KHÁC với D:/Upload trên Windows)
       UPLOAD_BASE_URI: file:/app/uploads/
+      # Chạy sau reverse proxy (nginx): tin X-Forwarded-Proto để biết request gốc là HTTPS (fix lỗi 403 CORS)
+      SERVER_FORWARD_HEADERS_STRATEGY: framework
       # Tài khoản admin đầu tiên (tạo tự động khi DB rỗng)
       HOANGTUNG_BOOTSTRAP_ADMIN_EMAIL: ${ADMIN_EMAIL}
       HOANGTUNG_BOOTSTRAP_ADMIN_PASSWORD: ${ADMIN_PASSWORD}

@@ -222,6 +222,7 @@ export interface ICvMatch {
   matchedSkills: string[];
   missingSkills: string[];
   recommendations: string[];
+  cached?: boolean;
 }
 
 // ===============================
