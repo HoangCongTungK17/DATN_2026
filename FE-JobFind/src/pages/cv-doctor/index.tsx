@@ -115,7 +115,12 @@ const CvDoctorPage = () => {
         message.success("Phân tích CV thành công!");
         fetchHistory();
       } else {
-        message.error("Không thể phân tích CV.");
+        // Lỗi HTTP (400/5xx) đã được axios interceptor hiển thị toast cụ thể
+        // (vd: file scan không có text, CV quá ngắn) -> tránh toast trùng/generic.
+        const code = (submitted as any)?.statusCode ?? (res as any)?.statusCode;
+        if (!code || code < 400) {
+          message.error("Không thể phân tích CV.");
+        }
       }
     } catch (error: unknown) {
       if ((error as any)?.name === "AbortError") return;

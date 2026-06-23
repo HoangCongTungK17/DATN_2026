@@ -133,6 +133,10 @@ const InterviewCoachPage = () => {
             message.warning('Vui lòng nhập câu trả lời');
             return;
         }
+        if (answer.trim().length < 10) {
+            message.warning('Câu trả lời cần tối thiểu 10 ký tự để AI có thể đánh giá.');
+            return;
+        }
         setLoading(true);
         setTaskProgress(0);
         setLoadingText('AI đang đánh giá câu trả lời...');
@@ -424,6 +428,14 @@ const InterviewCoachPage = () => {
                             maxLength={2000}
                             showCount
                         />
+                        <div style={{ textAlign: 'right', marginTop: 4 }}>
+                            <Text
+                                type={answer.trim().length > 0 && answer.trim().length < 10 ? 'danger' : 'secondary'}
+                                style={{ fontSize: 12 }}
+                            >
+                                Tối thiểu 10 ký tự
+                            </Text>
+                        </div>
                     </div>
 
                     <Button

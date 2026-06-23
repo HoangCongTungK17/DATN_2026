@@ -1,5 +1,5 @@
 import { callFetchJob } from "@/config/api";
-import { convertSlug, getLocationName, LOCATION_LIST } from "@/config/utils";
+import { convertSlug, getLocationName } from "@/config/utils";
 import { IJob } from "@/types/backend";
 import {
   EnvironmentOutlined,
@@ -64,13 +64,10 @@ const JobCard = (props: IProps) => {
 
       // 1. Tìm theo địa điểm (Location)
       if (queryLocation) {
+        // DB lưu location dưới dạng MÃ (HANOI, HOCHIMINH, DANANG...), nên phải lọc
+        // theo đúng mã. KHÔNG đổi sang nhãn "Hà Nội" vì sẽ không khớp gì (đó là lỗi cũ).
         const locationValues = queryLocation.split(",");
-        const locationLabels = locationValues.map((val) => {
-          const found = LOCATION_LIST.find((item) => item.value === val);
-          return found ? found.label : val;
-        });
-
-        q = sfIn("location", locationLabels).toString();
+        q = sfIn("location", locationValues).toString();
       }
 
       // 2. Tìm theo kỹ năng (Skills)

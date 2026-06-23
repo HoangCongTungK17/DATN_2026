@@ -35,6 +35,17 @@ const isRefreshEndpoint = (url?: string) => {
     return !!url && url.includes('/api/v1/auth/refresh');
 };
 
+// Trich thong diep loi nguoi-doc-duoc tu body cua backend (RestResponse).
+// `message` co the la string hoac mang (khi co nhieu loi validation).
+const extractErrorMessage = (data: any): string => {
+    if (!data) return "";
+    const msg = data.message;
+    if (Array.isArray(msg)) return msg.filter(Boolean).join(", ");
+    if (typeof msg === "string" && msg.trim()) return msg;
+    if (typeof data.error === "string" && data.error.trim()) return data.error;
+    return "";
+};
+
 const handleRefreshToken = async (): Promise<string | null> => {
     return await mutex.runExclusive(async () => {
         const res = await instance.get<IBackendRes<AccessTokenResponse>>('/api/v1/auth/refresh');
@@ -93,14 +104,27 @@ instance.interceptors.response.use(
             store.dispatch(setRefreshTokenAction({ status: true, message }));
         }
 
-        if (+error.response.status === 403) {
-            notification.error({
-                message: error?.response?.data?.message ?? "",
-                description: error?.response?.data?.error ?? ""
-            })
+        const requestUrl = error?.config?.url;
+        if (error.response) {
+            // Interceptor RESOLVE voi error body (giu hanh vi cu) => khoi .catch() cua
+            // caller se KHONG chay. Vi vay phai hien toast loi ngay tai day, neu khong
+            // loi se bi "nuot" am tham (vd: file qua 5MB, cau tra loi < 10 ky tu...).
+            const status = +error.response.status;
+            const skipToast =
+                status === 401                          // 401 da xu ly o tren (refresh/login modal)
+                || isRefreshEndpoint(requestUrl)
+                || isAuthPublicEndpoint(requestUrl);    // login/register/google tu hien loi rieng
+            if (!skipToast) {
+                notification.error({
+                    message: "Thao tác không thành công",
+                    description: extractErrorMessage(error.response.data) || `Đã xảy ra lỗi (mã ${status}).`,
+                });
+            }
+            return error.response.data;
         }
 
-        return error?.response?.data ?? Promise.reject(error);
+        // Khong co response (mat mang / timeout / huy request): de caller .catch() xu ly.
+        return Promise.reject(error);
     }
 );
 
